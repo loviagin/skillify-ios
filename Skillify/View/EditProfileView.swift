@@ -1,0 +1,410 @@
+//
+//  EditProfileView.swift
+//  Skillify App
+//
+//  Created by Ilia Loviagin on 19.12.2023.
+//
+
+import SwiftUI
+import Firebase
+import FirebaseStorage
+
+struct EditProfileView: View {
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @Environment(\.presentationMode) private var presentationMode
+    
+    @State private var first_name = ""
+    @State private var last_name = ""
+    @State private var bio = ""
+    @State private var nickname = ""
+    @State private var email = ""
+    @State private var birthDate = Date()
+    @State private var gender = "-"
+    @State private var isImagePickerPresented = false
+    @State private var showAvatarChooser = false
+    @State private var showAvatarStandard = false
+    @State private var selectedImage: UIImage?
+    @State private var isLoading = false
+    
+    @State var isImageUploaded = false
+    @State var isAvatarUploaded = false
+    @State private var showNicknameAlert = false // Для отображения предупреждения
+    @State private var showNicknameUAlert = false // Для отображения предупреждения
+    @State private var showAlert: String? = nil
+    @State var colorAvatar: Color = .blue.opacity(0.4)
+    
+    let genders = ["-", "Male", "Female", "Other"]
+    
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading) {
+                    HStack {
+                        if let selectedImage {
+                            Image(uiImage: selectedImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 100, height: 100)
+                                .clipShape(Circle())
+                        } else {
+                            if UserHelper.avatars.contains(authViewModel.currentUser?.urlAvatar.split(separator: ":").first.map(String.init) ?? "") {
+                                Image(authViewModel.currentUser!.urlAvatar.split(separator: ":").first.map(String.init) ?? "")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .padding(.top, 10)
+                                    .frame(width: 80, height: 80)
+                                    .padding(.vertical, 10)
+                                    .background(colorAvatar)
+                                    .clipShape(Circle())
+                            } else if let urlString = authViewModel.currentUser?.urlAvatar, let url = URL(string: urlString) {
+                                AsyncImage(url: url) { image in
+                                    image
+                                        .resizable()
+                                        .clipShape(Circle())
+                                } placeholder: {
+                                    Image("user") // Ваш плейсхолдер
+                                        .resizable()
+                                }
+                                .frame(width: 80, height: 80)
+                                .padding(.vertical, 10)
+                            } else {
+                                Image("user") // Тот же плейсхолдер, если URL не существует
+                                    .resizable()
+                                    .frame(width: 80, height: 80)
+                                    .padding(.vertical, 10)
+                            }
+                        }
+                        VStack(alignment: .leading) {
+                            Text("Avatar image *")
+//                            Button {
+//                                isImagePickerPresented = true
+//                            } label: {
+                            Text("Choose your avatar")
+                                .frame(width: 150, height: 20)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 5)
+                                .background(.lGray)
+                                .cornerRadius(15)
+                                .onTapGesture {
+                                    showAvatarChooser = true
+                                }
+                                .confirmationDialog("Avatar type", isPresented: $showAvatarChooser, titleVisibility: .visible) {
+                                    Button("Standard avatar") {
+                                        showAvatarStandard = true
+                                    }
+                                    Button("Your selfie") {
+                                        isImagePickerPresented = true
+                                    }
+                                } message: {
+                                    Text("Standard image or your selfie")
+                                }
+                                .sheet(isPresented: $showAvatarStandard) {
+                                    StandardAvatarView(isImageUploaded: $isAvatarUploaded, colorAvatar: $colorAvatar)
+                                        .presentationDetents([.height(600), .large])
+                                }
+                            // }
+                        }
+                        .padding(.leading, 20)
+                        if UserHelper.isUserPro(authViewModel.currentUser?.pro) {
+                            Spacer()
+                            
+                            NavigationLink(destination: CustomizeProfileView()) {
+                                Image(systemName: "paintbrush.pointed.fill")
+                                    .foregroundStyle(.brandBlue)
+                            }
+                        }
+                    }
+                    .padding(.bottom, 20)
+                    Text("First name *")
+                    TextField("Your First name", text: $first_name)
+                        .textFieldStyle(.roundedBorder)
+                        .padding(.bottom, 20)
+                        .onReceive(first_name.publisher.collect()) {
+                            let filtered = filterSpecialCharacters(from: String($0))
+                            if filtered.count > 15 {
+                                first_name = String(filtered.prefix(15))
+                            } else {
+                                first_name = filtered
+                            }
+                        }
+                    
+                    Text("Last name")
+                    TextField("Your Last name", text: $last_name)
+                        .textFieldStyle(.roundedBorder)
+                        .padding(.bottom, 20)
+                        .onReceive(last_name.publisher.collect()) {
+                            let filtered = filterSpecialCharacters(from: String($0))
+                            if filtered.count > 15 {
+                                last_name = String(filtered.prefix(15))
+                            } else {
+                                last_name = filtered
+                            }
+                        }
+                    Text("Short description")
+                    PlaceholderTextEditor(placeholder: "Enter your bio...", text: $bio)
+                        .frame(minHeight: 10, maxHeight: 80)
+                        .padding(.bottom, 20)
+                        .border(.lGray, width: 1)
+                        .background(.background)
+                        .cornerRadius(15)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .onReceive(bio.publisher.collect()) {
+                            let filtered = String($0)
+                            if filtered.count > 75 {
+                                bio = String(filtered.prefix(75))
+                            } else {
+                                bio = filtered
+                            }
+                        }
+                    
+                    Text("Nickname *")
+                    TextField("@nickname", text: $nickname)
+                        .autocapitalization(.none)
+                        .textFieldStyle(.roundedBorder)
+                        .onReceive(nickname.publisher.collect()) {
+                            let filtered = filterSpecialCharacters(from: String($0))
+                            if filtered.count > 15 {
+                                nickname = String(filtered.prefix(15))
+                                showNicknameAlert = true
+                            } else {
+                                nickname = filtered
+                            }
+                        }
+                        .alert(isPresented: $showNicknameAlert) {
+                            Alert(title: Text("Invalid Character"),
+                                  message: Text("Only letters, numbers, hyphens, and underscores are allowed in nicknames."),
+                                  dismissButton: .default(Text("OK")))
+                        }
+                    if showNicknameUAlert {
+                        Text("This nickname already in use")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                    DatePicker(
+                        "Your birthday",
+                        selection: $birthDate,
+                        in: ...Date(), // Ограничиваем дату текущим днем и ранее
+                        displayedComponents: .date // Показываем только компонент даты
+                    )
+                    .padding([.bottom, .top], 15)
+                    
+                    HStack {
+                        Text("Select your gender")
+                        Spacer()
+                        Picker("Male", selection: $gender) {
+                            ForEach(genders, id: \.self) { gender in
+                                Text(gender).tag(gender)
+                            }
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                    }
+                    .padding(.bottom, 10)
+                    
+                    Text("Email")
+                    TextField("", text: $email)
+                        .textFieldStyle(.roundedBorder)
+                        .disabled(true)
+                    Spacer()
+                    Button {
+                        checkAgeAndSave()
+                    } label: {
+                        if isLoading {
+                            ProgressView()
+                                .padding(.vertical, 15)
+                                .frame(maxWidth: .infinity)
+                                .background(.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(15)
+                        } else {
+                            Text("Save")
+                                .padding(.vertical, 15)
+                                .frame(maxWidth: .infinity)
+                                .background(.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(15)
+                        }
+                    }
+                    .padding(.top)
+                    Text("* - required field")
+                        .font(.caption2)
+                } // VStack main (after ScrollView main)
+                
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .navigationTitle("Edit your profile")
+                .navigationBarTitleDisplayMode(.inline)
+                .onDisappear {
+                    checkAgeAndSave()
+                }
+                .onAppear {
+                    isLoading = false
+                    first_name = authViewModel.currentUser?.first_name ?? ""
+                    last_name = authViewModel.currentUser?.last_name ?? ""
+                    bio = authViewModel.currentUser?.bio ?? ""
+                    email = authViewModel.currentUser?.email ?? ""
+                    gender = authViewModel.currentUser?.sex.isEmpty ?? true ? "-" : authViewModel.currentUser?.sex ?? "Male"
+                    if UserHelper.avatars.contains(authViewModel.currentUser?.urlAvatar.split(separator: ":").first.map(String.init) ?? "") {
+                        if let colorString = authViewModel.currentUser?.urlAvatar.split(separator: ":").last.map(String.init) {
+                            self.colorAvatar = Color.fromRGBAString(colorString) ?? Color.blue.opacity(0.4)
+                        } else {
+                            self.colorAvatar = Color.blue.opacity(0.4)
+                        }
+                    }
+                    if let nk = authViewModel.currentUser?.nickname {
+                        if nk.isEmpty {
+                            let v = UserHelper.generateNickname()
+                            DispatchQueue.main.async {
+                                nickname = v
+                            }
+                        } else {
+                            nickname = nk
+                        }
+                    }
+                    nickname = authViewModel.currentUser?.nickname ?? ""
+                    birthDate = authViewModel.currentUser?.birthday ?? Date()
+                }
+                .sheet(isPresented: $isImagePickerPresented) {
+                    ImagePicker(selectedImage: $selectedImage, isImageUploaded: $isImageUploaded, allowsEditing: true)
+                }
+            }
+            
+            .alert(isPresented: .constant(showAlert != nil)) {
+                Alert(
+                    title: Text(showAlert!),
+                    message: Text("This is necessary for better interaction with the application."),
+                    dismissButton: .default(Text("OK"), action: {
+                        showAlert = nil // Сбросить showAlert после закрытия алерта
+                    })
+                )
+            }
+        }
+    }
+    
+    func filterSpecialCharacters(from string: String) -> String {
+        let allowedCharacters = CharacterSet.letters.union(.decimalDigits).union(CharacterSet(charactersIn: "-_"))
+        return string.filter { String($0).rangeOfCharacter(from: allowedCharacters) != nil }
+    }
+    
+    
+    func uploadImage() {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        if isImageUploaded {
+            guard let imageData = selectedImage?.jpegData(compressionQuality: 0.5) else { return }
+            
+            let storageRef = Storage.storage().reference().child("iosUsers/\(uid)/avatar.jpg")
+            storageRef.putData(imageData, metadata: nil) { metadata, error in
+                guard metadata != nil else {
+                    // Обработка ошибки загрузки
+                    return
+                }
+                
+                storageRef.downloadURL { url, error in
+                    guard let downloadURL = url else {
+                        // Обработка ошибки получения URL
+                        return
+                    }
+                    
+                    // Сохранение URL в Firestore
+                    saveDataWithAvatar(uid: uid, avatar: downloadURL.absoluteString)
+                }
+            }
+        } else if isAvatarUploaded {
+            saveDataWithAvatar(uid: uid, avatar: authViewModel.currentUser!.urlAvatar)
+        } else if authViewModel.currentUser!.urlAvatar != "" {
+            let db = Firestore.firestore()
+            db.collection("users").document(uid).updateData(["first_name": first_name,
+                                                             "last_name": last_name,
+                                                             "bio": bio,
+                                                             "sex": gender,
+                                                             "birthday": birthDate,
+                                                             "nickname": nickname]) { error in
+                if let error = error {
+                    // Обработка ошибки обновления Firestore
+                    print("Error updating document: \(error)")
+                } else {
+                    authViewModel.currentUser?.first_name = first_name
+                    authViewModel.currentUser?.last_name = last_name
+                    authViewModel.currentUser?.bio = bio
+                    authViewModel.currentUser?.sex = gender
+                    authViewModel.currentUser?.nickname = nickname
+                    authViewModel.currentUser?.birthday = birthDate
+                    print("Document successfully updated")
+                }
+            }
+        }
+    }
+    
+    private func saveDataWithAvatar(uid: String, avatar: String) {
+        let db = Firestore.firestore()
+        db.collection("users").document(uid).updateData(["urlAvatar": "\(avatar):\((UIColor(colorAvatar).cgColor.components?.map { "\($0)" }.joined(separator: ","))!)",
+                                                         "first_name": first_name,
+                                                         "last_name": last_name,
+                                                         "bio": bio,
+                                                         "sex": gender,
+                                                         "birthday": birthDate,
+                                                         "nickname": nickname,]) { error in
+            if let error = error {
+                // Обработка ошибки обновления Firestore
+                print("Error updating document: \(error)")
+            } else {
+                authViewModel.currentUser?.first_name = first_name
+                authViewModel.currentUser?.last_name = last_name
+                authViewModel.currentUser?.bio = bio
+                authViewModel.currentUser?.sex = gender
+                authViewModel.currentUser?.birthday = birthDate
+                authViewModel.currentUser?.nickname = nickname
+                authViewModel.currentUser?.urlAvatar = "\(avatar):\((UIColor(colorAvatar).cgColor.components?.map { "\($0)" }.joined(separator: ","))!)"
+                print("Document successfully updated")
+            }
+        }
+    }
+    
+    func checkAgeAndSave() {
+        let calendar = Calendar.current
+        let ageComponents = calendar.dateComponents([.year], from: birthDate, to: Date())
+        let age = ageComponents.year ?? 0
+        if age < 12 {
+            DispatchQueue.main.async {
+                showAlert = "You must be 12 years old or older"
+            }
+        } else if first_name.isEmpty {
+            DispatchQueue.main.async {
+                showAlert = "Please enter your Name"
+            }
+        } else if !isImageUploaded && authViewModel.currentUser!.urlAvatar == "" {
+            DispatchQueue.main.async {
+                showAlert = "Please upload your avatar"
+            }
+        } else {
+            isLoading = true
+            UserDefaults.standard.setValue(first_name, forKey: "nameUser")
+            authViewModel.isNicknameUnique(nickname) { isUnique in
+                if isUnique {
+                    DispatchQueue.main.async {
+                        showNicknameUAlert = false
+                    }
+                    uploadImage()
+                    presentationMode.wrappedValue.dismiss()
+                } else {
+                    DispatchQueue.main.async {
+                        showNicknameUAlert = true
+                        isLoading = false
+                    }
+                }
+            }
+        }
+    }
+}
+
+extension Color {
+    static func fromRGBAString(_ rgbaString: String) -> Color? {
+        let components = rgbaString.split(separator: ",").compactMap { Double($0) }
+        return components.count == 4 ? Color(.sRGB, red: components[0], green: components[1], blue: components[2], opacity: components[3]) : nil
+    }
+}
+
+
+#Preview {
+    EditProfileView()
+        .environmentObject(AuthViewModel.mock)
+}
