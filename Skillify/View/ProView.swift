@@ -125,6 +125,11 @@ struct ProView: View {
                     }
                     .padding(5)
                 } else {
+                    VStack {
+                        Text("Your subsription ends on")
+                        Text("\(Calendar.current.dateComponents([.day, .month], from: Date(timeIntervalSince1970: viewModel.currentUser?.pro ?? 0)))")
+                    }
+                    
                     Button {
                         viewModel.cancelPro()
                         dismiss()

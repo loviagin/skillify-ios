@@ -675,7 +675,7 @@ extension AuthViewModel {
     static var mock: AuthViewModel {
         let viewModel = AuthViewModel()
         viewModel.currentUser = User(id: "98989898jkjhgythikl", first_name: "Elian", last_name: "Loviagin", email: "ilia@loviagin.com", nickname: "nick", phone: "+70909998876", birthday: Date())
-//        viewModel.currentUser?.pro = Date().timeIntervalSince1970 + 2592000000
+        viewModel.currentUser?.pro = Calendar.current.date(byAdding: .month, value: 1, to: Date())?.timeIntervalSince1970 ?? 0
         viewModel.currentUser?.proData = ["user", "cover:3"]
         viewModel.currentUser?.urlAvatar = "avatar2"
         viewModel.currentUser?.devices = ["f3498hervuhivuheiqidcjeq", "owivje9qfh9r8euqw9e"]

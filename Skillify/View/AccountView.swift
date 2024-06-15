@@ -12,6 +12,7 @@ import FirebaseFirestore
 struct AccountView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State var blocked: Int = 0
+    @State private var selectedTab = 0
     
     var body: some View {
         if authViewModel.isLoading {
@@ -25,44 +26,41 @@ struct AccountView: View {
         } else if authViewModel.currentUser?.learningSkills.isEmpty ?? false {
             LearningSkillsView(authViewModel: authViewModel)
         } else {
-            TabView {
+            TabView(selection: $selectedTab) {
                 FeedMainView(extraSkillsList: [])
                     .tabItem {
-                        Label {
-                            Text("Main")
-                        } icon: {
-                            Image(systemName: "house.circle")
-                        }
+                        Label("Main", systemImage: "house.circle")
+                            .environment(\.symbolVariants, selectedTab == 0 ? .fill : .none)
                     }
+                    .tag(0)
                 
                 DiscoverView()
                     .tabItem {
-                        Label {
-                            Text("Discover")
-                        } icon: {
-                            Image(systemName: "magnifyingglass.circle.fill")
-                        }
+                        Label("Discover", systemImage: "magnifyingglass.circle")
+                            .environment(\.symbolVariants, selectedTab == 1 ? .fill : .none)
                     }
+                    .tag(1)
                 
-                if UserHelper.isUserPro(authViewModel.currentUser?.pro) {
-                    CoursesView()
-                        .tabItem {
-                            Label {
-                                Text("Courses")
-                            } icon: {
-                                Image(systemName: "play.rectangle.fill")
-                                    .symbolRenderingMode(.multicolor)
-                            }
-                        }
-                        .toolbar(.visible, for: .tabBar)
-                }
+//                if UserHelper.isUserPro(authViewModel.currentUser?.pro) {
+//                    CoursesView()
+//                        .tabItem {
+//                            Label {
+//                                Text("Courses")
+//                            } icon: {
+//                                Image(systemName: "play.rectangle.fill")
+//                                    .symbolRenderingMode(.multicolor)
+//                            }
+//                        }
+//                        .toolbar(.visible, for: .tabBar)
+//                }
                 
                 MainAccountView(blocked: $blocked)
                     .tabItem {
-                        Image(systemName: "person.crop.circle.fill")
-                        Text("Account")
+                        Label("Account", systemImage: "person.crop.circle")
+                            .environment(\.symbolVariants, selectedTab == 3 ? .fill : .none)
                     }
                     .toolbar(.visible, for: .tabBar)
+                    .tag(3)
             }
             .tabViewStyle(DefaultTabViewStyle())
             .background(Color.gray)
