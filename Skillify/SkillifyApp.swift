@@ -87,11 +87,16 @@ extension AppDelegate: PKPushRegistryDelegate {
             let callStatus = a["callStatus"] as? String ?? "incoming"
             let channelName = a["channelName"] as? String ?? ""
             let token = a["token"] as? String ?? ""
+            let uid = a["uid"] as? UInt ?? 0
             let videoCall = a["hasVideo"] as? Bool ?? false
             
             if callStatus == "incoming" {
                 // Обработка входящего звонка (например, через CallKit)
                 print("incoming voip cheched")
+                if uid != 0 {
+                    callManager.agoraManager.users.append(UInt.random(in: 1...1000))
+                    callManager.agoraManager.users.append(uid)
+                }
                 callManager.setCall(caller: callerId, uuid: callUUID, channelName: channelName, hasVideo: videoCall, token: token) {
                     self.callManager.reportIncomingCall()
                 }

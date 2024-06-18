@@ -13,31 +13,40 @@ class AgoraManager: NSObject, ObservableObject {
     var agoraKit: AgoraRtcEngineKit!
     var provider: CXProvider?
     var callId: UUID?
+    var users: [UInt] = []
     weak var callManager: CallManager?
     
-    init(appId: String, _ callManager: CallManager) {
+    private var delegates = NSHashTable<AnyObject>.weakObjects()
+    
+    init(appId: String, callManager: CallManager) {
         super.init()
         agoraKit = AgoraRtcEngineKit.sharedEngine(withAppId: appId, delegate: self)
         self.callManager = callManager
     }
     
-    func joinChannel(channel: String, token: String?, videoCall: Bool, provider: CXProvider, callId: UUID, completion: @escaping () -> Void) {
-//        print("here AgoraManager \(token)")
+    func addDelegate(_ delegate: AgoraRtcEngineDelegate) {
+        delegates.add(delegate)
+    }
+    
+    func removeDelegate(_ delegate: AgoraRtcEngineDelegate) {
+        delegates.remove(delegate)
+    }
+    
+    func joinChannel(channel: String, token: String?, videoCall: Bool, provider: CXProvider, callId: UUID, completion: @escaping (UInt) -> Void) {
         self.provider = provider
         self.callId = callId
         if let token {
             agoraKit.joinChannel(byToken: token, channelId: channel, info: nil, uid: 0) { (channel, uid, elapsed) in
-                // Подключено к каналу
                 self.setup(videoCall: videoCall)
                 print("Joined channel: \(channel) with uid: \(uid)")
-                completion()
+                self.users.append(uid)
+                completion(uid)
             }
         } else {
             agoraKit.joinChannel(byToken: nil, channelId: channel, info: nil, uid: 0) { (channel, uid, elapsed) in
-                // Подключено к каналу
                 print("Joined channel: \(channel) with uid: \(uid)")
                 self.setup(videoCall: videoCall)
-                completion()
+                completion(uid)
             }
         }
     }
@@ -49,20 +58,20 @@ class AgoraManager: NSObject, ObservableObject {
     
     func setup(videoCall: Bool) {
         if videoCall {
-            self.agoraKit?.enableVideo()
-            self.agoraKit?.setVideoEncoderConfiguration(AgoraVideoEncoderConfiguration(
+            agoraKit.enableVideo()
+            agoraKit.setVideoEncoderConfiguration(AgoraVideoEncoderConfiguration(
                 size: AgoraVideoDimension640x360,
                 frameRate: .fps15,
                 bitrate: AgoraVideoBitrateStandard,
                 orientationMode: .adaptative,
                 mirrorMode: .auto
             ))
-            self.agoraKit?.setChannelProfile(.liveBroadcasting)
-            self.agoraKit?.setClientRole(.broadcaster)
+            agoraKit.setChannelProfile(.liveBroadcasting)
+            agoraKit.setClientRole(.broadcaster)
         } else {
-            self.agoraKit?.setChannelProfile(.communication)
+            agoraKit.setChannelProfile(.communication)
         }
-        self.agoraKit?.enableAudio()
+        agoraKit.enableAudio()
     }
 }
 
@@ -73,6 +82,11 @@ extension AgoraManager: AgoraRtcEngineDelegate {
             self.callManager?.startCallTimer()
             UIApplication.shared.isIdleTimerDisabled = true
         }
+        
+        for delegate in delegates.allObjects {
+            (delegate as? AgoraRtcEngineDelegate)?.rtcEngine?(engine, didJoinedOfUid: uid, elapsed: elapsed)
+        }
+        
         callManager?.answered = true
         if let provider = provider, let callId = callId {
             provider.reportOutgoingCall(with: callId, connectedAt: Date())
@@ -81,10 +95,19 @@ extension AgoraManager: AgoraRtcEngineDelegate {
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinChannel channel: String, withUid uid: UInt, elapsed: Int) {
         print("New user joined channel: \(channel) with uid: \(uid)")
+        
+        for delegate in delegates.allObjects {
+            (delegate as? AgoraRtcEngineDelegate)?.rtcEngine?(engine, didJoinChannel: channel, withUid: uid, elapsed: elapsed)
+        }
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, didLeaveChannelWith stats: AgoraChannelStats) {
         print("New user left channel with stats: \(stats)")
+        
+        for delegate in delegates.allObjects {
+            (delegate as? AgoraRtcEngineDelegate)?.rtcEngine?(engine, didLeaveChannelWith: stats)
+        }
+        
         if let provider = provider, let callId = callId {
             provider.reportCall(with: callId, endedAt: Date(), reason: .declinedElsewhere)
         }
@@ -92,22 +115,6 @@ extension AgoraManager: AgoraRtcEngineDelegate {
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, didOccurError errorCode: AgoraErrorCode) {
         print("Agora Error: \(errorCode.rawValue)")
-    }
-    
-    func rtcEngine(_ engine: AgoraRtcEngineKit, connectionDidInterrupted channel: String) {
-        print("Connection interrupted: \(channel)")
-    }
-    
-    func rtcEngine(_ engine: AgoraRtcEngineKit, connectionDidLost channel: String) {
-        print("Connection lost: \(channel)")
-    }
-    
-    func rtcEngine(_ engine: AgoraRtcEngineKit, userJoined uid: UInt, elapsed: Int) {
-        print("User joined with uid: \(uid)")
-    }
-    
-    func rtcEngine(_ engine: AgoraRtcEngineKit, userOffline uid: UInt, reason: AgoraUserOfflineReason) {
-        print("User with uid: \(uid) went offline due to reason: \(reason.rawValue)")
     }
     
     func generateAgoraToken(uid: Int, channelName: String, completion: @escaping (String?) -> Void) {

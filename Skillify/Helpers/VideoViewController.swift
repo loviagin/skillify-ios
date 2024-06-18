@@ -15,7 +15,8 @@ class VideoViewController: UIViewController {
     
     init(manager: CallManager) {
         self.manager = manager
-        super.init(nibName: nil, bundle: nil) // Вызовите здесь обозначенный инициализатор `UIViewController`
+        super.init(nibName: nil, bundle: nil)
+        manager.agoraManager.addDelegate(self)
     }
     
     required init?(coder: NSCoder) {
@@ -27,50 +28,54 @@ class VideoViewController: UIViewController {
         view.addSubview(localVideo)
         view.addSubview(remoteVideo)
         setupLocalVideo()
+        if manager.agoraManager.users.count > 1 {
+            setupRemoteVideo(uid: manager.agoraManager.users[1])
+        }
     }
 
     func setupLocalVideo() {
-        manager.agoraManager.agoraKit.enableVideo()  // Включаем видео
+        manager.agoraManager.agoraKit.enableVideo()
         let videoCanvas = AgoraRtcVideoCanvas()
         videoCanvas.uid = 0
         videoCanvas.view = localVideo
         videoCanvas.renderMode = .fit
         manager.agoraManager.agoraKit.setupLocalVideo(videoCanvas)
     }
+    
+    func setupRemoteVideo(uid: UInt) {
+        DispatchQueue.main.async { [weak self] in
+            guard let strongSelf = self else { return }
+            let remoteCanvas = AgoraRtcVideoCanvas()
+            remoteCanvas.uid = uid
+            remoteCanvas.view = strongSelf.remoteVideo
+            remoteCanvas.renderMode = .fit
+            strongSelf.manager.agoraManager.agoraKit.setupRemoteVideo(remoteCanvas)
+        }
+    }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
 
-        remoteVideo.frame = view.bounds // Удаленное видео на весь экран
+        remoteVideo.frame = view.bounds
 
-        // Задаем размер и положение для localVideo
         let localVideoSize = CGSize(width: view.frame.width / 4, height: view.frame.height / 4)
         localVideo.frame = CGRect(
             x: view.frame.width - localVideoSize.width - 20,
-            y: view.frame.height - localVideoSize.height - 150,
+            y: view.frame.height - localVideoSize.height - 20,
             width: localVideoSize.width,
-            height: localVideoSize.height)
+            height: localVideoSize.height
+        )
 
-        view.bringSubviewToFront(localVideo) // Перемещаем localVideo на передний план
-    }
-    
-    func setup() {
-        
+        view.bringSubviewToFront(localVideo)
     }
 }
 
-//extension VideoViewController: AgoraRtcEngineDelegate {
-//    func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
-//        print("я запускаю видео юхуу")
-//        DispatchQueue.main.async { [weak self] in
-//            
-//            guard let strongSelf = self else { return }
-//            let remoteCanvas = AgoraRtcVideoCanvas()
-//            remoteCanvas.uid = uid
-//            remoteCanvas.view = strongSelf.remoteVideo
-//            remoteCanvas.renderMode = .fit
-//            strongSelf.agoraKit.setupRemoteVideo(remoteCanvas)
-//        }
-//    }
-//}
-//
+extension VideoViewController: AgoraRtcEngineDelegate {
+    func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
+        print("Remote user joined with uid: \(uid)")
+        DispatchQueue.main.async {
+            self.manager.agoraManager.users.append(uid)
+        }
+        setupRemoteVideo(uid: uid)
+    }
+}

@@ -127,7 +127,7 @@ struct ProView: View {
                 } else {
                     VStack {
                         Text("Your subsription ends on")
-                        Text("\(Calendar.current.dateComponents([.day, .month], from: Date(timeIntervalSince1970: viewModel.currentUser?.pro ?? 0)))")
+                        Text("\(formattedDate(from: viewModel.currentUser?.pro ?? 0))")
                     }
                     
                     Button {
@@ -146,6 +146,13 @@ struct ProView: View {
                 Pro2View()
             }
         }
+    }
+    
+    func formattedDate(from timeInterval: Double) -> String {
+        let date = Date(timeIntervalSince1970: timeInterval)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "d MMMM yyyy"
+        return dateFormatter.string(from: date)
     }
 }
 

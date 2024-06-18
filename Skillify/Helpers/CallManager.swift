@@ -14,9 +14,9 @@ import AVFoundation
 class CallManager: NSObject, ObservableObject {
     @Published var callId: UUID?
     @Published var channelName: String?
-    @Published var token: String? // not generating in setCall
-    @Published var receiver: User? // получатель звонка
-    @Published var handler: User? // кто звонит
+    @Published var token: String?
+    @Published var receiver: User?
+    @Published var handler: User?
     @Published var incoming = false
     @Published var video = false
     @Published var muted = false
@@ -37,31 +37,29 @@ class CallManager: NSObject, ObservableObject {
         configuration.supportsVideo = true
         configuration.maximumCallsPerCallGroup = 1
         configuration.maximumCallGroups = 1
-        //        configuration.ringtoneSound = "ringtone.wav"
         if let icon = UIImage(named: "sk"), let iconData = icon.pngData() {
             configuration.iconTemplateImageData = iconData
         }
         
         provider = CXProvider(configuration: configuration)
-        super.init() 
-        agoraManager = AgoraManager(appId: "794acf61e12e4e49bb9d2e7789cf05b9", self)
+        super.init()
+        agoraManager = AgoraManager(appId: "794acf61e12e4e49bb9d2e7789cf05b9", callManager: self)
         provider.setDelegate(self, queue: nil)
     }
     
     // only for outgoing calls
-    func setCall(channelName: String, receiver: User, handler: User, video: Bool = false, completion: () -> Void) {
+    func setCall(channelName: String, receiver: User, handler: User, video: Bool = false, completion: @escaping () -> Void) {
         callId = UUID()
         self.channelName = channelName
         self.receiver = receiver
         self.handler = handler
         self.video = video
         self.status = "Starting call..."
-        print("starting call...")
         completion()
         sendMessage()
     }
     
-    func sendMessage() {
+    private func sendMessage() {
         if let chat = handler?.messages.first(where: { $0.keys.contains(receiver?.id ?? "") }) {
             let newChat = Chat(id: UUID().uuidString, cUid: handler?.id ?? "", time: Date().timeIntervalSince1970)
             let chatData = try? JSONEncoder().encode(newChat)
@@ -98,15 +96,14 @@ class CallManager: NSObject, ObservableObject {
         self.incoming = true
         self.video = hasVideo
         self.status = "Getting call..."
+        self.agoraManager.users.append(UInt.random(in: 0...1000))
         loadCallers(handler: caller, receiver: Auth.auth().currentUser!.uid) { result in
             switch result {
             case .success(let (hand, rec)):
-                // Обработка загруженных документов
                 self.handler = try? hand.data(as: User.self)
                 self.receiver = try? rec.data(as: User.self)
                 completion()
             case .failure(let error):
-                // Обработка ошибки
                 print("Error loading documents: \(error.localizedDescription)")
                 self.status = "Error getting call. Check your internet connection"
             }
@@ -118,8 +115,8 @@ class CallManager: NSObject, ObservableObject {
         let startCallAction = CXStartCallAction(call: callId!, handle: handle)
         startCallAction.isVideo = video
         let transaction = CXTransaction(action: startCallAction)
-        agoraManager.generateAgoraToken(uid: 0, channelName: channelName!, completion: { value in
-            if value != nil {
+        agoraManager.generateAgoraToken(uid: 0, channelName: channelName!) { value in
+            if let value = value {
                 self.token = value
                 self.callController.request(transaction) { error in
                     if let error = error {
@@ -130,17 +127,13 @@ class CallManager: NSObject, ObservableObject {
                         update.remoteHandle = handle
                         update.hasVideo = self.video
                         self.provider.reportCall(with: self.callId!, updated: update)
-                        Task {
-                            await self.sendVoipNotification()
-                        }
                         self.status = "Calling..."
                     }
                 }
             } else {
                 self.status = "Error internet connection"
             }
-        })
-        //        startCallTimer()
+        }
     }
     
     func reportIncomingCall() {
@@ -158,15 +151,15 @@ class CallManager: NSObject, ObservableObject {
         }
     }
     
-    private func sendVoipNotification(end: Bool = false) async {
-        print("sending voip noti with end - \(end) and \(receiver!.id)")
+    private func sendVoipNotification(_ uid: UInt = 0, end: Bool = false) async {
         let parameters = [
             "contents": ["en": end ? "Call ended" : "Incoming call"],
             "app_id": "5e75a1c5-4bab-42cc-8329-b697e85d92f7",
-            "include_external_user_ids": self.incoming ? [handler!.id] : [receiver!.id],
+            "include_external_user_ids": self.incoming ? [handler?.id ?? ""] : [receiver?.id ?? ""],
             "apns_push_type_override": "voip",
             "data": [
                 "caller": handler!.id,
+                "uid": uid,
                 "uuid": callId?.uuidString ?? "",
                 "callStatus": end ? "ended" : "incoming",
                 "channelName": channelName ?? "groupCall-",
@@ -217,7 +210,6 @@ class CallManager: NSObject, ObservableObject {
                     self.resetData()
                 } else {
                     print("Call ended successfully.")
-                    // Отправка уведомления о завершении звонка собеседнику
                     Task {
                         await self.sendVoipNotification(end: true)
                     }
@@ -230,7 +222,7 @@ class CallManager: NSObject, ObservableObject {
         self.status = "Ended call"
     }
     
-    func toogleMute() {
+    func toggleMute() {
         muted.toggle()
         agoraManager.agoraKit!.muteLocalAudioStream(muted)
     }
@@ -272,7 +264,6 @@ class CallManager: NSObject, ObservableObject {
             } else if let document1 = document1, let document2 = document2 {
                 completion(.success((document1, document2)))
             } else {
-                // This case should not happen, but we handle it gracefully
                 let error = NSError(domain: "FirestoreErrorDomain", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown error"])
                 completion(.failure(error))
             }
@@ -281,7 +272,7 @@ class CallManager: NSObject, ObservableObject {
     
     func startCallTimer() {
         print("timer started")
-        callTimeSeconds = 0 // Сброс времени звонка
+        callTimeSeconds = 0
         callTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             self.callTimeSeconds += 1
             self.status = self.formatTime(self.callTimeSeconds)
@@ -310,21 +301,17 @@ class CallManager: NSObject, ObservableObject {
 
 extension CallManager: CXProviderDelegate {
     func providerDidReset(_ provider: CXProvider) {
-        print("reset")
         self.resetData()
     }
     
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         print("answer")
         action.fulfill()
-        agoraManager.joinChannel(channel: self.channelName!, token: self.token, videoCall: self.video, provider: provider, callId: callId!) {
+        agoraManager.joinChannel(channel: self.channelName!, token: self.token, videoCall: self.video, provider: provider, callId: callId!) { uid in
             action.fulfill(withDateConnected: Date())
             self.startCallTimer()
+            self.agoraManager.users[0] = uid
         }
-    }
-    
-    func provider(_ provider: CXProvider, timedOutPerforming action: CXAction) {
-        print("time out")
     }
     
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
@@ -337,8 +324,11 @@ extension CallManager: CXProviderDelegate {
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         print("start")
         action.fulfill()
-        agoraManager.joinChannel(channel: self.channelName!, token: self.token, videoCall: self.video, provider: provider, callId: callId!) {
+        agoraManager.joinChannel(channel: self.channelName!, token: self.token, videoCall: self.video, provider: provider, callId: callId!) { uid in
             action.fulfill(withDateStarted: Date())
+            Task {
+                await self.sendVoipNotification(uid)
+            }
         }
     }
     

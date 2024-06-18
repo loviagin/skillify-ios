@@ -20,7 +20,7 @@ struct PhoneCallView: View {
         ZStack(alignment: .center) {
             if callManager.video {
                 VideoCallView(callManager: callManager)
-                    .edgesIgnoringSafeArea(.all) // Позволяет видео заполнять весь экран
+                    .edgesIgnoringSafeArea(.all)
             } else {
                 Image("call")
                     .resizable()
@@ -31,20 +31,21 @@ struct PhoneCallView: View {
             
             VStack {
                 if callManager.video {
-                    HStack {
-                        Avatar2View(avatarUrl: user.urlAvatar)
-                        VStack(alignment: .leading) {
-                            Text("\(user.first_name) \(user.last_name)")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            Text("\(callManager.status ?? "")")
-                                .font(.caption)
-                                .foregroundColor(.primary)
-                        }
-                        Spacer()
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
+//                    HStack {
+//                        Avatar2View(avatarUrl: user.urlAvatar)
+//                        VStack(alignment: .leading) {
+//                            Text("\(user.first_name) \(user.last_name)")
+//                                .font(.headline)
+//                                .foregroundColor(.primary)
+//                            Text("\(callManager.status ?? "")")
+//                                .font(.caption)
+//                                .foregroundColor(.primary)
+//                        }
+//                        .frame(maxWidth: .infinity, alignment: .leading)
+//                        Spacer()
+//                    }
+//                    .frame(maxWidth: .infinity)
+//                    .padding()
                     Spacer()
                 } else {
                     Spacer()
@@ -57,10 +58,24 @@ struct PhoneCallView: View {
                     Spacer()
                 }
                 
-                // Кнопка завершения звонка остается без изменений
-                HStack (spacing: 20){
+                HStack (spacing: 20) {
+                    if callManager.video {
+                        Button(action: {
+                            callManager.agoraManager.agoraKit.switchCamera()
+                        }) {
+                            Image(systemName: "arrow.2.squarepath")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 35, height: 35)
+                                .padding()
+                                .background(.lGray)
+                                .foregroundColor(.white)
+                                .clipShape(Circle())
+                        }
+                    }
+                    
                     Button(action: {
-                        callManager.toogleMute()
+                        callManager.toggleMute()
                     }) {
                         Image(systemName: callManager.muted ? "mic.slash" : "mic")
                             .resizable()
@@ -72,20 +87,6 @@ struct PhoneCallView: View {
                             .clipShape(Circle())
                     }
                     
-//                    if callManager.video {
-//                        Button {
-//                            callManager.agoraManager!.agoraKit?.switchCamera()
-//                        } label: {
-//                            Image(systemName: "arrow.2.squarepath")
-//                                .resizable()
-//                                .scaledToFit()
-//                                .frame(width: 35, height: 35)
-//                                .padding()
-//                                .background(.gray)
-//                                .foregroundColor(.white)
-//                                .clipShape(Circle())
-//                        }
-//                    }
                     if let _ = callManager.agoraManager.agoraKit {
                         Button {
                             callManager.endCall()
@@ -102,9 +103,9 @@ struct PhoneCallView: View {
                         }
                     }
                 }
-                .padding(.bottom, callManager.video ? 20 : 100) // Уменьшаем отступ, когда в видеозвонке
+                .padding(.bottom, callManager.video ? 20 : 100)
             }
-        } // ZStack
+        }
         .onAppear {
             print("phone call onAppear")
             callManager.show = false
@@ -138,10 +139,8 @@ struct PhoneCallView: View {
         AVAudioSession.sharedInstance().requestRecordPermission { granted in
             DispatchQueue.main.async {
                 if granted {
-                    // Разрешение получено
                     completion(true)
                 } else {
-                    // Разрешение отклонено
                     completion(false)
                 }
             }
@@ -150,7 +149,6 @@ struct PhoneCallView: View {
     
     func checkForPermissions() async -> Bool {
         var hasPermissions = await self.avAuthorization(mediaType: .video)
-        // Break out, because camera permissions have been denied or restricted.
         if !hasPermissions { return false }
         hasPermissions = await self.avAuthorization(mediaType: .audio)
         return hasPermissions
@@ -171,6 +169,3 @@ struct PhoneCallView: View {
         }
     }
 }
-
-
-

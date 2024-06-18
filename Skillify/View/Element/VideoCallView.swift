@@ -8,7 +8,7 @@
 import SwiftUI
 import AgoraRtcKit
 
-struct VideoCallView : UIViewControllerRepresentable {
+struct VideoCallView: UIViewControllerRepresentable {
     var callManager: CallManager
     
     func makeUIViewController(context: Context) -> VideoViewController {
@@ -16,7 +16,23 @@ struct VideoCallView : UIViewControllerRepresentable {
     }
     
     func updateUIViewController(_ uiViewController: VideoViewController, context: Context) {
-        // Здесь можно обновить UI контроллер, если это необходимо
+        // Update UI if needed
         print("update ui view controller video")
     }
 }
+
+//import SwiftUI
+//import AgoraRtcKit
+//
+//struct VideoCallView : UIViewControllerRepresentable {
+//    var callManager: CallManager
+//    
+//    func makeUIViewController(context: Context) -> VideoViewController {
+//        return VideoViewController(manager: callManager)
+//    }
+//    
+//    func updateUIViewController(_ uiViewController: VideoViewController, context: Context) {
+//        // Здесь можно обновить UI контроллер, если это необходимо
+//        print("update ui view controller video")
+//    }
+//}

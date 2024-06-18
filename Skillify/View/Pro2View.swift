@@ -187,8 +187,12 @@ struct Pro2View: View {
                     TextField("Your promo", text: $promocode)
                     
                     Button {
-                        if promocodes.contains(promocode) {
-                            authViewModel.setPro(selectedOption)
+                        if promocodes.contains(where: { $0.split(separator: ":").first ?? "" == promocode }) {
+                            if promocodes.contains(where: { $0.split(separator: ":").last == "12" }) {
+                                authViewModel.setPro(.year)
+                            } else {
+                                authViewModel.setPro(.month)
+                            }
                         }
                         dismiss()
                     } label: {
