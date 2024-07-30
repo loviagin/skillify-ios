@@ -21,8 +21,8 @@ struct ProfileView: View {
     @State var userId = "nil" // messages
     @State var isVisible: Bool = false
     @State var showPhoneCall: Bool = false
-    @State var showChat: Bool = false
-    @State var messPrivate = false
+    
+    @State var showChat = false
     @Binding var showProfile: Bool
 
     let user: User
@@ -54,7 +54,7 @@ struct ProfileView: View {
                             
                             VStack {
                                 AvatarView(avatarUrl: user.urlAvatar)
-                                // Имя, Фамилия и Никнейм
+                                //MARK: - Имя, Фамилия и Никнейм
                                 HStack(spacing: 5) {
                                     Text("\(user.first_name) \(user.last_name)")
                                         .font(.title)
@@ -153,14 +153,17 @@ struct ProfileView: View {
                     .cornerRadius(15)
                     .padding()
                     
-                    // Кнопки действий
+                    //MARK: - Кнопки действий
                     if user.id != (authViewModel.currentUser?.id ?? "") {
                         HStack(spacing: 15) {
-                            //                         Кнопка "Сообщение"
+                            //MARK: - Кнопка "Сообщение"
                             if UserHelper.isMessagesBlocked(viewModel: authViewModel, user: user) == nil {
                                 Button {
-                                    self.userId = userId
-                                    self.showChat = true
+                                    DispatchQueue.main.async {
+                                        self.userId = userId
+                                        self.showChat = true
+                                        print("to message \(userId) - \(user.id)")
+                                    }
                                 } label: {
                                     if isLoadingMessage {
                                         ProgressView()
@@ -177,7 +180,7 @@ struct ProfileView: View {
                                     }
                                 }
                             }
-                            // Кнопка "Подписаться"
+                            //MARK: - Кнопка "Подписаться"
                             Button(action: {
                                 if authViewModel.currentUser?.subscriptions.contains(user.id) == true {
                                     let index = authViewModel.currentUser?.subscriptions.firstIndex(where: { $0 == user.id })
@@ -366,6 +369,8 @@ struct ProfileView: View {
                     self.subscriptions = user.subscriptions.count
                     self.currentId = authViewModel.currentUser?.id ?? ""
                     
+                    showChat = false
+                    
                     if user.id == currentId {
                         if (authViewModel.currentUser?.selfSkills.count)! > 0 && authViewModel.currentUser?.selfSkills[0] != nil {
                             authViewModel.currentUser?.selfSkills[0].isSelected = true
@@ -482,8 +487,12 @@ struct ProfileView: View {
         .navigationDestination(isPresented: $showPhoneCall) {
             PhoneCallView().toolbar(.hidden, for: .tabBar)
         }
-        .navigationDestination(isPresented: $showChat) {
-            ChatView(userId: userId, showMessage: $messPrivate, user: user).toolbar(.hidden, for: .tabBar)
+        .sheet(isPresented: $showChat) {
+            ChatView(userId: userId, showMessage: $showChat, user: user)
+                .toolbar(.hidden, for: .tabBar)
+//                .onDisappear {
+//                showChat = false
+//            }
         }
     }
     

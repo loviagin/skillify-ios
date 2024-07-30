@@ -238,17 +238,7 @@ struct FeedMainView: View {
             })
         }
         .navigationDestination(isPresented: $showMessagesView, destination: { MessagesView(showChats: $showMessagesView) })
-        .navigationDestination(isPresented: $showProfileView, destination: {
-            if let user = profileUser {
-                ProfileView(showProfile: $showProfileView, user: user)
-                    .toolbar(.hidden, for: .tabBar)
-                    .onDisappear {
-                        profileUser = nil
-                        showProfileView = false
-                        authViewModel.destination = nil
-                    }
-            }
-        })
+        .navigationDestination(isPresented: $showProfileView, destination: { ProfileView(showProfile: $showProfileView, user: profileUser ?? User()).toolbar(.hidden, for: .tabBar) })
     }
     
     func chechDestination() {

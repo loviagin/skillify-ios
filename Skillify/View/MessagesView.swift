@@ -94,7 +94,6 @@ struct MessagesView: View {
                     }
             }
         }
-        
     }
     
     func checkDestination() {
