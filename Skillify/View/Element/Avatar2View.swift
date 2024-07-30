@@ -32,7 +32,12 @@ struct Avatar2View: View {
                         .frame(width: size, height: size)
                         .clipShape(Circle())
                 } placeholder: {
-                    ProgressView()
+                    Rectangle()
+//                        .resizable()
+//                        .aspectRatio(contentMode: .fill)
+                        .frame(width: size, height: size)
+                        .clipShape(Circle())
+//                    ProgressView()
                 }
                 .frame(width: size, height: size)
                 .clipShape(Circle())

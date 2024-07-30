@@ -26,6 +26,8 @@ struct RegisterView: View {
     @State private var navigateToPhone = false
     @State private var navigateToGoogle = false
     
+    @State var isLoading = false
+    
     @Binding var navigateToRegister: Bool
     @State var isUserAuthenticated = false
     
@@ -34,6 +36,11 @@ struct RegisterView: View {
     var body: some View {
         NavigationStack {
             VStack {
+                if isLoading {
+                    ProgressView()
+                        .frame(width: 30, height: 30)
+                        .foregroundStyle(.brandBlue)
+                }
                 if isRegisterAllowed {
                     HStack{
                         Spacer()
@@ -75,7 +82,7 @@ struct RegisterView: View {
                             }
                             .hidden()
                     )
-                    OtherMethodsToSignInView()
+                    OtherMethodsToSignInView(isLoading: $isLoading)
                     
                     Spacer()
                 } else {
@@ -108,6 +115,8 @@ struct OtherMethodsToSignInView: View {
     @State var isUserAuthenticated = false
     @StateObject var signInWithAppleManager = SignInWithAppleManager()
     
+    @Binding var isLoading: Bool
+    
     var body: some View {
         NavigationLink(destination: PhoneRegisterView()) {
             Image(systemName: "phone")
@@ -124,7 +133,14 @@ struct OtherMethodsToSignInView: View {
         .padding(.top, 10)
         
         ButtonRegisterView(action: {
-            authViewModel.signInWithGoogle()
+            isLoading = true
+            authViewModel.signInWithGoogle() { error in
+                if let error {
+                    print(error)
+                }
+                isLoading = false
+            }
+            
             NavigationLink("", destination: AccountView(), isActive: $isUserAuthenticated)
         },
                            text: "Continue with Google",
@@ -134,6 +150,7 @@ struct OtherMethodsToSignInView: View {
         SignInWithAppleButton(
             .signIn,
             onRequest: { request in
+                isLoading = true
                 let nonce = signInWithAppleManager.randomNonceString()
                 signInWithAppleManager.currentNonce = nonce
                 request.requestedScopes = [.fullName, .email]
@@ -146,6 +163,7 @@ struct OtherMethodsToSignInView: View {
                 case .failure(let error):
                     signInWithAppleManager.handleAuthorizationError(error)
                 }
+                isLoading = false
             }
         )
         .frame(width: 300, height: 45)

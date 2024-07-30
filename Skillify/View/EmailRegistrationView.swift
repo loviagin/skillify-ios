@@ -12,6 +12,13 @@ struct EmailRegistrationView: View {
     @State private var email = ""
     @State private var password = ""
     
+    @FocusState var focused: EmailRegisterType?
+    @State private var isLoading: Bool = false
+    
+    enum EmailRegisterType {
+        case email, password
+    }
+    
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading) {
@@ -26,37 +33,68 @@ struct EmailRegistrationView: View {
                 Text("Your email")
                 TextField("Email", text: $email)
                     .autocapitalization(.none)
+                    .focused($focused, equals: .email)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding(.bottom, 10)
+                    .submitLabel(.next)
+                    .onSubmit {
+                        withAnimation {
+                            focused = .password
+                        }
+                    }
                 
                 Text("Create a password")
                 SecureField("* * * * * *", text: $password)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding(.bottom, 20)
+                    .focused($focused, equals: .password)
+                    .submitLabel(.done)
+                    .onSubmit {
+                        focused = nil
+                        isLoading = true
+                        Task {
+                            try await authViewModel.createUser(email: email, pass: password) { error in
+                                if let error {
+                                    print(error)
+                                }
+                                isLoading = false
+                            }
+                        }
+                    }
                 
                 Button {
+                    isLoading = true
                     Task {
-                        try await authViewModel.createUser(email: email, pass: password)
+                        try await authViewModel.createUser(email: email, pass: password) { error in
+                            if let error {
+                                print(error)
+                            }
+                            isLoading = false
+                        }
                     }
                 } label: {
-                    HStack{
-                        Spacer()
+                    if isLoading {
+                        ProgressView()
+                    } else {
                         Text("Register")
-//                            .font(.title3)
-                            .foregroundColor(.white)
-                        Spacer()
                     }
-                    .frame(width: .infinity, height: 40)
-                    .background(.blue)
-                    .cornerRadius(15)
                 }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(10)
+                .background(.blue)
+                .cornerRadius(15)
                 Spacer()
             }
             .padding()
+        }
+        .onAppear {
+            focused = .email
         }
     }
 }
 
 #Preview {
     EmailRegistrationView()
+        .environmentObject(AuthViewModel.mock)
 }

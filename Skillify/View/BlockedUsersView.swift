@@ -11,13 +11,14 @@ import FirebaseFirestore
 struct BlockedUsersView: View {
     @EnvironmentObject private var viewModel: AuthViewModel
     @State private var users: [User] = []
+    @State var showProfile = false
     
     var body: some View {
         NavigationStack {
             if let user = viewModel.currentUser, !user.blockedUsers.isEmpty {
                 List {
                     ForEach(users, id: \.self) { it in
-                        NavigationLink(destination: ProfileView(user: it, currentId: user.id)) {
+                        NavigationLink(destination: ProfileView(showProfile: $showProfile, user: it)) {
                             BlockedUserView(first_name: it.first_name, last_name: it.last_name)
                         }
                     }

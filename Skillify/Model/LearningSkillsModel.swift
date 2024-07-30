@@ -101,7 +101,9 @@ class LearningSkillsViewModel: ObservableObject {
             Skill(name: "Philosophy", iconName: "brain.head.profile"),
             Skill(name: "Economics", iconName: "scalemass"),
             Skill(name: "Consulting", iconName: "person.crop.circle.badge.checkmark"),
-            Skill(name: "Startups", iconName: "plus.circle")
+            Skill(name: "Startups", iconName: "plus.circle"),
+            Skill(name: "Kitesurfing", iconName: "figure.surfing"),
+            Skill(name: "Streaming", iconName: "livephoto.play")
         ]
     }
     
@@ -117,12 +119,15 @@ class LearningSkillsViewModel: ObservableObject {
         let filteredSkill = filteredSkills[filteredIndex]
         return skills.firstIndex(where: { $0.id == filteredSkill.id })
     }
+    
     func selectSkill(_ skill: Skill) {
         if let index = skills.firstIndex(where: { $0.name == skill.name }) {
             if skills[index].level != nil {
                 skills[index].isSelected = false // Снимаем выбор
                 skills[index].level = nil
-                authViewModel.currentUser!.learningSkills.remove(at: (authViewModel.currentUser?.learningSkills.firstIndex(where: { $0.name == skill.name }))!)
+                if let ind = authViewModel.currentUser?.learningSkills.firstIndex(where: { $0.name == skill.name }) {
+                    authViewModel.currentUser!.learningSkills.remove(at: ind)
+                }
                 authViewModel.syncWithFirebase()
             } else if skills.filter({ $0.level != nil }).count < maxSkillsAllowed {
                 skills.indices.forEach { skills[$0].isSelected = false }

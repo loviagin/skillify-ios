@@ -14,6 +14,7 @@ import GoogleSignIn
 import FirebaseFirestore
 import AuthenticationServices
 import OneSignalFramework
+import RevenueCat
 
 class AuthViewModel: ObservableObject {
     
@@ -22,7 +23,8 @@ class AuthViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var isLoading = true
     @Published var users = [User]()
-    
+    @Published var destination: String? = nil
+
     private let db: Firestore
     
     init() {
@@ -33,7 +35,7 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    func createUser(email: String, pass: String) async throws {
+    func createUser(email: String, pass: String, completion: @escaping (String?) -> Void) async throws {
         if (email.isEmpty || pass.count < 6) {
             return
         }
@@ -45,12 +47,14 @@ class AuthViewModel: ObservableObject {
             try await Firestore.firestore().collection("users").document(user.id).setData(encodedUser)
             
             await loadUser()
+            completion(nil)
         } catch {
             print("error")
+            completion("error")
         }
     }
     
-    func signInWithEmail(email: String, pass: String) async {
+    func signInWithEmail(email: String, pass: String, completion: @escaping (String?) -> Void) async {
         do {
             let authResult = try await Auth.auth().signIn(withEmail: email, password: pass)
             OneSignal.login(authResult.user.uid)
@@ -59,17 +63,22 @@ class AuthViewModel: ObservableObject {
                 Task {
                     await self?.loadUser()
                 }
+                completion(nil)
             }
         } catch {
             // Ошибка также должна быть обработана на главном потоке, если она влияет на UI.
             DispatchQueue.main.async {
                 print("Ошибка входа: \(error.localizedDescription)")
+                completion(error.localizedDescription)
             }
         }
     }
     
-    func signInWithGoogle () {
-        guard let clientID = FirebaseApp.app()?.options.clientID else { return }
+    func signInWithGoogle(completion: @escaping (String?) -> Void) {
+        guard let clientID = FirebaseApp.app()?.options.clientID else {
+            completion("error")
+            return
+        }
         
         // Create Google Sign In configuration object.
         let config = GIDConfiguration(clientID: clientID)
@@ -79,12 +88,14 @@ class AuthViewModel: ObservableObject {
         if let rootVC = getRootViewController() {
             GIDSignIn.sharedInstance.signIn(withPresenting: rootVC) { [unowned self] result, error in
                 guard error == nil else {
+                    completion(error?.localizedDescription)
                     return
                 }
                 
                 guard let user = result?.user,
                       let idToken = user.idToken?.tokenString
                 else {
+                    completion("error")
                     return
                 }
                 
@@ -101,12 +112,14 @@ class AuthViewModel: ObservableObject {
                                 }
                                 await strongSelf.registerUserAndLoadProfile(uid: user.uid, email: user.email ?? "", name: user.displayName ?? "", phone: "")
                             }
+                            completion(nil)
                         }
                     }
                 }
             }
         }
     }
+    
     func updateSkill(_ skill: Skill) {
         if let index = currentUser!.selfSkills.firstIndex(where: { $0.name == skill.name }) {
             currentUser!.selfSkills[index] = skill
@@ -158,7 +171,7 @@ class AuthViewModel: ObservableObject {
     }
     
     func fetchAllUsers() {
-        guard let currentUser = self.currentUser else { return }
+        guard let _ = self.currentUser else { return }
         db.collection("users")
             .getDocuments { [weak self] (querySnapshot, error) in
                 guard let documents = querySnapshot?.documents else {
@@ -294,9 +307,10 @@ class AuthViewModel: ObservableObject {
             }
     }
     
-    func loginViaPhoneFirebase(verificationCode: String) {
+    func loginViaPhoneFirebase(verificationCode: String, completion: @escaping (String?) -> Void) {
         guard let verificationID = UserDefaults.standard.string(forKey: "authVerificationID") else {
             self.errorMessage = "Verification ID not found"
+            completion("Verification ID not found")
             return
         }
         
@@ -309,6 +323,7 @@ class AuthViewModel: ObservableObject {
             DispatchQueue.main.async {
                 if let error = error {
                     self?.errorMessage = error.localizedDescription
+                    completion(error.localizedDescription)
                 } else {
                     DispatchQueue.main.async {
                         if let user = authResult?.user {
@@ -321,6 +336,7 @@ class AuthViewModel: ObservableObject {
                                 }
                                 await strongSelf.registerUserAndLoadProfile(uid: user.uid, email: "", name: "", phone: user.phoneNumber ?? "")
                             }
+                            completion(nil)
                         }
                     }
                 }
@@ -375,6 +391,7 @@ class AuthViewModel: ObservableObject {
             guard let snapshot = try? await Firestore.firestore().collection("users").document(uid!).getDocument() else { return }
             self.currentUser = try? snapshot.data(as: User.self)
             onlineMode()
+            checkPro()
             addUserListener(userId: uid!)
             if userSession == nil && user != nil {
                 userSession = user
@@ -386,6 +403,16 @@ class AuthViewModel: ObservableObject {
         
         DispatchQueue.main.async {
             self.isLoading = false
+        }
+    }
+    
+    func checkPro() {
+        print("check pro")
+        Purchases.shared.getCustomerInfo { info, error in
+            if info?.entitlements.all["pro"]?.isActive == false {
+                print("no subscription")
+                self.cancelPro()
+            }
         }
     }
     
@@ -552,7 +579,6 @@ class AuthViewModel: ObservableObject {
                     header: header,
                     playerId: playerId,
                     messageText: messageText,
-                    targetText: targetText,
                     avatarUrl: currentUser.urlAvatar.isEmpty ? defaultAvatarURL : currentUser.urlAvatar,
                     completion: completion)
             } else {
@@ -563,7 +589,7 @@ class AuthViewModel: ObservableObject {
                             header: header,
                             playerId: playerId,
                             messageText: messageText,
-                            targetText: targetText,
+                            targetText: "skillify://@\(targetText)",
                             avatarUrl: currentUser.urlAvatar.isEmpty ? defaultAvatarURL : currentUser.urlAvatar,
                             completion: completion)
                     }
@@ -573,7 +599,7 @@ class AuthViewModel: ObservableObject {
                             header: header,
                             playerId: playerId,
                             messageText: messageText,
-                            targetText: targetText,
+                            targetText: "skillify://m/\(targetText)",
                             avatarUrl: currentUser.urlAvatar.isEmpty ? defaultAvatarURL : currentUser.urlAvatar,
                             completion: completion)
                     }
@@ -583,7 +609,6 @@ class AuthViewModel: ObservableObject {
                             header: header,
                             playerId: playerId,
                             messageText: messageText,
-                            targetText: targetText,
                             avatarUrl: currentUser.urlAvatar.isEmpty ? defaultAvatarURL : currentUser.urlAvatar,
                             completion: completion)
                     }
@@ -592,7 +617,7 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    private func senderNotifications(header: String, playerId: String, messageText: String, targetText: String, avatarUrl: String, completion: () -> Void) {
+    private func senderNotifications(header: String, playerId: String, messageText: String, targetText: String = "", avatarUrl: String, completion: () -> Void) {
         let headers = [
             "accept": "application/json",
             "Authorization": "Basic NjcwMjEwOWItY2ZjZS00YTY3LTgyZTUtNzkzOTQ4ZGEwNzcy",
@@ -605,7 +630,7 @@ class AuthViewModel: ObservableObject {
             "contents": ["en": "\(messageText)"],
             "app_id": "e57ccffe-08a9-4fa8-8a63-8c3b143d2efd",
             "large_icon": avatarUrl,
-            "data": ["targetView": targetText]
+            "url": targetText
         ] as [String : Any]
         
         completion()
@@ -653,8 +678,9 @@ class AuthViewModel: ObservableObject {
     }
     
     func cancelPro() {
+        print("cance;ed")
         if let user = currentUser {
-            let time = Calendar.current.date(byAdding: .month, value: -1, to: Date())?.timeIntervalSince1970 ?? Date().timeIntervalSince1970
+            let time = Date().timeIntervalSince1970
             updateUsersIntFirebase(str: "pro", newStr: time, cUid: user.id)
             
             currentUser!.pro = time
@@ -674,7 +700,7 @@ class AuthViewModel: ObservableObject {
 extension AuthViewModel {
     static var mock: AuthViewModel {
         let viewModel = AuthViewModel()
-        viewModel.currentUser = User(id: "98989898jkjhgythikl", first_name: "Elian", last_name: "Loviagin", email: "ilia@loviagin.com", nickname: "nick", phone: "+70909998876", birthday: Date())
+        viewModel.currentUser = User(id: "4Ap9I0MuuLMmN7ihf4mj01rNV913", first_name: "Elian", last_name: "Loviagin", email: "ilia@loviagin.com", nickname: "nick", phone: "+70909998876", birthday: Date())
         viewModel.currentUser?.pro = Calendar.current.date(byAdding: .month, value: 1, to: Date())?.timeIntervalSince1970 ?? 0
         viewModel.currentUser?.proData = ["user", "cover:3"]
         viewModel.currentUser?.urlAvatar = "avatar2"

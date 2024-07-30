@@ -61,7 +61,7 @@ class VideoViewController: UIViewController {
         let localVideoSize = CGSize(width: view.frame.width / 4, height: view.frame.height / 4)
         localVideo.frame = CGRect(
             x: view.frame.width - localVideoSize.width - 20,
-            y: view.frame.height - localVideoSize.height - 20,
+            y: view.frame.height - localVideoSize.height - 80,
             width: localVideoSize.width,
             height: localVideoSize.height
         )

@@ -76,9 +76,9 @@ struct EditProfileView: View {
                         }
                         VStack(alignment: .leading) {
                             Text("Avatar image *")
-//                            Button {
-//                                isImagePickerPresented = true
-//                            } label: {
+                            //                            Button {
+                            //                                isImagePickerPresented = true
+                            //                            } label: {
                             Text("Choose your avatar")
                                 .frame(width: 150, height: 20)
                                 .padding(.horizontal, 5)
@@ -236,6 +236,12 @@ struct EditProfileView: View {
                 .onDisappear {
                     checkAgeAndSave()
                 }
+                .onChange(of: selectedImage) { _ in
+                    if let selectedImage {
+                        print("analyze")
+                        analyzeImage(image: selectedImage)
+                    }
+                }
                 .onAppear {
                     isLoading = false
                     first_name = authViewModel.currentUser?.first_name ?? ""
@@ -265,18 +271,94 @@ struct EditProfileView: View {
                 }
                 .sheet(isPresented: $isImagePickerPresented) {
                     ImagePicker(selectedImage: $selectedImage, isImageUploaded: $isImageUploaded, allowsEditing: true)
+                        .ignoresSafeArea()
                 }
             }
             
             .alert(isPresented: .constant(showAlert != nil)) {
                 Alert(
                     title: Text(showAlert!),
-                    message: Text("This is necessary for better interaction with the application."),
+                    message: Text(""),
                     dismissButton: .default(Text("OK"), action: {
                         showAlert = nil // Сбросить showAlert после закрытия алерта
                     })
                 )
             }
+        }
+    }
+    
+    func analyzeImage(image: UIImage) {
+        let apiKey = "AIzaSyBSJ8O0pLR9Ve7S6zX2zA0kqb4wi2LMY6Q"
+        let url = URL(string: "https://vision.googleapis.com/v1/images:annotate?key=\(apiKey)")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let base64Image = image.jpegData(compressionQuality: 1.0)?.base64EncodedString() ?? ""
+        let requestJson: [String: Any] = [
+            "requests": [
+                [
+                    "image": ["content": base64Image],
+                    "features": [["type": "SAFE_SEARCH_DETECTION"]]
+                ]
+            ]
+        ]
+        
+        guard let httpBody = try? JSONSerialization.data(withJSONObject: requestJson, options: []) else {
+            return
+        }
+        request.httpBody = httpBody
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+                    if let error = error {
+                        print("Error making request: \(error.localizedDescription)")
+                        return
+                    }
+
+                    guard let data = data else {
+                        print("No data received")
+                        return
+                    }
+
+                    do {
+                        if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                            if let responses = jsonResponse["responses"] as? [[String: Any]],
+                               let safeSearchAnnotation = responses.first?["safeSearchAnnotation"] as? [String: Any] {
+                                DispatchQueue.main.async {
+                                    self.handleSafeSearchAnnotation(safeSearchAnnotation)
+                                }
+                            } else {
+//                                print("SafeSearch annotation not found in the response")
+//                                DispatchQueue.main.async {
+////                                    self.showAlert = "Error analyzing image: SafeSearch annotation not found"
+//                                }
+                            }
+                        } else {
+                            print("Failed to parse JSON response")
+//                            DispatchQueue.main.async {
+////                                self.showAlert = "Error analyzing image: Failed to parse JSON response"
+//                            }
+                        }
+                    } catch {
+                        print("Error parsing JSON: \(error.localizedDescription)")
+//                        DispatchQueue.main.async {
+////                            self.showAlert = "Error analyzing image: \(error.localizedDescription)"
+//                        }
+                    }
+                }.resume()
+    }
+    
+    func handleSafeSearchAnnotation(_ annotation: [String: Any]) {
+        let adult = annotation["adult"] as? String ?? "UNKNOWN"
+        let racy = annotation["racy"] as? String ?? "UNKNOWN"
+        let violence = annotation["violence"] as? String ?? "UNKNOWN"
+        
+        if adult == "LIKELY" || adult == "VERY_LIKELY" || racy == "LIKELY" || racy == "VERY_LIKELY" || violence == "LIKELY" || violence == "VERY_LIKELY" {
+            self.selectedImage = nil
+            self.isImageUploaded = false
+            self.showAlert = "The selected image contains inappropriate content."
+        } else {
+            self.isImageUploaded = true
         }
     }
     
@@ -336,7 +418,9 @@ struct EditProfileView: View {
     
     private func saveDataWithAvatar(uid: String, avatar: String) {
         let db = Firestore.firestore()
-        db.collection("users").document(uid).updateData(["urlAvatar": "\(avatar):\((UIColor(colorAvatar).cgColor.components?.map { "\($0)" }.joined(separator: ","))!)",
+        let ava = "\(avatar):\((UIColor(colorAvatar).cgColor.components?.map { "\($0)" }.joined(separator: ","))!)"
+        print(ava)
+        db.collection("users").document(uid).updateData(["urlAvatar": ava,
                                                          "first_name": first_name,
                                                          "last_name": last_name,
                                                          "bio": bio,
@@ -353,7 +437,7 @@ struct EditProfileView: View {
                 authViewModel.currentUser?.sex = gender
                 authViewModel.currentUser?.birthday = birthDate
                 authViewModel.currentUser?.nickname = nickname
-                authViewModel.currentUser?.urlAvatar = "\(avatar):\((UIColor(colorAvatar).cgColor.components?.map { "\($0)" }.joined(separator: ","))!)"
+                authViewModel.currentUser?.urlAvatar = ava
                 print("Document successfully updated")
             }
         }

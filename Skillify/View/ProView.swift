@@ -128,15 +128,20 @@ struct ProView: View {
                     VStack {
                         Text("Your subsription ends on")
                         Text("\(formattedDate(from: viewModel.currentUser?.pro ?? 0))")
+                        
+                        Text("To cancel your subscription, please go to the App Store -> Subscriptions")
+                            .font(.caption2)
+                            .multilineTextAlignment(.center)
+                            .padding([.top, .leading, .trailing])
                     }
                     
-                    Button {
-                        viewModel.cancelPro()
-                        dismiss()
-                    } label: {
-                        Text("Cancel subscription")
-                            .padding()
-                    }
+//                    Button {
+//                        viewModel.cancelPro()
+//                        dismiss()
+//                    } label: {
+//                        Text("Cancel subscription")
+//                            .padding()
+//                    }
                 }
                 
                 Spacer()

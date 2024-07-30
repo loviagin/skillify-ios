@@ -16,6 +16,8 @@ import UIKit
 
 struct ChatView: View {
     @State var userId: String
+    @Binding var showMessage: Bool
+    @Environment(\.dismiss) private var dismiss
     var user: User
     
     @State var messageText = ""
@@ -43,8 +45,10 @@ struct ChatView: View {
     @State private var showChangeTheme = false
     @State private var theme = "theme1"
     
+    @State var showProfile = false
+    
     var body: some View {
-        if user.blocked > 3 {
+        if user.blocked ?? 0 > 3 {
             Text("Sorry, the user is blocked by administration")
         } else {
             ZStack {
@@ -193,12 +197,6 @@ struct ChatView: View {
                                     })
                                     .ignoresSafeArea()
                                 }
-//                                PhotosPicker(selection: $photoPickerItem, matching: .any(of: [.images, .videos])) {
-//                                    Image(systemName: "folder")
-//                                        .resizable()
-//                                        .scaledToFit()
-//                                        .frame(width: 23)
-//                                }
                             }
                             PlaceholderTextEditor(placeholder: "Enter your message...", text: $messageText)
                                 .frame(minHeight: 10, maxHeight: 80)
@@ -209,13 +207,16 @@ struct ChatView: View {
                                 .cornerRadius(15)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .focused($isInputFieldFocused)
+                            
                             Button {
                                 if let ed = editMessage {
                                     updateMessage(messageId: editMessage!.id, text: messageText)
                                     let ind = messagesList.firstIndex(where: { $0.id == ed.id })
+                                    
                                     if let index = ind {
                                         messagesList[index].text = messageText
                                     }
+                                    
                                     editMessage = nil
                                     messageText = ""
                                 } else if !messageText.isEmpty {
@@ -224,6 +225,10 @@ struct ChatView: View {
                                     } else {
                                         sendMessage(imageUrl: nil)
                                     }
+                                }
+                                
+                                Task {
+                                    await mViewModel.loadMessages(self.authViewModel)
                                 }
                             } label: {
                                 Image(systemName: /*messageText == "" ? "mic" : */"paperplane.fill")
@@ -298,9 +303,25 @@ struct ChatView: View {
             .onAppear {
                 getBackground()
             }
+            .navigationBarBackButtonHidden()
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        if authViewModel.destination == nil {
+                            dismiss()
+                        } else {
+                            authViewModel.destination = nil
+                            showMessage = false
+                        }
+                    } label: {
+                        Label("Back", systemImage: "chevron.backward")
+                    }
+                }
+                
                 ToolbarItem(placement: .principal) {
-                    NavigationLink(destination: ProfileView(user: user, currentId: authViewModel.currentUser!.id)) {
+                    Button {
+                        showProfile = true
+                    } label: {
                         Text("\(user.first_name) \(user.last_name)")
                             .font(.headline) // Styling to imitate navigationTitle
                             .foregroundColor(.primary)
@@ -355,13 +376,17 @@ struct ChatView: View {
             .sheet(isPresented: $showSafari) {
                 SafariView(url: URL(string: "https://skillify.space/contact/?f_name=\(authViewModel.currentUser?.first_name ?? "")&nickname=\(authViewModel.currentUser?.nickname ?? "")&subject=Report+user")!)
             }
+            .sheet(isPresented: $showProfile, onDismiss: {
+                showProfile = false
+            }, content: {
+                ProfileView(showProfile: $showProfile, user: user)
+            })
             .sheet(isPresented: $showChangeTheme, onDismiss: {
                 getBackground()
             }) {
                 ChangeThemeView(userId: userId)
                     .presentationDetents([.height(200)])
             }
-            //            .searchable
         }
     } // var body
     
@@ -378,7 +403,7 @@ struct ChatView: View {
         let fileName = url.lastPathComponent
         let ref = Storage.storage().reference().child("iosUsers/\(authViewModel.currentUser?.id ?? "default")/\(fileName)")
         let metadata = StorageMetadata()
-        metadata.contentType = "application/octet-stream" // Пример типа контента, адаптируйте под ваш случай
+        metadata.contentType = "application/octet-stream"
         
         do {
             let _ = try await ref.putFileAsync(from: url, metadata: metadata)
@@ -527,7 +552,7 @@ struct ChatView: View {
                     header: "First message from \(authViewModel.currentUser?.first_name ?? "User")",
                     playerId: user.id,
                     messageText: messageText,
-                    targetText: "m-\(user.id)",
+                    targetText: userId,
                     type: .message,
                     privacy: user.privacyData) {
                         messageText = ""
@@ -591,7 +616,7 @@ struct ChatView: View {
                 header: "New message from \(authViewModel.currentUser?.first_name ?? "User")",
                 playerId: user.id,
                 messageText: messageText == "" ? "🌄 attachment" : messageText,
-                targetText: "m-\(user.id)",
+                targetText: userId,
                 type: .message,
                 privacy: user.privacyData) {
                     messageText = ""
@@ -812,7 +837,7 @@ struct ImageVideoPicker: UIViewControllerRepresentable {
 }
 
 #Preview {
-    ChatView(userId: "", user: User(id: "", first_name: "Child", last_name: "red", email: "mail", nickname: "oil", phone: "", birthday: Date()))
+    ChatView(userId: "", showMessage: .constant(true), user: User(id: "", first_name: "Child", last_name: "red", email: "mail", nickname: "oil", phone: "", birthday: Date()))
         .environmentObject(AuthViewModel.mock)
         .environmentObject(CallManager.mock)
         .environmentObject(MessagesViewModel.mock)
@@ -851,9 +876,11 @@ struct ChatItemView: View {
     @State private var image: UIImage? = .placeholder
     @State private var isLoading = false
     
-//    @State private var isShowingDocumentPicker = false
+    //    @State private var isShowingDocumentPicker = false
     @State private var documentInteractionController: UIDocumentInteractionController?
     @State private var coordinator: Coordinator?
+    @State private var score: Double = 0.0
+    @State private var emotions: Double = 0.0
     
     var body: some View {
         HStack {
@@ -867,6 +894,18 @@ struct ChatItemView: View {
         }
         .frame(maxWidth: .infinity) // Растягиваем HStack на всю доступную ширину
         .padding(.bottom, 5)
+        .onAppear {
+            if let txt = message.text {
+                analyzeText(inputText: txt) { res, res2 in
+                    score = res
+                    emotions = res2
+                }
+            } else if let img = message.mediaUrl {
+                analyzeImage(imageURL: URL(string: img) ?? URL(string: "https://example.com")!) { res in
+                    score = res
+                }
+            }
+        }
     }
     
     @ViewBuilder
@@ -959,6 +998,13 @@ struct ChatItemView: View {
             }
             // end of main part
             
+            //MARK: - Violant message
+            if score < -0.8 || emotions < -0.8 {
+                Label("Maybe violant content", systemImage: "exclamationmark.circle")
+                    .font(.caption2)
+                    .foregroundStyle(.red)
+            }
+            
             if isCurrentUser {
                 HStack {
                     Text(timeString(from: message.time))
@@ -974,7 +1020,7 @@ struct ChatItemView: View {
             } else {
                 HStack {
                     if let e = message.emoji {
-                        Text(e)                        
+                        Text(e)
                             .font(.caption2)
                             .padding(.top, 2)
                     }
@@ -999,19 +1045,6 @@ struct ChatItemView: View {
         }
         .padding()
         .contextMenu {
-//            ScrollView(.horizontal, showsIndicators: false) {
-//                ForEach(emojiReactions, id: \.self) { emoji in
-//                    Button(action: {
-//                        print("Selected reaction: \(emoji)")
-//                        addEmoji(chat: message, e: emoji)
-//                    }) {
-//                        Text(emoji)
-//                            .font(.largeTitle)
-//                    }
-//                }
-//                .padding()
-//            }
-            
             Divider()
             
             Button {
@@ -1068,19 +1101,132 @@ struct ChatItemView: View {
         }
     }
     
+    func analyzeImage(imageURL: URL, completion: @escaping (Double) -> Void) {
+        URLSession.shared.dataTask(with: imageURL) { data, response, error in
+            if let error = error {
+                print("Error downloading image: \(error.localizedDescription)")
+                completion(1.0) // Assume inappropriate content if there's an error
+                return
+            }
+            
+            guard let data = data, let image = UIImage(data: data) else {
+                print("Failed to load image from URL")
+                completion(1.0) // Assume inappropriate content if image load fails
+                return
+            }
+            
+            self.sendImageToAPI(image: image, completion: completion)
+        }.resume()
+    }
+    
+    func sendImageToAPI(image: UIImage, completion: @escaping (Double) -> Void) {
+        let apiKey = "AIzaSyBSJ8O0pLR9Ve7S6zX2zA0kqb4wi2LMY6Q"
+        let url = URL(string: "https://vision.googleapis.com/v1/images:annotate?key=\(apiKey)")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let base64Image = image.jpegData(compressionQuality: 1.0)?.base64EncodedString() ?? ""
+        let requestJson: [String: Any] = [
+            "requests": [
+                [
+                    "image": ["content": base64Image],
+                    "features": [["type": "SAFE_SEARCH_DETECTION"]]
+                ]
+            ]
+        ]
+        
+        guard let httpBody = try? JSONSerialization.data(withJSONObject: requestJson, options: []) else {
+            completion(1.0) // Assume inappropriate content if JSON serialization fails
+            return
+        }
+        request.httpBody = httpBody
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error making request: \(error.localizedDescription)")
+                completion(1.0) // Assume inappropriate content if request fails
+                return
+            }
+            
+            guard let data = data else {
+                print("No data received")
+                completion(1.0) // Assume inappropriate content if no data is received
+                return
+            }
+            
+            do {
+                if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let responses = jsonResponse["responses"] as? [[String: Any]],
+                   let safeSearchAnnotation = responses.first?["safeSearchAnnotation"] as? [String: Any] {
+                    DispatchQueue.main.async {
+                        self.handleSafeSearchAnnotation(safeSearchAnnotation, completion: completion)
+                    }
+                } else {
+                    print("SafeSearch annotation not found in the response")
+                    completion(1.0) // Assume inappropriate content if annotation is not found
+                }
+            } catch {
+                print("Error parsing JSON: \(error.localizedDescription)")
+                completion(1.0) // Assume inappropriate content if JSON parsing fails
+            }
+        }.resume()
+    }
+    
+    func handleSafeSearchAnnotation(_ annotation: [String: Any], completion: @escaping (Double) -> Void) {
+        let adult = annotation["adult"] as? String ?? "UNKNOWN"
+        let racy = annotation["racy"] as? String ?? "UNKNOWN"
+        let violence = annotation["violence"] as? String ?? "UNKNOWN"
+        
+        print(adult)
+        print(racy)
+        print(violence)
+        
+        if adult == "LIKELY" || adult == "VERY_LIKELY" || racy == "LIKELY" || racy == "VERY_LIKELY" || violence == "LIKELY" || violence == "VERY_LIKELY" {
+            completion(-1.0) // Return 1.0 for inappropriate content
+        } else {
+            completion(0.0) // Return 0.0 for appropriate content
+        }
+    }
+    
+    func analyzeText(inputText: String, completion: @escaping (Double, Double) -> Void) {
+        let apiKey = "AIzaSyCFg3ZNewUl8B2jCRjYhWj90Zqi-DfAVtU"
+        let url = URL(string: "https://language.googleapis.com/v2/documents:analyzeSentiment?key=\(apiKey)")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let document = [
+            "document": [
+                "type": "PLAIN_TEXT",
+                "content": inputText
+            ],
+            "encodingType": "UTF8"
+        ] as [String : Any]
+        
+        guard let httpBody = try? JSONSerialization.data(withJSONObject: document, options: []) else {
+            return
+        }
+        request.httpBody = httpBody
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let data = data {
+                if let jsonResponse = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let sentiment = jsonResponse["documentSentiment"] as? [String: Any],
+                   let score = sentiment["score"] as? Double,
+                   let magnitude = sentiment["magnitude"] as? Double {
+                    DispatchQueue.main.async {
+                        completion(score, magnitude)
+                    }
+                }
+            }
+        }.resume()
+    }
+    
     var emojiReactions: [String] {
         return ["👍"]
     }
     
-//    func addEmoji(chat: Chat, e: String) {
-//        Firestore.firestore().collection("messages").document(userId)
-//            .updateData(["messages": FieldValue.arrayRemove([chat])])
-//        var c = chat
-//        c.emoji = e
-//        Firestore.firestore().collection("messages").document(userId)
-//            .updateData(["messages": FieldValue.arrayUnion([c])])
-//    }
-//    
     func presentDocumentInteractionController(url: URL) {
         let fileManager = FileManager.default
         if fileManager.fileExists(atPath: url.path) {
@@ -1094,12 +1240,12 @@ struct ChatItemView: View {
             print("File does not exist at \(url.path)")
         }
     }
-
+    
     func downloadFile(from url: URL, completion: @escaping (URL?) -> Void) {
         let storageRef = Storage.storage().reference(forURL: url.absoluteString)
         let localURL = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
-
-        let downloadTask = storageRef.write(toFile: localURL) { url, error in
+        
+        _ = storageRef.write(toFile: localURL) { url, error in
             if let error = error {
                 print("Error downloading file: \(error)")
                 completion(nil)
@@ -1107,10 +1253,10 @@ struct ChatItemView: View {
                 completion(url)
             }
         }
-
-//        downloadTask.observe(.progress) { snapshot in
-//            // Отслеживание прогресса загрузки, если необходимо
-//        }
+        
+        //        downloadTask.observe(.progress) { snapshot in
+        //            // Отслеживание прогресса загрузки, если необходимо
+        //        }
     }
     
     func loadThumbnail(url: URL) {
@@ -1241,11 +1387,11 @@ struct ChatItemView: View {
 
 class Coordinator: NSObject, UIDocumentInteractionControllerDelegate {
     var parent: ChatItemView
-
+    
     init(_ parent: ChatItemView) {
         self.parent = parent
     }
-
+    
     func documentInteractionControllerViewControllerForPreview(_ controller: UIDocumentInteractionController) -> UIViewController {
         return UIApplication.shared.windows.first?.rootViewController ?? UIViewController()
     }

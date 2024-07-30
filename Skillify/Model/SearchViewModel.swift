@@ -107,7 +107,9 @@ class SearchViewModel: ObservableObject {
             Skill(name: "Philosophy", iconName: "brain.head.profile"),
             Skill(name: "Economics", iconName: "scalemass"),
             Skill(name: "Consulting", iconName: "person.crop.circle.badge.checkmark"),
-            Skill(name: "Startups", iconName: "plus.circle")
+            Skill(name: "Startups", iconName: "plus.circle"),
+            Skill(name: "Kitesurfing", iconName: "figure.surfing"),
+            Skill(name: "Streaming", iconName: "livephoto.play")
         ]
         self.fetchUsers()
     }
@@ -153,7 +155,7 @@ class SearchViewModel: ObservableObject {
                             isBlocked = false
                         }
                         
-                        return (!u.first_name.isEmpty && u.blocked < 3 && (!u.selfSkills.isEmpty || !u.learningSkills.isEmpty) && isBlocked) ? u : nil
+                        return (!u.first_name.isEmpty && u.blocked ?? 0 < 3 && (!u.selfSkills.isEmpty || !u.learningSkills.isEmpty) && isBlocked) ? u : nil
                     }
                     return nil
                 }
@@ -165,7 +167,7 @@ class SearchViewModel: ObservableObject {
                     if let u = user {
                         var hasMatchingSkill: Bool
                         
-                        if u.blocked > 3 {
+                        if u.blocked ?? 0 > 3 {
                             return nil
                         }
                         

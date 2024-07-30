@@ -37,6 +37,7 @@ class CallManager: NSObject, ObservableObject {
         configuration.supportsVideo = true
         configuration.maximumCallsPerCallGroup = 1
         configuration.maximumCallGroups = 1
+        configuration.ringtoneSound = "ringtone.wav"
         if let icon = UIImage(named: "sk"), let iconData = icon.pngData() {
             configuration.iconTemplateImageData = iconData
         }
@@ -55,6 +56,9 @@ class CallManager: NSObject, ObservableObject {
         self.handler = handler
         self.video = video
         self.status = "Starting call..."
+        callTimer?.invalidate()
+        callTimer = nil
+        callTimeSeconds = 0
         completion()
         sendMessage()
     }
@@ -82,7 +86,7 @@ class CallManager: NSObject, ObservableObject {
                 .document(chat.values.first ?? "error")
                 .updateData(["lastData": [handler?.id ?? "", "📞 Call", "u"], "time": Date().timeIntervalSince1970]) { error in
                     if error != nil {
-                        print("error \(error?.localizedDescription)")
+                        print("error \(error?.localizedDescription ?? "")")
                     }
                 }
         }
@@ -96,6 +100,9 @@ class CallManager: NSObject, ObservableObject {
         self.incoming = true
         self.video = hasVideo
         self.status = "Getting call..."
+        callTimer?.invalidate()
+        callTimer = nil
+        callTimeSeconds = 0
         self.agoraManager.users.append(UInt.random(in: 0...1000))
         loadCallers(handler: caller, receiver: Auth.auth().currentUser!.uid) { result in
             switch result {

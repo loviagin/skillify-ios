@@ -9,6 +9,7 @@ import SwiftUI
 
 struct EmojiCoverView: View {
     @Binding var emoji: String
+    @State var showLast1: Bool = true
     
     var body: some View {
         let name = String(emoji.split(separator: ":").last ?? Substring(emoji))
@@ -51,17 +52,21 @@ struct EmojiCoverView: View {
                 .padding(.trailing, 30)
                 .padding(.bottom, 10)
                 .frame(maxWidth: .infinity, maxHeight: 100, alignment: .bottom)
-            Image(systemName: name)
-                .foregroundColor(.white.opacity(0.8))
-                .padding(.trailing, 20)
-                .padding(.bottom, 5)
-                .frame(maxWidth: .infinity, maxHeight: 100, alignment: .bottomTrailing)
-            Image(systemName: name)
-                .foregroundColor(.white.opacity(0.8))
-                .padding(.trailing, 20)
-                .padding(.top, 10)
-                .frame(maxWidth: .infinity, maxHeight: 100, alignment: .topTrailing)
+            if showLast1 {
+                Image(systemName: name)
+                    .foregroundColor(.white.opacity(0.8))
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 5)
+                    .frame(maxWidth: .infinity, maxHeight: 100, alignment: .bottomTrailing)
+                
+                Image(systemName: name)
+                    .foregroundColor(.white.opacity(0.8))
+                    .padding(.trailing, 20)
+                    .padding(.top, 10)
+                    .frame(maxWidth: .infinity, maxHeight: 100, alignment: .topTrailing)
+            }
         }
+//        .background(.blue)
     }
 }
 

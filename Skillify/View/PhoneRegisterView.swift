@@ -10,11 +10,19 @@ import Combine
 
 struct PhoneRegisterView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    
     @State private var phone = ""
     @State private var verifyCode = ""
-    @State private var isShowingAlert = false
     
+    @State private var isShowingAlert = false
     @State private var isEnterCode = false
+    
+    @FocusState var focused: PhoneFieldType?
+    @State private var isLoading = false
+    
+    enum PhoneFieldType {
+        case phone, code
+    }
     
     var body: some View {
         NavigationStack {
@@ -33,6 +41,7 @@ struct PhoneRegisterView: View {
                     .autocapitalization(.none)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding(.bottom, 10)
+                    .focused($focused, equals: .phone)
                     .onReceive(Just(phone)) { newValue in
                         let filtered = newValue.filter { "0123456789".contains($0) }
                         if filtered != newValue {
@@ -42,11 +51,18 @@ struct PhoneRegisterView: View {
                         // Применяем маску форматирования
                         self.phone = self.applyPhoneMask(to: filtered)
                     }
+                
                 VStack(alignment: .leading){
                     if isEnterCode {
                         Text("Enter the verification code")
                         TextField("* * * * * *", text: $verifyCode)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .focused($focused, equals: .code)
+                            .submitLabel(.go)
+                            .onSubmit {
+                                onButtonTap()
+                            }
+                        
                         Button{
                             isEnterCode = false
                         } label: {
@@ -54,29 +70,33 @@ struct PhoneRegisterView: View {
                         }
                     }
                 }
+                
                 Button {
                     if isEnterCode { // login
-                        authViewModel.loginViaPhoneFirebase(verificationCode: verifyCode)
-                    } else { // send a code
+                        onButtonTap()
+                    } else if phone.count > 10 { // send a code
                         isEnterCode = true
                         authViewModel.signInWithPhone(phoneNumber: phone)
+                        withAnimation {
+                            focused = .code
+                        }
+                    } else { // no phone number entered
+                        isShowingAlert = true
+                        authViewModel.errorMessage = "Enter correct phone number"
                     }
-//                    Task {
-                    //                        try await authViewModel.createUser(email: email, pass: password)
-                    //                    }
                 } label: {
-                    HStack{
-                        Spacer()
+                    if isLoading {
+                        ProgressView()
+                    } else {
                         Text(isEnterCode ? "Login" : "Send a code")
-                        //                            .font(.title3)
-                            .foregroundColor(.white)
-                        Spacer()
                     }
-                    .frame(width: .infinity, height: 40)
-                    .background(.blue)
-                    .cornerRadius(15)
-                    .padding(.top, 10)
                 }
+                .padding(10)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .background(.blue)
+                .cornerRadius(15)
+                .padding(.top, 10)
                 .alert(isPresented: $isShowingAlert) {
                     Alert(title: Text("Error"), message: Text(authViewModel.errorMessage ?? "Unknown error"), dismissButton: .default(Text("OK")))
                 }
@@ -87,11 +107,26 @@ struct PhoneRegisterView: View {
             }
             .padding()
         }
+        .onAppear {
+            focused = .phone
+        }
+    }
+    
+    func onButtonTap() {
+        withAnimation {
+            isLoading = true
+        }
+        
+        authViewModel.loginViaPhoneFirebase(verificationCode: verifyCode) { error in
+            if let error {
+                print(error)
+            }
+            isLoading = false
+        }
     }
     
     func applyPhoneMask(to rawPhoneNumber: String) -> String {
         let numbersOnly = rawPhoneNumber.replacingOccurrences(of: "[^0-9]", with: "", options: .regularExpression)
-        let maxDigits = 15 // Установите максимальное ожидаемое количество цифр
         var result = ""
         var index = numbersOnly.startIndex // Указатель на текущий символ строки
         
@@ -120,4 +155,5 @@ struct PhoneRegisterView: View {
 
 #Preview {
     PhoneRegisterView()
+        .environmentObject(AuthViewModel.mock)
 }

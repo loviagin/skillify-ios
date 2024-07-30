@@ -9,10 +9,16 @@ import SwiftUI
 
 struct LoginView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @Environment(\.dismiss) private var dismiss
+    
     @State private var email = ""
     @State private var password = ""
+    @FocusState var focused: LoginFieldType?
+    @State var isLoading = false
     
-    @Binding var navigateToSignIn: Bool
+    enum LoginFieldType {
+        case email, password
+    }
     
     var body: some View {
         NavigationStack {
@@ -20,7 +26,7 @@ struct LoginView: View {
                 HStack{
                     Spacer()
                     Button {
-                        navigateToSignIn = false
+                        dismiss()
                     } label: {
                         Image(systemName: "xmark")
                             .padding(.trailing, 25)
@@ -31,6 +37,7 @@ struct LoginView: View {
                     }
                 }
                 .padding(.top, 10)
+                
                 Image("logo")
                     .resizable()
                     .scaledToFit()
@@ -43,6 +50,7 @@ struct LoginView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 20)
                     .padding(.bottom, 15)
+                
                 TextLabelView(text: "Enter your email")
                 TextField("Email", text: $email)
                     .textInputAutocapitalization(.never)
@@ -50,25 +58,51 @@ struct LoginView: View {
                     .padding(.bottom, 15)
                     .padding(.horizontal, 20)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .focused($focused, equals: .email)
+                    .submitLabel(.next)
+                    .onSubmit {
+                        withAnimation {
+                            focused = .password
+                        }
+                    }
+                
                 TextLabelView(text: "Enter your password")
                 SecureField("Password", text: $password)
                     .textInputAutocapitalization(.never)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding(.horizontal, 20)
-                Button(action: {
-                    Task {
-                        do {
-                            try await authViewModel.signInWithEmail(email: email, pass: password)
-                            // Успешный вход
-                        } catch {
-                            // Обработка ошибки аутентификации
-                            print("Ошибка входа: \(error.localizedDescription)")
+                    .focused($focused, equals: .password)
+                    .submitLabel(.done)
+                    .onSubmit() {
+                        focused = nil
+                        isLoading = true
+                        Task {
+                            await authViewModel.signInWithEmail(email: email, pass: password) { error in
+                                if let error {
+                                    print(error)
+                                }
+                                isLoading = false
+                            }
                         }
                     }
-                }, label: {
-                    Image(systemName: "rectangle.portrait.and.arrow.forward")
-                    Text("Login")
-                })
+                
+                Button {
+                    isLoading = true
+                    Task {
+                        await authViewModel.signInWithEmail(email: email, pass: password) { error in
+                            if let error {
+                                print(error)
+                            }
+                            isLoading = false
+                        }
+                    }
+                } label: {
+                    if isLoading {
+                        ProgressView()
+                    } else {
+                        Label("Login", systemImage: "rectangle.portrait.and.arrow.forward")
+                    }
+                }
                 .frame(width: 250, height: 40)
                 .background(.blue)
                 .foregroundColor(.white)
@@ -77,48 +111,18 @@ struct LoginView: View {
                 
                 Text("Or use other methods")
                 
-                OtherMethodsToSignInView()
-//                HStack {
-//                    Spacer()
-//
-//                    Image("googleIcon")
-//                        .resizable()
-//                        .scaledToFit()
-//                        .frame(width: 30, height: 30)
-//                        .padding()
-//                    Image(systemName: "phone")
-//                        .resizable()
-//                        .scaledToFit()
-//                        .frame(width: 30, height: 30)
-//                        .padding()
-//                    Image(systemName: "apple.logo")
-//                        .resizable()
-//                        .scaledToFit()
-//                        .frame(width: 30, height: 33)
-//                        .padding()
-//
-//                    Spacer()
-//                }
+                OtherMethodsToSignInView(isLoading: $isLoading)
                 
                 Spacer()
-                
-                // Навигация при успешной аутентификации
-//                if viewModel.isAuthenticated {
-//                    NavigationLink(destination: AccountView(), isActive: $viewModel.isAuthenticated) { EmptyView() }
-//                }
-                
             }
         }
     }
 }
 
 
-struct LoginView_Previews: PreviewProvider {
-    @State static var navigateToSignIn = true // Создаём временную @State переменную
-
-    static var previews: some View {
-        LoginView(navigateToSignIn: $navigateToSignIn) // Передаем Binding переменную
-    }
+#Preview {
+    LoginView()
+        .environmentObject(AuthViewModel.mock)
 }
 
 struct TextLabelView: View {

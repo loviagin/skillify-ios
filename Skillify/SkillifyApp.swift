@@ -15,6 +15,7 @@ import UserNotifications
 import CallKit
 import AgoraRtcKit
 import FirebaseFirestore
+import RevenueCat
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     
@@ -33,6 +34,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         FirebaseApp.configure()
         
+        _ = callManager
+        
         OneSignal.initialize("e57ccffe-08a9-4fa8-8a63-8c3b143d2efd", withLaunchOptions: launchOptions)
         
         OneSignal.Notifications.requestPermission({ accepted in
@@ -45,8 +48,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         pushRegistry.desiredPushTypes = [.voIP]
         
         // Initialize AgoraManager and CallManager
-        _ = callManager
 //        _ = agoraManager
+        
+        Purchases.logLevel = .info
+        Purchases.configure(withAPIKey: "appl_XIhpKOSZPgtexHzjEZAwzgGYrMk")
+        
         return true
     }
     
@@ -145,9 +151,9 @@ extension AppDelegate: PKPushRegistryDelegate {
         request.httpBody = postData
 
    
-        let (data, _) = try! await URLSession.shared.data(for: request)
+        try? await URLSession.shared.data(for: request)
         
-        print(String(decoding: data, as: UTF8.self))
+//        print(String(decoding: data, as: UTF8.self))
     }
 }
 
@@ -166,6 +172,12 @@ struct SkillifyApp: App {
                 .environmentObject(authViewModel)
                 .environmentObject(messagesViewModel)
                 .environmentObject(delegate.callManager)
+                .onOpenURL(perform: { url in
+                    if let scheme = url.scheme, scheme == "skillify" {
+                        let destination = url.absoluteString.split(separator: "://").last
+                        authViewModel.destination = String(destination ?? "")
+                    }
+                })
         }
         .onChange(of: scenePhase) { newScenePhase in
             switch newScenePhase {

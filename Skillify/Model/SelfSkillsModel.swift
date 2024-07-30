@@ -101,7 +101,9 @@ class SkillsViewModel: ObservableObject {
             Skill(name: "Philosophy", iconName: "brain.head.profile"),
             Skill(name: "Economics", iconName: "scalemass"),
             Skill(name: "Consulting", iconName: "person.crop.circle.badge.checkmark"),
-            Skill(name: "Startups", iconName: "plus.circle")
+            Skill(name: "Startups", iconName: "plus.circle"),
+            Skill(name: "Kitesurfing", iconName: "figure.surfing"),
+            Skill(name: "Streaming", iconName: "livephoto.play")
         ]
     }
     

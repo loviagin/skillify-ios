@@ -10,12 +10,10 @@ import SwiftUI
 import FirebaseFirestore
 
 struct ProfileView: View {
-    let id = UUID()
-    
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var authViewModel: AuthViewModel
     @EnvironmentObject private var callManager: CallManager
     @State private var showMenu = false // Состояние для отслеживания видимости меню
-    @Environment(\.presentationMode) var presentationMode
     let shareProfileMenuItem = MenuItem(id: "Share")
     let reportProfileMenuItem = MenuItem(id: "Report")
     @State private var selectedMenuItem: MenuItem?
@@ -24,58 +22,77 @@ struct ProfileView: View {
     @State var isVisible: Bool = false
     @State var showPhoneCall: Bool = false
     @State var showChat: Bool = false
+    @State var messPrivate = false
+    @Binding var showProfile: Bool
 
     let user: User
-    let currentId: String
-    var subscribers = 0
-    var subscriptions = 0
-    
-    init(user: User, currentId: String) {
-        self.user = user
-        self.currentId = currentId
-        self.subscribers = user.subscribers.count
-        self.subscriptions = user.subscriptions.count
-    }
+    @State var subscribers = 0
+    @State var subscriptions = 0
+    @State var currentId = ""
     
     var body: some View {
-        ScrollView {
-            VStack {
-                NavigationLink(destination: PhoneCallView().toolbar(.hidden, for: .tabBar), isActive: $showPhoneCall) { EmptyView() }
-//                NavigationLink(destination: PhoneCallView(user: user, videoCall: true).toolbar(.hidden, for: .tabBar), isActive: $showVideoCall) { EmptyView() }
-                NavigationLink(destination: ChatView(userId: userId, user: user).toolbar(.hidden, for: .tabBar), isActive: $showChat) { EmptyView() }
-                // Аватарка
-                if UserHelper.isUserPro(user.pro), let proData = user.proData, proData.contains(where: { $0.hasPrefix("cover:") }) {
-                    ZStack {
-                        Rectangle()
-                            .fill(LinearGradient(
-                                gradient: Gradient(colors:[
-                                    UserHelper.getColor1(proData.first(where: { $0.hasPrefix("cover:") }) ?? "cover:1").opacity(0.4),
-                                    UserHelper.getColor2(proData.first(where: { $0.hasPrefix("cover:") }) ?? "cover:1").opacity(0.4)
-                                ]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ))
-                            .ignoresSafeArea()
-                        
-                        if let emoji = proData.first(where: { $0.hasPrefix("emoji:") }) {
-                            EmojiCoverView(emoji: .constant(emoji))
+        NavigationStack {
+            ScrollView {
+                VStack {
+                    // Аватарка
+                    if UserHelper.isUserPro(user.pro), let proData = user.proData, proData.contains(where: { $0.hasPrefix("cover:") }) {
+                        ZStack {
+                            Rectangle()
+                                .fill(LinearGradient(
+                                    gradient: Gradient(colors:[
+                                        UserHelper.getColor1(proData.first(where: { $0.hasPrefix("cover:") }) ?? "cover:1").opacity(0.4),
+                                        UserHelper.getColor2(proData.first(where: { $0.hasPrefix("cover:") }) ?? "cover:1").opacity(0.4)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ))
+                                .ignoresSafeArea()
+                            
+                            if let emoji = proData.first(where: { $0.hasPrefix("emoji:") }) {
+                                EmojiCoverView(emoji: .constant(emoji))
+                            }
+                            
+                            VStack {
+                                AvatarView(avatarUrl: user.urlAvatar)
+                                // Имя, Фамилия и Никнейм
+                                HStack(spacing: 5) {
+                                    Text("\(user.first_name) \(user.last_name)")
+                                        .font(.title)
+                                        .lineLimit(1)
+                                    if let data = user.tags, data.contains("verified") {
+                                        Image("verify")
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 20, height: 20)
+                                    } else if let data = user.tags, data.contains("admin") {
+                                        Image("gold")
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 20, height: 20)
+                                    } else if UserHelper.isUserPro(user.pro), let data = user.proData, let status = data.first(where: { $0.hasPrefix("status:") }) {
+                                        Image(systemName: String(status.split(separator: ":").last ?? Substring(status)))
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 20, height: 20)
+                                            .foregroundColor(.brandBlue)
+                                    }
+                                }
+                                
+                                Text("@\(user.nickname)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                    .padding(.bottom, 10)
+                            }
                         }
-                        
+                    } else {
                         VStack {
                             AvatarView(avatarUrl: user.urlAvatar)
                             // Имя, Фамилия и Никнейм
-                            HStack {
+                            HStack(spacing: 5) {
                                 Text("\(user.first_name) \(user.last_name)")
                                     .font(.title)
-                                    .lineLimit(1)
                                 //                            .padding(.trailing, 5)
-                                if let data = user.proData, let status = data.first(where: { $0.hasPrefix("status:") }) {
-                                    Image(systemName: String(status.split(separator: ":").last ?? Substring(status)))
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 20, height: 20)
-                                        .foregroundColor(.brandBlue)
-                                } else if let data = user.tags, data.contains("verified") {
+                                if let data = user.tags, data.contains("verified") {
                                     Image("verify")
                                         .resizable()
                                         .scaledToFill()
@@ -94,200 +111,167 @@ struct ProfileView: View {
                                 .foregroundColor(.gray)
                                 .padding(.bottom, 10)
                         }
-                    }
-                } else {
-                    VStack {
-                        AvatarView(avatarUrl: user.urlAvatar)
-                        // Имя, Фамилия и Никнейм
-                        HStack {
-                            Text("\(user.first_name) \(user.last_name)")
-                                .font(.title)
-                            //                            .padding(.trailing, 5)
-                            if let data = user.tags, data.contains("verified") {
-                                Image("verify")
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 20, height: 20)
-                            } else if let data = user.tags, data.contains("admin") {
-                                Image("gold")
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 20, height: 20)
-                            }
-                        }
-                        //                        .padding(.top, 8)
-                        
-                        Text("@\(user.nickname)")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                            .padding(.bottom, 10)
-                    }
-                    .background(.linearGradient(colors: [.brandBlue.opacity(0.3), .redApp.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                }
-
-                if !user.bio.isEmpty {
-                    Text(user.bio)
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                        .padding(.top, 5)
-                }
-                
-                HStack {
-                    NavigationLink (destination: SubscribersView(selection: SubscribersViewModel.SubscribersCategory.subscribers, subscribers: user.subscribers, subscriptions: user.subscriptions).toolbar(.hidden, for: .tabBar)) {
-                        VStack {
-                            Text("\(subscribers)")
-                                .fontWeight(.bold)
-                                .foregroundColor(.primary)
-                            Text("Subscibers")
-                                .font(.caption)
-                                .foregroundColor(.primary)
-                        }
-                        .padding()
+                        .background(.linearGradient(colors: [.brandBlue.opacity(0.3), .redApp.opacity(0.3)], startPoint: .topLeading, endPoint: .bottomTrailing))
                     }
                     
-                    NavigationLink (destination: SubscribersView(selection: SubscribersViewModel.SubscribersCategory.subscription, subscribers: user.subscribers, subscriptions: user.subscriptions).toolbar(.hidden, for: .tabBar)) {
-                        VStack {
-                            Text("\(subscriptions)")
-                                .fontWeight(.bold)
-                                .foregroundColor(.primary)
-                            Text("Subscriptions")
-                                .font(.caption)
-                                .foregroundColor(.primary)
-                        }
-                        .padding()
+                    //MARK: - BIO PROFILE
+                    if !user.bio.isEmpty {
+                        Text(user.bio)
+                            .font(.subheadline)
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.gray)
+                            .padding(.top, 5)
+                            .padding(.horizontal, 12)
                     }
-                }
-                .background(.lGray)
-                .cornerRadius(15)
-                .padding()
-                
-                // Кнопки действий
-                if user.id != currentId {
-                    HStack(spacing: 15) {
-                        //                         Кнопка "Сообщение"
-                        if UserHelper.isMessagesBlocked(viewModel: authViewModel, user: user) == nil {
-                            Button {
-                                self.userId = userId
-                                self.showChat = true
-                            } label: {
-                                if isLoadingMessage {
-                                    ProgressView()
-                                } else {
-                                    HStack {
-                                        Image(systemName: "message.fill")
-                                        Text("Message")
-                                    }
-                                    .padding()
-                                    .frame(width: 200, height: 35)
-                                    .background(.gray)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(15)
-                                }
+                    
+                    HStack {
+                        NavigationLink (destination: SubscribersView(selection: SubscribersViewModel.SubscribersCategory.subscribers, subscribers: user.subscribers, subscriptions: user.subscriptions).toolbar(.hidden, for: .tabBar)) {
+                            VStack {
+                                Text("\(subscribers)")
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.primary)
+                                Text("Subscibers")
+                                    .font(.caption)
+                                    .foregroundColor(.primary)
                             }
-                        }
-                        // Кнопка "Подписаться"
-                        Button(action: {
-                            if authViewModel.currentUser?.subscriptions.contains(user.id) == true {
-                                let index = authViewModel.currentUser?.subscriptions.firstIndex(where: { $0 == user.id })
-                                authViewModel.currentUser?.subscriptions.remove(at: index!)
-                                
-                                authViewModel.updateUsersFirebase(isAdd: false, str: "subscriptions", newStr: user.id, cUid: authViewModel.currentUser!.id)
-                                authViewModel.updateUsersFirebase(isAdd: false, str: "subscribers", newStr: authViewModel.currentUser!.id, cUid: user.id)
-                            } else {
-                                authViewModel.currentUser?.subscriptions.append(user.id)
-                                
-                                authViewModel.updateUsersFirebase(str: "subscriptions", newStr: user.id, cUid: authViewModel.currentUser!.id)
-                                authViewModel.updateUsersFirebase(str: "subscribers", newStr: authViewModel.currentUser!.id, cUid: user.id)
-                                
-                                //send notification
-                                Task {
-                                    await authViewModel.sendNotification(
-                                        header: "Skillify",
-                                        playerId: user.id,
-                                        messageText: "You have a new subscriber",
-                                        targetText: "s-\(user.id)",
-                                        type: .subscription,
-                                        privacy: user.privacyData)
-                                }
-                            }
-                        }) {
-                            if authViewModel.currentUser?.subscriptions.contains(user.id) == true {
-                                if authViewModel.currentUser?.subscribers.contains(user.id) == true {
-                                    Image(systemName: "person.2.fill")
-                                        .padding()
-                                        .frame(width: 35, height: 35)
-                                        .background(.blue)
-                                        .foregroundColor(.green)
-                                        .clipShape(Circle())
-                                } else {
-                                    Image(systemName: "person.fill.checkmark")
-                                        .padding()
-                                        .frame(width: 35, height: 35)
-                                        .background(.blue)
-                                        .foregroundColor(.green)
-                                        .clipShape(Circle())
-                                }
-                            } else {
-                                Image(systemName: "person.badge.plus")
-                                    .padding()
-                                    .frame(width: 35, height: 35)
-                                    .background(.blue)
-                                    .foregroundColor(.white)
-                                    .clipShape(Circle())
-                            }
+                            .padding()
                         }
                         
-                        //MARK: - CALLS
-                        if UserHelper.isMessagesBlocked(viewModel: authViewModel, user: user) == nil 
-                            && !(user.lastData?.contains(where: { $0 == "android" }) ?? false)
-                            && (user.blocked < 3) {
-                            // Кнопка "Позвонить"
-                            if callManager.callId == nil {
-                                Button(action: {
-                                    if authViewModel.currentUser?.subscriptions.contains(user.id) == true &&
-                                        authViewModel.currentUser?.subscribers.contains(user.id) == true
-                                    {
-                                        callManager.setCall(channelName: "\(authViewModel.currentUser!.id) \(user.id)", receiver: user, handler: authViewModel.currentUser!) {
-                                            callManager.startCall()
-                                            showPhoneCall = true
-                                            Task {
-                                                await authViewModel.sendNotification(
-                                                    playerId: user.id,
-                                                    messageText: "New call from \(authViewModel.currentUser!.first_name)",
-                                                    type: .message,
-                                                    privacy: user.privacyData)
-                                            }
-                                        }
+                        NavigationLink (destination: SubscribersView(selection: SubscribersViewModel.SubscribersCategory.subscription, subscribers: user.subscribers, subscriptions: user.subscriptions).toolbar(.hidden, for: .tabBar)) {
+                            VStack {
+                                Text("\(subscriptions)")
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.primary)
+                                Text("Subscriptions")
+                                    .font(.caption)
+                                    .foregroundColor(.primary)
+                            }
+                            .padding()
+                        }
+                    }
+                    .background(.lGray)
+                    .cornerRadius(15)
+                    .padding()
+                    
+                    // Кнопки действий
+                    if user.id != (authViewModel.currentUser?.id ?? "") {
+                        HStack(spacing: 15) {
+                            //                         Кнопка "Сообщение"
+                            if UserHelper.isMessagesBlocked(viewModel: authViewModel, user: user) == nil {
+                                Button {
+                                    self.userId = userId
+                                    self.showChat = true
+                                } label: {
+                                    if isLoadingMessage {
+                                        ProgressView()
                                     } else {
-                                        isVisible = true
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                            isVisible = false
+                                        HStack {
+                                            Image(systemName: "message.fill")
+                                            Text("Message")
                                         }
+                                        .padding()
+                                        .frame(width: 200, height: 35)
+                                        .background(.gray)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(15)
                                     }
-                                }) {
-                                    Image(systemName: "phone.fill")
+                                }
+                            }
+                            // Кнопка "Подписаться"
+                            Button(action: {
+                                if authViewModel.currentUser?.subscriptions.contains(user.id) == true {
+                                    let index = authViewModel.currentUser?.subscriptions.firstIndex(where: { $0 == user.id })
+                                    authViewModel.currentUser?.subscriptions.remove(at: index!)
+                                    
+                                    authViewModel.updateUsersFirebase(isAdd: false, str: "subscriptions", newStr: user.id, cUid: authViewModel.currentUser!.id)
+                                    authViewModel.updateUsersFirebase(isAdd: false, str: "subscribers", newStr: authViewModel.currentUser!.id, cUid: user.id)
+                                } else {
+                                    authViewModel.currentUser?.subscriptions.append(user.id)
+                                    
+                                    authViewModel.updateUsersFirebase(str: "subscriptions", newStr: user.id, cUid: authViewModel.currentUser!.id)
+                                    authViewModel.updateUsersFirebase(str: "subscribers", newStr: authViewModel.currentUser!.id, cUid: user.id)
+                                    
+                                    //send notification
+                                    Task {
+                                        await authViewModel.sendNotification(
+                                            header: "Skillify",
+                                            playerId: user.id,
+                                            messageText: "You have a new subscriber \(authViewModel.currentUser?.first_name ?? "")",
+                                            targetText: authViewModel.currentUser?.id ?? "",
+                                            type: .subscription,
+                                            privacy: user.privacyData)
+                                    }
+                                }
+                            }) {
+                                if authViewModel.currentUser?.subscriptions.contains(user.id) == true {
+                                    if authViewModel.currentUser?.subscribers.contains(user.id) == true {
+                                        Image(systemName: "person.2.fill")
+                                            .padding()
+                                            .frame(width: 35, height: 35)
+                                            .background(.blue)
+                                            .foregroundColor(.green)
+                                            .clipShape(Circle())
+                                    } else {
+                                        Image(systemName: "person.fill.checkmark")
+                                            .padding()
+                                            .frame(width: 35, height: 35)
+                                            .background(.blue)
+                                            .foregroundColor(.green)
+                                            .clipShape(Circle())
+                                    }
+                                } else {
+                                    Image(systemName: "person.badge.plus")
                                         .padding()
                                         .frame(width: 35, height: 35)
-                                        .background(Color.green)
+                                        .background(.blue)
                                         .foregroundColor(.white)
                                         .clipShape(Circle())
                                 }
-                                .overlay(alignment: .topTrailing, content: {
-                                    if isVisible {
-                                        Text("Only for friends")
-                                            .padding(.vertical, 5)
-                                            .padding(.horizontal, 8)
-                                            .frame(width: 150, height: 40)
-                                            .background(.background)
-                                            .foregroundColor(.primary)
-                                            .cornerRadius(15)
-                                            .shadow(radius: 5)
-                                            .font(.caption)
-                                            .offset(y: -50)
+                            }
+                            
+                            //MARK: - CALLS
+                            if UserHelper.isMessagesBlocked(viewModel: authViewModel, user: user) == nil
+                                && !(user.lastData?.contains(where: { $0 == "android" }) ?? false)
+                                && (user.blocked ?? 0 < 3) {
+                                // Кнопка "Позвонить"
+                                if callManager.callId == nil {
+                                    Button(action: {
+                                        if authViewModel.currentUser?.subscriptions.contains(user.id) == true &&
+                                            authViewModel.currentUser?.subscribers.contains(user.id) == true
+                                        {
+                                            callManager.setCall(channelName: "\(authViewModel.currentUser!.id) \(user.id)", receiver: user, handler: authViewModel.currentUser!) {
+                                                callManager.startCall()
+                                                showPhoneCall = true
+                                            }
+                                        } else {
+                                            isVisible = true
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                                isVisible = false
+                                            }
+                                        }
+                                    }) {
+                                        Image(systemName: "phone.fill")
+                                            .padding()
+                                            .frame(width: 35, height: 35)
+                                            .background(Color.green)
+                                            .foregroundColor(.white)
+                                            .clipShape(Circle())
                                     }
-                                })
-                                
-                                if UserHelper.isUserPro(authViewModel.currentUser?.pro) {
+                                    .overlay(alignment: .topTrailing, content: {
+                                        if isVisible {
+                                            Text("Only for friends")
+                                                .padding(.vertical, 5)
+                                                .padding(.horizontal, 8)
+                                                .frame(width: 150, height: 40)
+                                                .background(.background)
+                                                .foregroundColor(.primary)
+                                                .cornerRadius(15)
+                                                .shadow(radius: 5)
+                                                .font(.caption)
+                                                .offset(y: -50)
+                                        }
+                                    })
+                                    
                                     Button(action: {
                                         if authViewModel.currentUser?.subscriptions.contains(user.id) == true &&
                                             authViewModel.currentUser?.subscribers.contains(user.id) == true
@@ -313,174 +297,194 @@ struct ProfileView: View {
                                 }
                             }
                         }
+                        .padding(.horizontal)
                     }
+                    // Список selfSkills
+                    VStack(alignment: .leading) {
+                        Text("My Skills")
+                            .font(.headline)
+                            .padding(.top)
+                        if user.selfSkills.count > 0 {
+                            let viewModel = SkillsViewModel(authViewModel: authViewModel)
+                            ForEach(user.selfSkills, id: \.self) { skill in
+                                VStack {
+                                    excView(skill: skill, viewModel: viewModel, user: user)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, 8)
+                                .background(Color.gray.opacity(0.2))
+                                .cornerRadius(10)
+                                .onTapGesture {
+                                    if user.id == (currentId) {
+                                        let index = authViewModel.currentUser?.selfSkills.firstIndex(where: { $0.name == skill.name })
+                                        authViewModel.currentUser?.selfSkills[index ?? 0].isSelected.toggle()
+                                    }
+                                }
+                            }
+                        } else {
+                            Text("For appologize user not set any skills")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                    
+                    VStack(alignment: .leading) {
+                        Text("I learning")
+                            .font(.headline)
+                            .padding(.top)
+                        if user.learningSkills.count > 0 {
+                            let viewModel = LearningSkillsViewModel(authViewModel: authViewModel)
+                            ForEach(user.learningSkills, id: \.self) { skill in
+                                VStack {
+                                    exc2View(skill: skill, viewModel: viewModel, user: user/*, isVisible: isVisible*/)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, 8)
+                                .background(Color.gray.opacity(0.2))
+                                .cornerRadius(10)
+                                .onTapGesture {
+                                    if user.id == (currentId) {
+                                        let index = authViewModel.currentUser?.learningSkills.firstIndex(where: { $0.name == skill.name })
+                                        authViewModel.currentUser?.learningSkills[index ?? 0].isSelected.toggle()
+                                    }
+                                    //                                print(index)
+                                }
+                            }
+                        } else {
+                            Text("For appologize user not set any skills")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
                 }
-                // Список selfSkills
-                VStack(alignment: .leading) {
-                    Text("My Skills")
-                        .font(.headline)
-                        .padding(.top)
-                    if user.selfSkills.count > 0 {
-                        let viewModel = SkillsViewModel(authViewModel: authViewModel)
-                        ForEach(user.selfSkills, id: \.self) { skill in
-                            VStack {
-                                excView(skill: skill, viewModel: viewModel, user: user)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, 8)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(10)
-                            .onTapGesture {
-                                if user.id == currentId {
-                                    let index = authViewModel.currentUser?.selfSkills.firstIndex(where: { $0.name == skill.name })
-                                    authViewModel.currentUser?.selfSkills[index ?? 0].isSelected.toggle()
+                .onAppear {
+                    self.subscribers = user.subscribers.count
+                    self.subscriptions = user.subscriptions.count
+                    self.currentId = authViewModel.currentUser?.id ?? ""
+                    
+                    if user.id == currentId {
+                        if (authViewModel.currentUser?.selfSkills.count)! > 0 && authViewModel.currentUser?.selfSkills[0] != nil {
+                            authViewModel.currentUser?.selfSkills[0].isSelected = true
+                        }
+                    }
+                    
+                    let db = Firestore.firestore()
+                    db.collection("messages").document("\(user.id)\(currentId)").getDocument { (document, error) in
+                        if let document = document, document.exists {
+                            userId = "\(user.id)\(currentId)"
+                            isLoadingMessage = false
+                        } else {
+                            db.collection("messages").document("\(currentId)\(user.id)").getDocument { (document, error) in
+                                if let document = document, document.exists {
+                                    userId = "\(currentId)\(user.id)"
+                                    print(userId)
+                                    isLoadingMessage = false
+                                } else {
+                                    print("Документ не найден ")
+                                    isLoadingMessage = false
                                 }
                             }
                         }
-                    } else {
-                        Text("For appologize user not set any skills")
-                            .font(.caption)
-                            .foregroundColor(.gray)
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal)
-                
-                VStack(alignment: .leading) {
-                    Text("I learning")
-                        .font(.headline)
-                        .padding(.top)
-                    if user.learningSkills.count > 0 {
-                        let viewModel = LearningSkillsViewModel(authViewModel: authViewModel)
-                        ForEach(user.learningSkills, id: \.self) { skill in
-                            VStack {
-                                exc2View(skill: skill, viewModel: viewModel, user: user/*, isVisible: isVisible*/)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Menu {
+                            Button{
+                                selectedMenuItem = shareProfileMenuItem
+                            } label: {
+                                Text("Share profile")
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, 8)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(10)
-                            .onTapGesture {
-                                if user.id == currentId {
-                                    let index = authViewModel.currentUser?.learningSkills.firstIndex(where: { $0.name == skill.name })
-                                    authViewModel.currentUser?.learningSkills[index ?? 0].isSelected.toggle()
-                                }
-                                //                                print(index)
-                            }
-                        }
-                    } else {
-                        Text("For appologize user not set any skills")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal)
-            }
-            .onAppear {               
-                if user.id == currentId {
-                    if (authViewModel.currentUser?.selfSkills.count)! > 0 && authViewModel.currentUser?.selfSkills[0] != nil {
-                        authViewModel.currentUser?.selfSkills[0].isSelected = true
-                    }
-                }
-                let db = Firestore.firestore()
-//                print("\(user.id)\(authViewModel.currentUser!.id)")
-                db.collection("messages").document("\(user.id)\(currentId)").getDocument { (document, error) in
-                    if let document = document, document.exists {
-                        userId = "\(user.id)\(currentId)"
-//                        print("hh \(userId)")
-                        isLoadingMessage = false
-                    } else {
-                        db.collection("messages").document("\(currentId)\(user.id)").getDocument { (document, error) in
-                            if let document = document, document.exists {
-                                userId = "\(currentId)\(user.id)"
-                                print(userId)
-                                isLoadingMessage = false
-                            } else {
-                                print("Документ не найден ")
-                                isLoadingMessage = false
-                            }
-                        }
-                    }
-                }
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button{
-                            selectedMenuItem = shareProfileMenuItem
-                        } label: {
-                            Text("Share profile")
-                        }
-                        if user.id != currentId {
-//                            Button("Report & block", action: {
-//                                selectedMenuItem = reportProfileMenuItem
-//                            })
-                            if let favoritesUsers = authViewModel.currentUser?.favorites,
-                                favoritesUsers.contains(where: {$0.type == "user" && $0.id == user.id}) { // already in favorites
-                                Button{
-                                    let fav = Favorite(id: user.id, type: "user")
-                                    authViewModel.updateDataFirebase(isAdd: false, str: "favorites", newData: fav)
-                                    let index = authViewModel.currentUser?.favorites.firstIndex(where: { $0.id == user.id })
-                                    if let i = index {
-                                        authViewModel.currentUser?.favorites.remove(at: i)
+                            if user.id != (currentId) {
+                                //                            Button("Report & block", action: {
+                                //                                selectedMenuItem = reportProfileMenuItem
+                                //                            })
+                                if let favoritesUsers = authViewModel.currentUser?.favorites,
+                                   favoritesUsers.contains(where: {$0.type == "user" && $0.id == user.id}) { // already in favorites
+                                    Button{
+                                        let fav = Favorite(id: user.id, type: "user")
+                                        authViewModel.updateDataFirebase(isAdd: false, str: "favorites", newData: fav)
+                                        let index = authViewModel.currentUser?.favorites.firstIndex(where: { $0.id == user.id })
+                                        if let i = index {
+                                            authViewModel.currentUser?.favorites.remove(at: i)
+                                        }
+                                    } label: {
+                                        Text("Remove from favorite")
                                     }
-                                } label: {
-                                    Text("Remove from favorite")
+                                } else {
+                                    Button{
+                                        let fav = Favorite(id: user.id, type: "user")
+                                        authViewModel.updateDataFirebase(isAdd: true, str: "favorites", newData: fav)
+                                        authViewModel.currentUser?.favorites.append(fav)
+                                    } label: {
+                                        Text("Add to favorite")
+                                    }
                                 }
-                            } else {
-                                Button{
-                                    let fav = Favorite(id: user.id, type: "user")
-                                    authViewModel.updateDataFirebase(isAdd: true, str: "favorites", newData: fav)
-                                    authViewModel.currentUser?.favorites.append(fav)
-                                } label: {
-                                    Text("Add to favorite")
-                                }
-                            }
-                
-                            if let blockedUsers = authViewModel.currentUser?.blockedUsers, blockedUsers.contains(user.id) {
-                                // Если пользователь заблокирован
-                                if let index = blockedUsers.firstIndex(of: user.id) {
-                                    Button("Unblock user", action: {
-                                        authViewModel.currentUser?.blockedUsers.remove(at: index)
-                                        syncDelFire(blockedUserID: user.id)
-                                        // Здесь может потребоваться дополнительная логика для обновления состояния в authViewModel
+                                
+                                if let blockedUsers = authViewModel.currentUser?.blockedUsers, blockedUsers.contains(user.id) {
+                                    // Если пользователь заблокирован
+                                    if let index = blockedUsers.firstIndex(of: user.id) {
+                                        Button("Unblock user", action: {
+                                            authViewModel.currentUser?.blockedUsers.remove(at: index)
+                                            syncDelFire(blockedUserID: user.id)
+                                            // Здесь может потребоваться дополнительная логика для обновления состояния в authViewModel
+                                        })
+                                    }
+                                } else {
+                                    // Если пользователь не заблокирован
+                                    Button("Block user", action: {
+                                        authViewModel.currentUser?.blockedUsers.append(user.id)
+                                        syncAddFire(blockedUserID: user.id)
+                                        // Здесь также может потребоваться дополнительная логика для обновления состояния
+                                        dismiss()
                                     })
                                 }
-                            } else {
-                                // Если пользователь не заблокирован
-                                Button("Block user", action: {
-                                    authViewModel.currentUser?.blockedUsers.append(user.id)
-                                    syncAddFire(blockedUserID: user.id)
-                                    // Здесь также может потребоваться дополнительная логика для обновления состояния
-                                    presentationMode.wrappedValue.dismiss()
-                                })
                             }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
                         }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
+                    }
+                }
+                .sheet(item: $selectedMenuItem) { item in
+                    switch item.id {
+                    case "Share":
+                        ShareProfileView()
+                    case "Report":
+                        SafariView(url:
+                                    URL(string: "string")!)
+                    default:
+                        EmptyView()
                     }
                 }
             }
-            .sheet(item: $selectedMenuItem) { item in
-                switch item.id {
-                case "Share":
-                    ShareProfileView()
-                case "Report":
-                    SafariView(url:
-                                URL(string: "string")!)
-                default:
-                    EmptyView()
+            .ignoresSafeArea(edges: .top)
+        }
+        .navigationBarBackButtonHidden()
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button {
+                    if authViewModel.destination == nil {
+                        dismiss()
+                    } else {
+                        showProfile = false
+                        authViewModel.destination = nil
+                    }
+                } label: {
+                    Label("Back", systemImage: "chevron.backward")
                 }
             }
-//            .onTapGesture {
-//                isVisible = false
-//                isVisible2 = false
-//            }
         }
-        .ignoresSafeArea(edges: .top)
+        .navigationDestination(isPresented: $showPhoneCall) {
+            PhoneCallView().toolbar(.hidden, for: .tabBar)
+        }
+        .navigationDestination(isPresented: $showChat) {
+            ChatView(userId: userId, showMessage: $messPrivate, user: user).toolbar(.hidden, for: .tabBar)
+        }
     }
     
     func syncAddFire (blockedUserID: String) {
@@ -541,11 +545,12 @@ struct AvatarView: View {
                         .frame(width: 100, height: 100)
                         .clipShape(Circle())
                 } placeholder: {
-                    ProgressView()
+                    Rectangle()
+                        .frame(width: 100, height: 100)
+                        .clipShape(Circle())
                 }
                 .frame(width: 100, height: 100)
                 .clipShape(Circle())
-//                .padding(.bottom)
             } else {
                 Image(systemName: "person.crop.circle.fill")
                     .resizable()
@@ -553,7 +558,6 @@ struct AvatarView: View {
                     .foregroundColor(.gray)
                     .frame(width: 100, height: 100)
                     .clipShape(Circle())
-//                    .padding(.bottom)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: 130)
@@ -807,5 +811,7 @@ struct SkillProgressView: View {
 }
 
 #Preview {
-    ProfileView(user: User(), currentId: "hug7t7t6t6rydfyguj")
+    ProfileView(showProfile: .constant(true), user: User(id: "", first_name: "ELian", last_name: "Test", bio: "vk jj .", email: "", nickname: "nick", phone: "+8", birthday: Date()))
+        .environmentObject(AuthViewModel.mock)
+        .environmentObject(CallManager.mock)
 }

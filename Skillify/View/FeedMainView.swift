@@ -12,6 +12,7 @@ struct FeedMainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var mViewModel: MessagesViewModel
     @State var showMessagesView: Bool = false
+    @State var showProfileView: Bool = false
     @State private var selectedValue: SearchType = .learningsSkills
     @State private var isEditSettings = false
     @StateObject var viewModel = ChipsViewModel()
@@ -24,16 +25,14 @@ struct FeedMainView: View {
     @State var profileViewShow = false
     
     @State var count = 0
+    @State var profileUser: User?
     @State private var systemMessage: String? = nil
     @State private var tip1Show = UserDefaults.standard.bool(forKey: "tipFeedMainForSelfSkills") != true
     
     var body: some View {
-        NavigationStack{
+        NavigationStack {
             ZStack{
                 VStack {
-                    NavigationLink(destination: MessagesView()
-//                        .toolbar(.hidden, for: .tabBar)
-                                   , isActive: $showMessagesView) { EmptyView() }
                     HeaderMainView(showMessagesView: $showMessagesView, count: $count)
                         .padding(.vertical, 5)
                     
@@ -72,8 +71,8 @@ struct FeedMainView: View {
                                         }
                                     if !authViewModel.users.isEmpty {
                                         ForEach(authViewModel.users) { user in
-                                            NavigationLink(destination: ProfileView(user: user, currentId: authViewModel.currentUser!.id)) {
-                                                StoryImageView(name: user.first_name, avatarUrl: user.urlAvatar, online: user.online ?? false).foregroundColor(.brandBlue)
+                                            NavigationLink(destination: ProfileView(showProfile: $showProfileView, user: user)) {
+                                                StoryImageView(u: user).foregroundColor(.brandBlue)
                                             }
                                         }
                                     }
@@ -84,7 +83,7 @@ struct FeedMainView: View {
                             }
                             .sheet(isPresented: $profileViewShow) {
                                 NavigationStack {
-                                    ProfileView(user: authViewModel.currentUser!, currentId: authViewModel.currentUser!.id)
+                                    ProfileView(showProfile: $showProfileView, user: authViewModel.currentUser!)
                                         .toolbar(.hidden, for: .navigationBar)
                                 }
                             }
@@ -164,9 +163,6 @@ struct FeedMainView: View {
                                     .padding(.trailing, 10)
                             } else {
                                 VStack(alignment: .leading) {
-                                    Text("Beta")
-                                        .foregroundColor(.blue)
-                                        .font(.caption2)
                                     HStack {
                                         Text("Choose any skill")
                                         Spacer()
@@ -186,7 +182,7 @@ struct FeedMainView: View {
                                     }
                                     
                                     Toggle(isOn: $isFavorite) {
-                                        Text("Alpha")
+                                        Text("Beta")
                                             .foregroundColor(.blue)
                                             .font(.caption2)
                                         Text("Show only favorites users")
@@ -217,6 +213,7 @@ struct FeedMainView: View {
                 self.searchViewModel.chipArray = viewModel.chipArray
                 self.extraSkillsList = searchViewModel.skills.map { $0.name }
                 updateSearch()
+                chechDestination()
                 Firestore.firestore().collection("admin").document("system").getDocument { (document, error) in
                     if let document = document, document.exists {
                         systemMessage = document.get("showHomeAlert") as? String
@@ -224,6 +221,9 @@ struct FeedMainView: View {
                         print("error while loading admin doc: \(error?.localizedDescription ?? "No error description")")
                     }
                 }
+            }
+            .onChange(of: authViewModel.destination) { _ in
+                chechDestination()
             }
             .onChange(of: mViewModel.countUnread) { _ in
                 count = mViewModel.countUnread
@@ -236,6 +236,48 @@ struct FeedMainView: View {
                     showMessagesView = true
                 }
             })
+        }
+        .navigationDestination(isPresented: $showMessagesView, destination: { MessagesView(showChats: $showMessagesView) })
+        .navigationDestination(isPresented: $showProfileView, destination: {
+            if let user = profileUser {
+                ProfileView(showProfile: $showProfileView, user: user)
+                    .toolbar(.hidden, for: .tabBar)
+                    .onDisappear {
+                        profileUser = nil
+                        showProfileView = false
+                        authViewModel.destination = nil
+                    }
+            }
+        })
+    }
+    
+    func chechDestination() {
+        if let destination = authViewModel.destination {
+            let dest = destination.components(separatedBy: "/").first
+            if dest == "m" {
+                DispatchQueue.main.async {
+                    showMessagesView = true
+                }
+            } else if destination.contains("@") {
+                loadUser(String(destination.components(separatedBy: "@").last ?? "")) { error in
+                    if let error {
+                        print(error)
+                    } else {
+                        showProfileView = true
+                    }
+                }
+            }
+        }
+    }
+    
+    func loadUser(_ user: String, completion: @escaping (String?) -> Void) {
+        Firestore.firestore().collection("users").document(user).getDocument { snap, error in
+            if let error {
+                completion(error.localizedDescription)
+            } else {
+                self.profileUser = try? snap?.data(as: User.self)
+                completion(nil)
+            }
         }
     }
     
@@ -352,10 +394,11 @@ struct SelfStoryImageView: View {
                             .frame(width: 80, height: 80)
                             .clipShape(Circle())
                     } placeholder: {
-                        Image("user")
-                            .resizable()
-                            .scaledToFill()
+                        Rectangle()
+//                            .resizable()
+//                            .scaledToFill()
                             .frame(width: 80, height: 80)
+                            .foregroundColor(.white.opacity(0.4))
                             .padding(.trailing, 10)
                     }
                     .frame(width: 80, height: 80)
@@ -376,33 +419,51 @@ struct SelfStoryImageView: View {
                         .offset(x: -3, y: -3)
                 }
             }
-            if let name = authViewModel.currentUser?.first_name {
-                Text("\(name.count > 8 ? name.prefix(8) + "..." : name)")
-                    .font(.callout)
-                    .fontWeight(.bold)
+            if let u = authViewModel.currentUser {
+                HStack(spacing: 3) {
+                    Text("\(u.first_name.count > 8 ? u.first_name.prefix(8) + "..." : u.first_name)")
+                        .font(.callout)
+                        .fontWeight(.bold)
+
+                    if let data = u.tags, data.contains("verified") {
+                        Image("verify")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 15, height: 15)
+                    } else if let data = u.tags, data.contains("admin") {
+                        Image("gold")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 15, height: 15)
+                    } else if UserHelper.isUserPro(u.pro), let data = u.proData, let status = data.first(where: { $0.hasPrefix("status:") }) {
+                        Image(systemName: String(status.split(separator: ":").last ?? Substring(status)))
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 15, height: 15)
+                            .foregroundColor(.brandBlue)
+                    }
+                }
             }
         }
     }
 }
 
 struct StoryImageView: View {
-    var name: String
-    var avatarUrl: String
-    var online: Bool
+    let u: User
     
     var body: some View {
         VStack(alignment: .center) {
             ZStack(alignment: .bottomTrailing) {
-                if UserHelper.avatars.contains(avatarUrl.split(separator: ":").first.map(String.init) ?? "") {
-                    Image(avatarUrl.split(separator: ":").first.map(String.init) ?? "")
+                if UserHelper.avatars.contains(u.urlAvatar.split(separator: ":").first.map(String.init) ?? "") {
+                    Image(u.urlAvatar.split(separator: ":").first.map(String.init) ?? "")
                         .resizable()
                         .foregroundColor(.gray)
                         .aspectRatio(contentMode: .fill)
                         .padding(.top, 10)
                         .frame(width: 80, height: 80)
-                        .background(Color.fromRGBAString(avatarUrl.split(separator: ":").last.map(String.init) ?? "") ?? .blue.opacity(0.4))
+                        .background(Color.fromRGBAString(u.urlAvatar.split(separator: ":").last.map(String.init) ?? "") ?? .blue.opacity(0.4))
                         .clipShape(Circle())
-                } else if let url = URL(string: avatarUrl) {
+                } else if let url = URL(string: u.urlAvatar) {
                     AsyncImage(url: url) { image in
                         image
                             .resizable()
@@ -410,10 +471,11 @@ struct StoryImageView: View {
                             .frame(width: 80, height: 80)
                             .clipShape(Circle())
                     } placeholder: {
-                        Image("user")
-                            .resizable()
-                            .scaledToFill()
+                        Rectangle()
+//                            .resizable()
+//                            .scaledToFill()
                             .frame(width: 80, height: 80)
+                            .foregroundColor(.white.opacity(0.4))
                             .padding(.trailing, 10)
                     }
                     .frame(width: 80, height: 80)
@@ -426,7 +488,7 @@ struct StoryImageView: View {
                         .frame(width: 80, height: 80)
                         .clipShape(Circle())
                 }
-                if online {
+                if u.online ?? false {
                     Circle()
                         .fill(Color.green)
                         .frame(width: 12, height: 12)
@@ -435,8 +497,28 @@ struct StoryImageView: View {
                 }
             }
             
-            Text("\(name.count > 7 ? name.prefix(7) + "..." : name)")
-                .font(.callout)
+            HStack(spacing: 3) {
+                Text("\(u.first_name.count > 8 ? u.first_name.prefix(8) + "..." : u.first_name)")
+                    .font(.callout)
+
+                if let data = u.tags, data.contains("verified") {
+                    Image("verify")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 15, height: 15)
+                } else if let data = u.tags, data.contains("admin") {
+                    Image("gold")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 15, height: 15)
+                } else if UserHelper.isUserPro(u.pro), let data = u.proData, let status = data.first(where: { $0.hasPrefix("status:") }) {
+                    Image(systemName: String(status.split(separator: ":").last ?? Substring(status)))
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 15, height: 15)
+                        .foregroundColor(.brandBlue)
+                }
+            }
         }
         .padding(.trailing, 5)
     }
@@ -445,12 +527,13 @@ struct StoryImageView: View {
 struct UserSearchView: View {
     @ObservedObject var viewModel: SearchViewModel
     let id: String
+    @State var showProfile = false
 
     var body: some View {
         ScrollView {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())]) {
                 ForEach(viewModel.users) { user in
-                    NavigationLink(destination: ProfileView(user: user, currentId: id)){
+                    NavigationLink(destination: ProfileView(showProfile: $showProfile, user: user)) {
                         SearchElementView(user: user)
                             .foregroundColor(Color.primary)
                     }
@@ -467,4 +550,10 @@ extension Array {
             Array(self[$0 ..< Swift.min($0 + size, count)])
         }
     }
+}
+
+#Preview {
+    FeedMainView(extraSkillsList: [])
+        .environmentObject(AuthViewModel.mock)
+        .environmentObject(MessagesViewModel.mock)
 }

@@ -11,9 +11,7 @@ import FirebaseFirestore
 
 struct AccountView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @State var blocked: Int = 0
-    @State private var selectedTab = 0
-    
+        
     var body: some View {
         if authViewModel.isLoading {
             ProgressView()
@@ -21,53 +19,64 @@ struct AccountView: View {
             EditProfileView()
         } else if authViewModel.currentUser?.blocked ?? 0 > 3 || authViewModel.currentUser?.block != nil {
             BlockedView(text: authViewModel.currentUser?.block)
-        } else if authViewModel.currentUser?.selfSkills.isEmpty ?? false {
-            SelfSkillsView(authViewModel: authViewModel)
-        } else if authViewModel.currentUser?.learningSkills.isEmpty ?? false {
-            LearningSkillsView(authViewModel: authViewModel)
         } else {
-            TabView(selection: $selectedTab) {
-                FeedMainView(extraSkillsList: [])
-                    .tabItem {
-                        Label("Main", systemImage: "house.circle")
-                            .environment(\.symbolVariants, selectedTab == 0 ? .fill : .none)
-                    }
-                    .tag(0)
-                
-                DiscoverView()
-                    .tabItem {
-                        Label("Discover", systemImage: "magnifyingglass.circle")
-                            .environment(\.symbolVariants, selectedTab == 1 ? .fill : .none)
-                    }
-                    .tag(1)
-                
-//                if UserHelper.isUserPro(authViewModel.currentUser?.pro) {
-//                    CoursesView()
-//                        .tabItem {
-//                            Label {
-//                                Text("Courses")
-//                            } icon: {
-//                                Image(systemName: "play.rectangle.fill")
-//                                    .symbolRenderingMode(.multicolor)
-//                            }
-//                        }
-//                        .toolbar(.visible, for: .tabBar)
-//                }
-                
-                MainAccountView(blocked: $blocked)
-                    .tabItem {
-                        Label("Account", systemImage: "person.crop.circle")
-                            .environment(\.symbolVariants, selectedTab == 3 ? .fill : .none)
-                    }
-                    .toolbar(.visible, for: .tabBar)
-                    .tag(3)
-            }
-            .tabViewStyle(DefaultTabViewStyle())
-            .background(Color.gray)
-            .onAppear {
-                let tabBarAppearance = UITabBarAppearance()
-                tabBarAppearance.configureWithDefaultBackground()
-                UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+            TabsMainView()
+        }
+    }
+}
+
+struct TabsMainView: View {
+    @EnvironmentObject var authViewModel: AuthViewModel
+
+    @State private var selectedTab = 0
+    @State var blocked: Int = 0
+    
+    @State var showSelfSkill = false
+    @State var showLearningSkill = false
+    
+    var body: some View {
+        TabView(selection: $selectedTab) {
+            FeedMainView(extraSkillsList: [])
+                .tabItem {
+                    Label("Main", systemImage: "house.circle")
+                        .environment(\.symbolVariants, selectedTab == 0 ? .fill : .none)
+                }
+                .tag(0)
+            
+            DiscoverView()
+                .tabItem {
+                    Label("Discover", systemImage: "magnifyingglass.circle")
+                        .environment(\.symbolVariants, selectedTab == 1 ? .fill : .none)
+                }
+                .tag(1)
+            
+            MainAccountView(blocked: $blocked)
+                .tabItem {
+                    Label("Account", systemImage: "person.crop.circle")
+                        .environment(\.symbolVariants, selectedTab == 3 ? .fill : .none)
+                }
+                .toolbar(.visible, for: .tabBar)
+                .tag(3)
+        }
+        .tabViewStyle(DefaultTabViewStyle())
+        .background(Color.gray)
+        .navigationDestination(isPresented: $showSelfSkill) {
+            SelfSkillsView(authViewModel: authViewModel, isRegistration: true)
+        }
+        .navigationDestination(isPresented: $showLearningSkill) {
+            LearningSkillsView(authViewModel: authViewModel, isRegistration: true)
+        }
+        .onAppear {
+            let tabBarAppearance = UITabBarAppearance()
+            tabBarAppearance.configureWithDefaultBackground()
+            UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                if authViewModel.currentUser?.selfSkills.isEmpty ?? false {
+                    showSelfSkill = true
+                } else if authViewModel.currentUser?.learningSkills.isEmpty ?? false {
+                    showLearningSkill = true
+                }
             }
         }
     }
@@ -122,8 +131,8 @@ struct MainAccountView: View {
     @Binding var blocked: Int   
     @State var isOnline: Bool = true
     
-//    @State var showA1 = !UserDefaults.standard.bool(forKey: "a1")
-    
+    @State var showProfile = false
+        
     var body: some View {
         NavigationView {
             ZStack {
@@ -172,7 +181,7 @@ struct MainAccountView: View {
                         if let currentUser = authViewModel.currentUser {
                             LinkSettingView(nameIcon: "eye",
                                             name: "View profile",
-                                            action: AnyView(ProfileView(user: currentUser, currentId: authViewModel.currentUser!.id)))
+                                            action: AnyView(ProfileView(showProfile: $showProfile, user: currentUser)))
                         }
                         Toggle(isOn: $isOnline) {
                             Text("Status online \(UserHelper.isUserPro(authViewModel.currentUser?.pro) ? "" : "(only for pro)")")

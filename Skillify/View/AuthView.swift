@@ -46,7 +46,7 @@ struct AuthView: View {
                         navigateToSignIn = true
                     }
                     .sheet(isPresented: $navigateToSignIn){
-                        LoginView(navigateToSignIn: $navigateToSignIn)
+                        LoginView()
                     }
                     Text("By using Skillify app you agree to our Privacy Policy")
                         .font(.caption)

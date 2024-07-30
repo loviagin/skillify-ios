@@ -9,11 +9,16 @@ import SwiftUI
 
 struct LearningSkillsView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @Environment(\.dismiss) private var dismiss
     
     @StateObject var viewModel: LearningSkillsViewModel
     @State private var showToast = false
+    @State private var showError: Bool = false
+    @State private var isRegistration = true
     
-    init(authViewModel: AuthViewModel) {
+    init(authViewModel: AuthViewModel, isRegistration: Bool = false) {
+        self.isRegistration = isRegistration
+
         _viewModel = StateObject(wrappedValue: LearningSkillsViewModel(authViewModel: authViewModel))
     }
     
@@ -25,6 +30,13 @@ struct LearningSkillsView: View {
                     .scaledToFit()
                     .frame(width: 100)
                 Text("Choose up to 5 skills you wanna learn")
+                Text("You have selected \(viewModel.skills.filter({ (($0.level?.isEmpty) != nil) }).count)")
+                    .font(.caption2)
+                if showError {
+                    Text("You should choose at least 1 skill")
+                        .font(.callout)
+                        .foregroundStyle(.red)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
@@ -77,16 +89,21 @@ struct LearningSkillsView: View {
                         if let originalIndex = viewModel.originalIndex(forFilteredIndex: index),
                            viewModel.skills[originalIndex].isSelected {
                             Picker("Select Level", selection: $viewModel.skills[originalIndex].level) {
-                                Text("Beginner").tag("Beginner" as String?)
-                                Text("Intermediate").tag("Intermediate" as String?)
-                                Text("Advanced").tag("Advanced" as String?)
+                                if let skl = authViewModel.currentUser?.selfSkills.first(where: { $0.name == viewModel.skills[originalIndex].name }) {
+                                    Text(skl.level ?? "Beginner").tag(skl.level as String?)
+                                } else {
+                                    Text("Beginner").tag("Beginner" as String?)
+                                    Text("Intermediate").tag("Intermediate" as String?)
+                                    Text("Advanced").tag("Advanced" as String?)
+                                }
                             }
                             .pickerStyle(SegmentedPickerStyle())
                             .onChange(of: viewModel.filteredSkills[index].level) { newValue in
                                 if let newLevel = newValue {
-                                    let updatedSkill = Skill(name: viewModel.filteredSkills[index].name, level: newLevel)
-                                    authViewModel.updateLSkill(updatedSkill)
-                                    
+                                    if newLevel != "" {
+                                        let updatedSkill = Skill(name: viewModel.filteredSkills[index].name, level: newLevel)
+                                        authViewModel.updateLSkill(updatedSkill)
+                                    }
                                     // Скрываем плашку выбора уровня
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                         viewModel.deselectSkill()
@@ -105,16 +122,32 @@ struct LearningSkillsView: View {
                     viewModel.updateSkills(with: userSkills)
                 }
             }
+            .navigationTitle("Learning skills")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(isRegistration)
+            .toolbar(content: {
+                if isRegistration {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            if !(authViewModel.currentUser?.learningSkills.isEmpty ?? true) {
+                                dismiss()
+                            } else {
+                                showError = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                    showError = false
+                                }
+                            }
+                        } label: {
+                            Text("Done")
+                        }
+                    }
+                }
+            })
         }
     }
 }
 
-struct LearningSkillsView_Previews: PreviewProvider {
-    static var previews: some View {
-        // Создаем экземпляр AuthViewModel
-        let authViewModel = AuthViewModel()
-        
-        // Передаем authViewModel в SkillsView
-        LearningSkillsView(authViewModel: authViewModel)
-    }
+#Preview {
+    SelfSkillsView(authViewModel: AuthViewModel.mock)
+        .environmentObject(AuthViewModel.mock)
 }

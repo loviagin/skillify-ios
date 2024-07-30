@@ -21,7 +21,7 @@ struct StandardAvatarView: View {
                     .font(.title3)
                     .padding(.horizontal)
                 Spacer()
-                ColorPicker("", selection: $colorAvatar)
+                ColorPicker("", selection: $colorAvatar, supportsOpacity: false)
                     .frame(maxWidth: 100)
                     .padding()
             }

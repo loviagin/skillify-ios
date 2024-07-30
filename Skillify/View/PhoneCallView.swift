@@ -15,12 +15,18 @@ struct PhoneCallView: View {
     @EnvironmentObject private var authViewModel: AuthViewModel
     
     @State private var user = User()
+    @State private var showBottomBar = true
     
     var body: some View {
         ZStack(alignment: .center) {
             if callManager.video {
                 VideoCallView(callManager: callManager)
                     .edgesIgnoringSafeArea(.all)
+                    .onTapGesture {
+                        withAnimation {
+                            showBottomBar.toggle()
+                        }
+                    }
             } else {
                 Image("call")
                     .resizable()
@@ -31,21 +37,6 @@ struct PhoneCallView: View {
             
             VStack {
                 if callManager.video {
-//                    HStack {
-//                        Avatar2View(avatarUrl: user.urlAvatar)
-//                        VStack(alignment: .leading) {
-//                            Text("\(user.first_name) \(user.last_name)")
-//                                .font(.headline)
-//                                .foregroundColor(.primary)
-//                            Text("\(callManager.status ?? "")")
-//                                .font(.caption)
-//                                .foregroundColor(.primary)
-//                        }
-//                        .frame(maxWidth: .infinity, alignment: .leading)
-//                        Spacer()
-//                    }
-//                    .frame(maxWidth: .infinity)
-//                    .padding()
                     Spacer()
                 } else {
                     Spacer()
@@ -58,52 +49,54 @@ struct PhoneCallView: View {
                     Spacer()
                 }
                 
-                HStack (spacing: 20) {
-                    if callManager.video {
+                if showBottomBar {
+                    HStack (spacing: 20) {
+                        if callManager.video {
+                            Button(action: {
+                                callManager.agoraManager.agoraKit.switchCamera()
+                            }) {
+                                Image(systemName: "arrow.2.squarepath")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 35, height: 35)
+                                    .padding()
+                                    .background(.lGray)
+                                    .foregroundColor(.white)
+                                    .clipShape(Circle())
+                            }
+                        }
+                        
                         Button(action: {
-                            callManager.agoraManager.agoraKit.switchCamera()
+                            callManager.toggleMute()
                         }) {
-                            Image(systemName: "arrow.2.squarepath")
+                            Image(systemName: callManager.muted ? "mic.slash" : "mic")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 35, height: 35)
                                 .padding()
-                                .background(.lGray)
+                                .background(callManager.muted ? .lGray : .gray)
                                 .foregroundColor(.white)
                                 .clipShape(Circle())
                         }
-                    }
-                    
-                    Button(action: {
-                        callManager.toggleMute()
-                    }) {
-                        Image(systemName: callManager.muted ? "mic.slash" : "mic")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 35, height: 35)
-                            .padding()
-                            .background(callManager.muted ? .lGray : .gray)
-                            .foregroundColor(.white)
-                            .clipShape(Circle())
-                    }
-                    
-                    if let _ = callManager.agoraManager.agoraKit {
-                        Button {
-                            callManager.endCall()
-                            presentationMode.wrappedValue.dismiss()
-                        } label: {
-                            Image(systemName: "phone.down.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 35, height: 35)
-                                .padding()
-                                .background(.red)
-                                .foregroundColor(.white)
-                                .clipShape(Circle())
+                        
+                        if let _ = callManager.agoraManager.agoraKit {
+                            Button {
+                                callManager.endCall()
+                                presentationMode.wrappedValue.dismiss()
+                            } label: {
+                                Image(systemName: "phone.down.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 35, height: 35)
+                                    .padding()
+                                    .background(.red)
+                                    .foregroundColor(.white)
+                                    .clipShape(Circle())
+                            }
                         }
                     }
+                    .padding(.bottom, callManager.video ? 20 : 100)
                 }
-                .padding(.bottom, callManager.video ? 20 : 100)
             }
         }
         .onAppear {

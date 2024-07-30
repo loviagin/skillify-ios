@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		86023CD02C3497A60035F995 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 86023CCF2C3497A60035F995 /* RevenueCat */; };
+		86023CD22C3497A60035F995 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 86023CD12C3497A60035F995 /* RevenueCatUI */; };
+		86023CD42C3498770035F995 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86023CD32C3498770035F995 /* StoreKit.framework */; };
 		861092442C0CEF8900062EBE /* CoursesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861092432C0CEF8900062EBE /* CoursesView.swift */; };
 		861092462C0CF16200062EBE /* CustomizeProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861092452C0CF16200062EBE /* CustomizeProfileView.swift */; };
 		861092482C0CFC6E00062EBE /* StandardAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861092472C0CFC6E00062EBE /* StandardAvatarView.swift */; };
@@ -135,6 +138,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		86023CD32C3498770035F995 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		861092432C0CEF8900062EBE /* CoursesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoursesView.swift; sourceTree = "<group>"; };
 		861092452C0CF16200062EBE /* CustomizeProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizeProfileView.swift; sourceTree = "<group>"; };
 		861092472C0CFC6E00062EBE /* StandardAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandardAvatarView.swift; sourceTree = "<group>"; };
@@ -245,6 +249,7 @@
 			files = (
 				862813052BEF878B003FA32E /* OneSignalFramework in Frameworks */,
 				865ADB262BFE16EF009CDA90 /* VideoCodecEnc in Frameworks */,
+				86023CD22C3497A60035F995 /* RevenueCatUI in Frameworks */,
 				86A9AC0E2BEEC12100F4C7FE /* FirebaseCrashlytics in Frameworks */,
 				865ADB2D2BFE297D009CDA90 /* FirebaseFunctions in Frameworks */,
 				865ADB222BFE16EF009CDA90 /* RtcBasic in Frameworks */,
@@ -252,7 +257,9 @@
 				86A9AC172BEEC21500F4C7FE /* GoogleSignInSwift in Frameworks */,
 				86A9AC0A2BEEC12100F4C7FE /* FirebaseAnalytics in Frameworks */,
 				865ADB242BFE16EF009CDA90 /* VideoCodecDec in Frameworks */,
+				86023CD02C3497A60035F995 /* RevenueCat in Frameworks */,
 				86A9AC122BEEC12100F4C7FE /* FirebaseStorage in Frameworks */,
+				86023CD42C3498770035F995 /* StoreKit.framework in Frameworks */,
 				86A9AC0C2BEEC12100F4C7FE /* FirebaseAuth in Frameworks */,
 				86A9AC152BEEC21500F4C7FE /* GoogleSignIn in Frameworks */,
 			);
@@ -264,6 +271,7 @@
 		865ADB2B2BFE297D009CDA90 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				86023CD32C3498770035F995 /* StoreKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -492,6 +500,8 @@
 				865ADB232BFE16EF009CDA90 /* VideoCodecDec */,
 				865ADB252BFE16EF009CDA90 /* VideoCodecEnc */,
 				865ADB2C2BFE297D009CDA90 /* FirebaseFunctions */,
+				86023CCF2C3497A60035F995 /* RevenueCat */,
+				86023CD12C3497A60035F995 /* RevenueCatUI */,
 			);
 			productName = Skillify;
 			productReference = 86A9ABF52BEEBF0300F4C7FE /* Skillify.app */;
@@ -529,6 +539,7 @@
 				86A9AC132BEEC21500F4C7FE /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				862813012BEF878B003FA32E /* XCRemoteSwiftPackageReference "OneSignal-XCFramework" */,
 				865ADB202BFE16EF009CDA90 /* XCRemoteSwiftPackageReference "AgoraRtcEngine_iOS" */,
+				86023CCE2C3497A60035F995 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 			);
 			productRefGroup = 86A9ABF62BEEBF0300F4C7FE /* Products */;
 			projectDirPath = "";
@@ -884,7 +895,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Skillify/Skillify.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 24;
+				CURRENT_PROJECT_VERSION = 37;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"Skillify/Preview Content\"";
 				DEVELOPMENT_TEAM = GWXUDX4MQT;
@@ -893,8 +904,8 @@
 				INFOPLIST_FILE = Skillify/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Skillify;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Access the camera";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Access the microphone";
+				INFOPLIST_KEY_NSCameraUsageDescription = "For making video calls";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "For audio calls usage";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -906,7 +917,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.4;
+				MARKETING_VERSION = 1.3.7;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -928,7 +939,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Skillify/Skillify.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 24;
+				CURRENT_PROJECT_VERSION = 37;
 				DEVELOPMENT_ASSET_PATHS = "\"Skillify/Preview Content\"";
 				DEVELOPMENT_TEAM = GWXUDX4MQT;
 				ENABLE_PREVIEWS = YES;
@@ -936,8 +947,8 @@
 				INFOPLIST_FILE = Skillify/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Skillify;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Access the camera";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Access the microphone";
+				INFOPLIST_KEY_NSCameraUsageDescription = "For making video calls";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "For audio calls usage";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -949,7 +960,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.4;
+				MARKETING_VERSION = 1.3.7;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -996,6 +1007,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		86023CCE2C3497A60035F995 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
 		862813012BEF878B003FA32E /* XCRemoteSwiftPackageReference "OneSignal-XCFramework" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/OneSignal/OneSignal-XCFramework.git";
@@ -1031,6 +1050,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		86023CCF2C3497A60035F995 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 86023CCE2C3497A60035F995 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
+		};
+		86023CD12C3497A60035F995 /* RevenueCatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 86023CCE2C3497A60035F995 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCatUI;
+		};
 		862813022BEF878B003FA32E /* OneSignalExtension */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 862813012BEF878B003FA32E /* XCRemoteSwiftPackageReference "OneSignal-XCFramework" */;

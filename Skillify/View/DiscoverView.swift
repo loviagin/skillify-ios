@@ -165,6 +165,7 @@ struct UserCardView: View {
     @ObservedObject var activeSkillManager: ActiveSkillManager
     var user: User
     let id: String
+    @State var showProfile = false
     
     init(user: User, authViewModel: AuthViewModel, activeSkillManager: ActiveSkillManager, id: String) {
         self.user = user
@@ -177,7 +178,7 @@ struct UserCardView: View {
     }
     
     var body: some View {
-        NavigationLink(destination: ProfileView(user: user, currentId: id)) {
+        NavigationLink(destination: ProfileView(showProfile: $showProfile, user: user)) {
             HStack {
                 Avatar2View(avatarUrl: user.urlAvatar, size: 70, maxHeight: 70, maxWidth: 70)
                 VStack(alignment: .leading) {

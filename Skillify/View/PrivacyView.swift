@@ -27,8 +27,9 @@ struct PrivacyView: View {
     @State private var selectedCountry: Countries = .other_countries
     @State private var showHidden = false
     
-    private enum Countries {
-        case russia, other_countries
+    private enum Countries: String {
+        case russia = "russia"
+        case other_countries = "other_countries"
     }
     
     var body: some View {
@@ -108,7 +109,7 @@ struct PrivacyView: View {
                     if showHidden {
                         Picker(selection: $selectedCountry, label: Text("Select payment region")) {
                             Text("Other countries").tag(Countries.other_countries)
-                            Text("Russia/Belarus").tag(Countries.russia)
+                            Text("Russia").tag(Countries.russia)
                         }
                     }
                 } header: {
@@ -133,6 +134,14 @@ struct PrivacyView: View {
                         self.showHidden = doc?.get("allowRegions") as? Bool ?? false
                     }
                 }
+            
+            if let country = UserDefaults.standard.string(forKey: "country"), country == "russia" {
+                self.selectedCountry = .russia
+            }
+        }
+        .onChange(of: selectedCountry) { _ in
+            print(selectedCountry.rawValue)
+            UserDefaults.standard.setValue(selectedCountry.rawValue, forKey: "country")
         }
         .onDisappear {
             var adding = []
