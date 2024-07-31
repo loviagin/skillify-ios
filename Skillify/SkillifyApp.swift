@@ -25,11 +25,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         return manager
     }()
     
-//    lazy var agoraManager: AgoraManager = {
-//        AgoraManager(appId: "794acf61e12e4e49bb9d2e7789cf05b9")
-//    }()
-//    lazy var callManager: CallManager
-    
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         FirebaseApp.configure()
@@ -46,9 +41,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         pushRegistry = PKPushRegistry(queue: DispatchQueue.main)
         pushRegistry.delegate = self
         pushRegistry.desiredPushTypes = [.voIP]
-        
-        // Initialize AgoraManager and CallManager
-//        _ = agoraManager
         
         Purchases.logLevel = .info
         Purchases.configure(withAPIKey: "appl_XIhpKOSZPgtexHzjEZAwzgGYrMk")
@@ -97,7 +89,7 @@ extension AppDelegate: PKPushRegistryDelegate {
             let videoCall = a["hasVideo"] as? Bool ?? false
             
             if callStatus == "incoming" {
-                // Обработка входящего звонка (например, через CallKit)
+                // Обработка входящего звонка
                 print("incoming voip cheched")
                 if uid != 0 {
                     callManager.agoraManager.users.append(UInt.random(in: 1...1000))
@@ -151,9 +143,8 @@ extension AppDelegate: PKPushRegistryDelegate {
         request.httpBody = postData
 
    
-        try? await URLSession.shared.data(for: request)
+        let _ = try? await URLSession.shared.data(for: request)
         
-//        print(String(decoding: data, as: UTF8.self))
     }
 }
 

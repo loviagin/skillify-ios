@@ -11,65 +11,69 @@ import FirebaseFirestore
 
 struct ProfileView: View {
     @Environment(\.dismiss) private var dismiss
+    
     @EnvironmentObject private var authViewModel: AuthViewModel
     @EnvironmentObject private var callManager: CallManager
+    
+    @Binding var showProfile: Bool // управление отображением данного вью (профиля)
+    @State var userId = "nil" // id чата с текущим пользователем
+    @State var user: User // пользователь который отображается в профиле
+    
+    @State var isLoadingMessage = true // для лоадера на кнопке сообщений
+    @State var isVisible: Bool = false // флаг для звонков (true на несколько секунд, если звонки запрещены)
+    @State var showPhoneCall: Bool = false // переход на вью звонка
+    @State var showChat = false // переход на вью чата
     @State private var showMenu = false // Состояние для отслеживания видимости меню
+
+    @State private var selectedMenuItem: MenuItem? // выбранный элемент меню
+    @State var subscribers = 0 // задается в onAppear
+    @State var subscriptions = 0
+    @State var currentId = "" // id нашего пользователя
     let shareProfileMenuItem = MenuItem(id: "Share")
     let reportProfileMenuItem = MenuItem(id: "Report")
-    @State private var selectedMenuItem: MenuItem?
-    @State var isLoadingMessage = true
-    @State var userId = "nil" // messages RRIAmLGIdcVQqqn7oygjZz6IQmu2gs1mFrOnlaYcb4h0OdgteWeY6Yf2
-    @State var isVisible: Bool = false
-    @State var showPhoneCall: Bool = false
-    
-    @State var showChat = false
-    @Binding var showProfile: Bool
-
-    @State var user: User
-    @State var subscribers = 0
-    @State var subscriptions = 0
-    @State var currentId = ""
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack {
-                    // Аватарка
-                    if UserHelper.isUserPro(user.pro), let proData = user.proData, proData.contains(where: { $0.hasPrefix("cover:") }) {
+                    if UserHelper.isUserPro(user.pro), let proData = user.proData, proData.contains(where: { $0.hasPrefix("cover:") }) { // проверка что пользователь ПРО
                         ZStack {
+                            //MARK: - фон профиля
                             Rectangle()
                                 .fill(LinearGradient(
                                     gradient: Gradient(colors:[
-                                        UserHelper.getColor1(proData.first(where: { $0.hasPrefix("cover:") }) ?? "cover:1").opacity(0.4),
-                                        UserHelper.getColor2(proData.first(where: { $0.hasPrefix("cover:") }) ?? "cover:1").opacity(0.4)
+                                        UserHelper.getColor1(proData.first(where: { $0.hasPrefix("cover:") }) ?? "cover:1").opacity(0.4), // берем цвет один
+                                        UserHelper.getColor2(proData.first(where: { $0.hasPrefix("cover:") }) ?? "cover:1").opacity(0.4) // берем цвет два
                                     ]),
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 ))
                                 .ignoresSafeArea()
                             
+                            //MARK: - эмодзи на фон профиля
                             if let emoji = proData.first(where: { $0.hasPrefix("emoji:") }) {
                                 EmojiCoverView(emoji: .constant(emoji))
                             }
                             
                             VStack {
+                                //MARK: - аватарка
                                 AvatarView(avatarUrl: user.urlAvatar)
                                 //MARK: - Имя, Фамилия и Никнейм
                                 HStack(spacing: 5) {
                                     Text("\(user.first_name) \(user.last_name)")
                                         .font(.title)
                                         .lineLimit(1)
-                                    if let data = user.tags, data.contains("verified") {
+                                    if let data = user.tags, data.contains("verified") { // галочка для верифицированных
                                         Image("verify")
                                             .resizable()
                                             .scaledToFill()
                                             .frame(width: 20, height: 20)
-                                    } else if let data = user.tags, data.contains("admin") {
+                                    } else if let data = user.tags, data.contains("admin") { // другая галочка для админов
                                         Image("gold")
                                             .resizable()
                                             .scaledToFill()
                                             .frame(width: 20, height: 20)
-                                    } else if UserHelper.isUserPro(user.pro), let data = user.proData, let status = data.first(where: { $0.hasPrefix("status:") }) {
+                                    } else if UserHelper.isUserPro(user.pro), let data = user.proData, let status = data.first(where: { $0.hasPrefix("status:") }) { // эмодзи для прошек
                                         Image(systemName: String(status.split(separator: ":").last ?? Substring(status)))
                                             .resizable()
                                             .scaledToFill()
@@ -84,14 +88,14 @@ struct ProfileView: View {
                                     .padding(.bottom, 10)
                             }
                         }
-                    } else {
+                    } else { // если не про
                         VStack {
+                            //MARK: - аватарка для НЕ про
                             AvatarView(avatarUrl: user.urlAvatar)
-                            // Имя, Фамилия и Никнейм
+                            //MARK: - Имя, Фамилия и Никнейм
                             HStack(spacing: 5) {
                                 Text("\(user.first_name) \(user.last_name)")
                                     .font(.title)
-                                //                            .padding(.trailing, 5)
                                 if let data = user.tags, data.contains("verified") {
                                     Image("verify")
                                         .resizable()
@@ -104,7 +108,6 @@ struct ProfileView: View {
                                         .frame(width: 20, height: 20)
                                 }
                             }
-                            //                        .padding(.top, 8)
                             
                             Text("@\(user.nickname)")
                                 .font(.subheadline)
@@ -124,8 +127,9 @@ struct ProfileView: View {
                             .padding(.horizontal, 12)
                     }
                     
+                    //MARK: - Плашка с подписками/подписчиками
                     HStack {
-                        NavigationLink (destination: SubscribersView(selection: SubscribersViewModel.SubscribersCategory.subscribers, subscribers: user.subscribers, subscriptions: user.subscriptions).toolbar(.hidden, for: .tabBar)) {
+                        NavigationLink(destination: SubscribersView(selection: SubscribersViewModel.SubscribersCategory.subscribers, subscribers: user.subscribers, subscriptions: user.subscriptions).toolbar(.hidden, for: .tabBar)) {
                             VStack {
                                 Text("\(subscribers)")
                                     .fontWeight(.bold)
@@ -137,7 +141,7 @@ struct ProfileView: View {
                             .padding()
                         }
                         
-                        NavigationLink (destination: SubscribersView(selection: SubscribersViewModel.SubscribersCategory.subscription, subscribers: user.subscribers, subscriptions: user.subscriptions).toolbar(.hidden, for: .tabBar)) {
+                        NavigationLink(destination: SubscribersView(selection: SubscribersViewModel.SubscribersCategory.subscription, subscribers: user.subscribers, subscriptions: user.subscriptions).toolbar(.hidden, for: .tabBar)) {
                             VStack {
                                 Text("\(subscriptions)")
                                     .fontWeight(.bold)
@@ -157,11 +161,14 @@ struct ProfileView: View {
                     if user.id != (authViewModel.currentUser?.id ?? "") {
                         HStack(spacing: 15) {
                             //MARK: - Кнопка "Сообщение"
-                            if UserHelper.isMessagesBlocked(viewModel: authViewModel, user: user) == nil {
-                                NavigationLink {
-                                    ChatView(userId: userId, showMessage: $showChat, user: user)
+                            if (UserHelper.isMessagesBlocked(viewModel: authViewModel, user: user) == nil) { // проверка что пользователя не блокнули
+                                Button {
+                                    withAnimation {
+                                        showChat = true
+                                    }
+//                                    ChatView(userId: userId, showMessage: $showChat, user: user)
                                 } label: {
-                                    if isLoadingMessage {
+                                    if isLoadingMessage { //лоадер если мы еще ищем id чата
                                         ProgressView()
                                     } else {
                                         HStack {
@@ -230,7 +237,7 @@ struct ProfileView: View {
                             
                             //MARK: - CALLS
                             if UserHelper.isMessagesBlocked(viewModel: authViewModel, user: user) == nil
-                                && !(user.lastData?.contains(where: { $0 == "android" }) ?? false)
+                                && !(user.lastData?.contains(where: { $0 == "android" }) ?? false) // проверка что не андроид (тк на анроид еще нет звонков)
                                 && (user.blocked ?? 0 < 3) {
                                 // Кнопка "Позвонить"
                                 if callManager.callId == nil {
@@ -256,7 +263,7 @@ struct ProfileView: View {
                                             .foregroundColor(.white)
                                             .clipShape(Circle())
                                     }
-                                    .overlay(alignment: .topTrailing, content: {
+                                    .overlay(alignment: .topTrailing, content: { // звонки доступны только друзьям (нужно подписаться друг на друга)
                                         if isVisible {
                                             Text("Only for friends")
                                                 .padding(.vertical, 5)
@@ -270,7 +277,7 @@ struct ProfileView: View {
                                                 .offset(y: -50)
                                         }
                                     })
-                                    
+                                    //MARK: - видео звонок
                                     Button(action: {
                                         if authViewModel.currentUser?.subscriptions.contains(user.id) == true &&
                                             authViewModel.currentUser?.subscribers.contains(user.id) == true
@@ -298,7 +305,7 @@ struct ProfileView: View {
                         }
                         .padding(.horizontal)
                     }
-                    // Список selfSkills
+                    //MARK: - Список своих скиллов
                     VStack(alignment: .leading) {
                         Text("My Skills")
                             .font(.headline)
@@ -321,7 +328,7 @@ struct ProfileView: View {
                                 }
                             }
                         } else {
-                            Text("For appologize user not set any skills")
+                            Text("For appologize user doesn't set any skills")
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
@@ -329,6 +336,7 @@ struct ProfileView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
                     
+                    //MARK: - изучаемые скиллы
                     VStack(alignment: .leading) {
                         Text("I learning")
                             .font(.headline)
@@ -367,12 +375,13 @@ struct ProfileView: View {
                     
                     showChat = false
                     
-                    if user.id == currentId {
+                    if user.id == currentId { // только если это наш профиль - раскрываем первый свой скилл (дальше будет больше функционала в этом)
                         if (authViewModel.currentUser?.selfSkills.count)! > 0 && authViewModel.currentUser?.selfSkills[0] != nil {
                             authViewModel.currentUser?.selfSkills[0].isSelected = true
                         }
                     }
                     
+                    //поиск id чата с текущим пользователем
                     let db = Firestore.firestore()
                     db.collection("messages").document("\(user.id)\(currentId)").getDocument { (document, error) in
                         if let document = document, document.exists {
@@ -396,15 +405,17 @@ struct ProfileView: View {
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Menu {
-                            Button{
+                            Button {
+                                // пока не реализовано
                                 selectedMenuItem = shareProfileMenuItem
                             } label: {
                                 Text("Share profile")
                             }
-                            if user.id != (currentId) {
+                            if user.id != (currentId) { // только если не наш профиль
                                 //                            Button("Report & block", action: {
                                 //                                selectedMenuItem = reportProfileMenuItem
                                 //                            })
+                                //MARK: - добавление в избранные пользователя
                                 if let favoritesUsers = authViewModel.currentUser?.favorites,
                                    favoritesUsers.contains(where: {$0.type == "user" && $0.id == user.id}) { // already in favorites
                                     Button{
@@ -427,6 +438,7 @@ struct ProfileView: View {
                                     }
                                 }
                                 
+                                //MARK: - блокирование пользователя
                                 if let blockedUsers = authViewModel.currentUser?.blockedUsers, blockedUsers.contains(user.id) {
                                     // Если пользователь заблокирован
                                     if let index = blockedUsers.firstIndex(of: user.id) {
@@ -464,10 +476,22 @@ struct ProfileView: View {
                 }
             }
             .ignoresSafeArea(edges: .top)
+            .navigationDestination(isPresented: $showPhoneCall) {
+                PhoneCallView().toolbar(.hidden, for: .tabBar)
+            }
+            .navigationDestination(isPresented: $showChat) {
+                ChatView(userId: userId, showMessage: $showChat, user: user)
+                    .toolbar(.hidden, for: .tabBar)
+                    .toolbar(.visible, for: .navigationBar)
+                    .onDisappear {
+                        showChat = false
+                    }
+            }
         }
         .navigationBarBackButtonHidden()
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
+                //кастомная кнопка назад
                 Button {
                     if authViewModel.destination == nil {
                         dismiss()
@@ -480,19 +504,9 @@ struct ProfileView: View {
                 }
             }
         }
-        .navigationDestination(isPresented: $showPhoneCall) {
-            PhoneCallView().toolbar(.hidden, for: .tabBar)
-        }
-//        .fullScreenCover(isPresented: $showChat) {
-//            ChatView(userId: userId, showMessage: $showChat, user: user)
-//                .toolbar(.hidden, for: .tabBar)
-//                .toolbar(.visible, for: .navigationBar)
-//                .onDisappear {
-//                showChat = false
-//            }
-//        }
     }
     
+    // MARK: - блокируем пользователя
     func syncAddFire (blockedUserID: String) {
         guard let uid = authViewModel.currentUser?.id else { return }
         let db = Firestore.firestore()
@@ -509,6 +523,7 @@ struct ProfileView: View {
         }
     }
     
+    //MARK: - разблокируем пользователя
     func syncDelFire (blockedUserID: String) {
         guard let uid = authViewModel.currentUser?.id else { return }
         let db = Firestore.firestore()
@@ -530,11 +545,12 @@ struct MenuItem: Identifiable {
     let id: String
 }
 
+// MARK: - аватарка
 struct AvatarView: View {
     var avatarUrl: String
     var body: some View {
         VStack {
-            if UserHelper.avatars.contains(avatarUrl.split(separator: ":").first.map(String.init) ?? "") {
+            if UserHelper.avatars.contains(avatarUrl.split(separator: ":").first.map(String.init) ?? "") { // если аватарка стандартная (из предустановленных)
                 Image(avatarUrl.split(separator: ":").first.map(String.init) ?? "")
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -543,7 +559,7 @@ struct AvatarView: View {
                     .frame(width: 100, height: 100)
                     .background(Color.fromRGBAString(avatarUrl.split(separator: ":").last.map(String.init) ?? "") ?? .blue.opacity(0.4))
                     .clipShape(Circle())
-            } else if let url = URL(string: avatarUrl) {
+            } else if let url = URL(string: avatarUrl) { // если обычная картинка из firebase storage
                 AsyncImage(url: url) { image in
                     image
                         .resizable()
@@ -557,7 +573,7 @@ struct AvatarView: View {
                 }
                 .frame(width: 100, height: 100)
                 .clipShape(Circle())
-            } else {
+            } else { // ну и если вообще ее нет
                 Image(systemName: "person.crop.circle.fill")
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -573,6 +589,7 @@ struct AvatarView: View {
     }
 }
 
+//MARK: - отображение изучаемого скилла
 struct exc2View: View {
     var skill: Skill
     var viewModel: LearningSkillsViewModel
@@ -687,6 +704,7 @@ struct exc2View: View {
     }
 }
 
+//MARK: - свой скилл
 struct excView: View {
     var skill: Skill
     var viewModel: SkillsViewModel

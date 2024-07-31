@@ -186,7 +186,7 @@ struct MainAccountView: View {
                         Toggle(isOn: $isOnline) {
                             Text("Status online \(UserHelper.isUserPro(authViewModel.currentUser?.pro) ? "" : "(only for pro)")")
                         }
-                        .disabled(!UserHelper.isUserPro(authViewModel.currentUser!.pro))
+                        .disabled(!UserHelper.isUserPro(authViewModel.currentUser?.pro))
                         .onChange(of: isOnline) { _ in
                             if isOnline {
                                 authViewModel.onlineMode()

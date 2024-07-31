@@ -1393,7 +1393,10 @@ class Coordinator: NSObject, UIDocumentInteractionControllerDelegate {
     }
     
     func documentInteractionControllerViewControllerForPreview(_ controller: UIDocumentInteractionController) -> UIViewController {
-        return UIApplication.shared.windows.first?.rootViewController ?? UIViewController()
+        let activeScene = UIApplication.shared.connectedScenes
+            .first { $0.activationState == .foregroundActive } as? UIWindowScene
+        
+        return activeScene?.windows.first?.rootViewController ?? UIViewController()
     }
 }
 
