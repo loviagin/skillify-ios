@@ -18,14 +18,14 @@ struct ProfileView: View {
     let reportProfileMenuItem = MenuItem(id: "Report")
     @State private var selectedMenuItem: MenuItem?
     @State var isLoadingMessage = true
-    @State var userId = "nil" // messages
+    @State var userId = "nil" // messages RRIAmLGIdcVQqqn7oygjZz6IQmu2gs1mFrOnlaYcb4h0OdgteWeY6Yf2
     @State var isVisible: Bool = false
     @State var showPhoneCall: Bool = false
     
     @State var showChat = false
     @Binding var showProfile: Bool
 
-    let user: User
+    @State var user: User
     @State var subscribers = 0
     @State var subscriptions = 0
     @State var currentId = ""
@@ -158,12 +158,8 @@ struct ProfileView: View {
                         HStack(spacing: 15) {
                             //MARK: - Кнопка "Сообщение"
                             if UserHelper.isMessagesBlocked(viewModel: authViewModel, user: user) == nil {
-                                Button {
-                                    DispatchQueue.main.async {
-                                        self.userId = userId
-                                        self.showChat = true
-                                        print("to message \(userId) - \(user.id)")
-                                    }
+                                NavigationLink {
+                                    ChatView(userId: userId, showMessage: $showChat, user: user)
                                 } label: {
                                     if isLoadingMessage {
                                         ProgressView()
@@ -487,13 +483,14 @@ struct ProfileView: View {
         .navigationDestination(isPresented: $showPhoneCall) {
             PhoneCallView().toolbar(.hidden, for: .tabBar)
         }
-        .sheet(isPresented: $showChat) {
-            ChatView(userId: userId, showMessage: $showChat, user: user)
-                .toolbar(.hidden, for: .tabBar)
+//        .fullScreenCover(isPresented: $showChat) {
+//            ChatView(userId: userId, showMessage: $showChat, user: user)
+//                .toolbar(.hidden, for: .tabBar)
+//                .toolbar(.visible, for: .navigationBar)
 //                .onDisappear {
 //                showChat = false
 //            }
-        }
+//        }
     }
     
     func syncAddFire (blockedUserID: String) {
@@ -820,7 +817,8 @@ struct SkillProgressView: View {
 }
 
 #Preview {
-    ProfileView(showProfile: .constant(true), user: User(id: "", first_name: "ELian", last_name: "Test", bio: "vk jj .", email: "", nickname: "nick", phone: "+8", birthday: Date()))
+    ProfileView(showProfile: .constant(true), user: User(id: "gs1mFrOnlaYcb4h0OdgteWeY6Yf2", first_name: "ELian", last_name: "Test", bio: "vk jj .", email: "", nickname: "nick", phone: "+8", birthday: Date()))
         .environmentObject(AuthViewModel.mock)
         .environmentObject(CallManager.mock)
+        .environmentObject(MessagesViewModel.mock)
 }
