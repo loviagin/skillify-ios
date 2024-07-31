@@ -157,7 +157,7 @@ struct ProfileView: View {
                     if user.id != (authViewModel.currentUser?.id ?? "") {
                         HStack(spacing: 15) {
                             //MARK: - Кнопка "Сообщение"
-                            if UserHelper.isMessagesBlocked(viewModel: authViewModel, user: user) == nil {
+                            if (UserHelper.isMessagesBlocked(viewModel: authViewModel, user: user) == nil){
                                 NavigationLink {
                                     ChatView(userId: userId, showMessage: $showChat, user: user)
                                 } label: {
