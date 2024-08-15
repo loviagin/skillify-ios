@@ -14,8 +14,9 @@ struct ProfileView: View {
     
     @EnvironmentObject private var authViewModel: AuthViewModel
     @EnvironmentObject private var callManager: CallManager
+    @EnvironmentObject private var mViewModel: MessagesViewModel
     
-    @Binding var showProfile: Bool // управление отображением данного вью (профиля)
+//    @Binding var showProfile: Bool // управление отображением данного вью (профиля)
     @State var userId = "nil" // id чата с текущим пользователем
     @State var user: User // пользователь который отображается в профиле
     
@@ -382,24 +383,8 @@ struct ProfileView: View {
                     }
                     
                     //поиск id чата с текущим пользователем
-                    let db = Firestore.firestore()
-                    db.collection("messages").document("\(user.id)\(currentId)").getDocument { (document, error) in
-                        if let document = document, document.exists {
-                            userId = "\(user.id)\(currentId)"
-                            isLoadingMessage = false
-                        } else {
-                            db.collection("messages").document("\(currentId)\(user.id)").getDocument { (document, error) in
-                                if let document = document, document.exists {
-                                    userId = "\(currentId)\(user.id)"
-                                    print(userId)
-                                    isLoadingMessage = false
-                                } else {
-                                    print("Документ не найден ")
-                                    isLoadingMessage = false
-                                }
-                            }
-                        }
-                    }
+                    findChatId()
+                    isLoadingMessage = false
                 }
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -480,29 +465,38 @@ struct ProfileView: View {
                 PhoneCallView().toolbar(.hidden, for: .tabBar)
             }
             .navigationDestination(isPresented: $showChat) {
-                ChatView(userId: userId, showMessage: $showChat, user: user)
+                NewChatView(userId: user.id)
                     .toolbar(.hidden, for: .tabBar)
                     .toolbar(.visible, for: .navigationBar)
-                    .onDisappear {
-                        showChat = false
-                    }
             }
         }
-        .navigationBarBackButtonHidden()
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                //кастомная кнопка назад
-                Button {
-                    if authViewModel.destination == nil {
-                        dismiss()
-                    } else {
-                        showProfile = false
-                        authViewModel.destination = nil
-                    }
-                } label: {
-                    Label("Back", systemImage: "chevron.backward")
-                }
-            }
+//        .navigationBarBackButtonHidden()
+//        .toolbar {
+//            ToolbarItem(placement: .cancellationAction) {
+//                //кастомная кнопка назад
+//                Button {
+//                    if authViewModel.destination == nil {
+//                        dismiss()
+//                    } else {
+//                        showProfile = false
+//                        authViewModel.destination = nil
+//                    }
+//                } label: {
+//                    Label("Back", systemImage: "chevron.backward")
+//                }
+//            }
+//        }
+    }
+    
+    func findChatId() {
+        if let doc = mViewModel.messages.first(where:
+                                                        {
+            ($0.members?.count ?? 0) == 2 &&
+            ($0.type ?? MessageType.personal) == MessageType.personal &&
+            (($0.members?.first(where: { $0.userId == currentId })) != nil) &&
+            (($0.members?.first(where: { $0.userId == user.id })) != nil)
+        }) {
+            userId = doc.id
         }
     }
     
@@ -835,7 +829,7 @@ struct SkillProgressView: View {
 }
 
 #Preview {
-    ProfileView(showProfile: .constant(true), user: User(id: "gs1mFrOnlaYcb4h0OdgteWeY6Yf2", first_name: "ELian", last_name: "Test", bio: "vk jj .", email: "", nickname: "nick", phone: "+8", birthday: Date()))
+    ProfileView(/*showProfile: .constant(true),*/user: User(id: "gs1mFrOnlaYcb4h0OdgteWeY6Yf2", first_name: "ELian", last_name: "Test", bio: "vk jj .", email: "", nickname: "nick", phone: "+8", birthday: Date()))
         .environmentObject(AuthViewModel.mock)
         .environmentObject(CallManager.mock)
         .environmentObject(MessagesViewModel.mock)

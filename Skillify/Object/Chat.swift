@@ -8,26 +8,18 @@
 import Foundation
 
 struct Chat: Identifiable, Codable, Hashable, Equatable {
-    var id: String
-    var cUid: String
-    var text: String?
+    var id: String = UUID().uuidString
+    var cUid: String = ""
+    var text: String? = nil
     var mediaUrl: String? = nil
-    var time: Double
+    var time: Double? = nil
+    var date: Date? = Date()
     var status: String? = "u" // u - unread, r - read
     var emoji: String? = nil 
-    var replyTo: [String]?
+    var replyTo: [String]? = nil
+    var reply: String? = nil
     var type: ChatType? = .text
-    
-    enum CodingKeys: String, CodingKey {
-        case id
-        case cUid
-        case mediaUrl
-        case text
-        case time
-        case status
-        case emoji
-        case replyTo
-    }
+    var tags: [String]? = nil
 }
 
 enum ChatType: String, Codable {

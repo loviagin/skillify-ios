@@ -18,7 +18,7 @@ struct BlockedUsersView: View {
             if let user = viewModel.currentUser, !user.blockedUsers.isEmpty {
                 List {
                     ForEach(users, id: \.self) { it in
-                        NavigationLink(destination: ProfileView(showProfile: $showProfile, user: it)) {
+                        NavigationLink(destination: ProfileView(/*showProfile: $showProfile, */user: it)) {
                             BlockedUserView(first_name: it.first_name, last_name: it.last_name)
                         }
                     }

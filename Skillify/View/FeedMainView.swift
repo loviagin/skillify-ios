@@ -7,11 +7,11 @@
 
 import SwiftUI
 import FirebaseFirestore
+import StoreKit
 
 struct FeedMainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var mViewModel: MessagesViewModel
-    @State var showMessagesView: Bool = false
     @State var showProfileView: Bool = false
     @State private var selectedValue: SearchType = .learningsSkills
     @State private var isEditSettings = false
@@ -24,16 +24,15 @@ struct FeedMainView: View {
     @State var proViewShow = false
     @State var profileViewShow = false
     
-    @State var count = 0
     @State var profileUser: User?
     @State private var systemMessage: String? = nil
     @State private var tip1Show = UserDefaults.standard.bool(forKey: "tipFeedMainForSelfSkills") != true
     
     var body: some View {
         NavigationStack {
-            ZStack{
+            ZStack {
                 VStack {
-                    HeaderMainView(showMessagesView: $showMessagesView, count: $count)
+                    HeaderMainView()
                         .padding(.vertical, 5)
                     
                     if let message = systemMessage {
@@ -71,7 +70,7 @@ struct FeedMainView: View {
                                         }
                                     if !authViewModel.users.isEmpty {
                                         ForEach(authViewModel.users) { user in
-                                            NavigationLink(destination: ProfileView(showProfile: $showProfileView, user: user)) {
+                                            NavigationLink(destination: ProfileView(/*showProfile: $showProfileView, */user: user)) {
                                                 StoryImageView(u: user).foregroundColor(.brandBlue)
                                             }
                                         }
@@ -83,7 +82,7 @@ struct FeedMainView: View {
                             }
                             .sheet(isPresented: $profileViewShow) {
                                 NavigationStack {
-                                    ProfileView(showProfile: $showProfileView, user: authViewModel.currentUser!)
+                                    ProfileView(/*showProfile: $showProfileView, */user: authViewModel.currentUser!)
                                         .toolbar(.hidden, for: .navigationBar)
                                 }
                             }
@@ -171,7 +170,7 @@ struct FeedMainView: View {
                                                 Text(skill).tag(skill)
                                             }
                                         }
-                                        .onChange(of: selectedSkill) { _ in
+                                        .onChange(of: selectedSkill) { _, _ in
                                             searchViewModel.resetSelection()
                                             let index = searchViewModel.skills.firstIndex(where: {$0.name == selectedSkill})
                                             if let i = index {
@@ -213,7 +212,6 @@ struct FeedMainView: View {
                 self.searchViewModel.chipArray = viewModel.chipArray
                 self.extraSkillsList = searchViewModel.skills.map { $0.name }
                 updateSearch()
-                chechDestination()
                 Firestore.firestore().collection("admin").document("system").getDocument { (document, error) in
                     if let document = document, document.exists {
                         systemMessage = document.get("showHomeAlert") as? String
@@ -222,52 +220,13 @@ struct FeedMainView: View {
                     }
                 }
             }
-            .onChange(of: authViewModel.destination) { _ in
-                chechDestination()
-            }
-            .onChange(of: mViewModel.countUnread) { _ in
-                count = mViewModel.countUnread
-            }
-            .onChange(of: selectedValue) { _ in
+            .onChange(of: selectedValue) { _, _ in
                 updateSearch()
             }
-            .gesture(DragGesture().onEnded { value in
-                if value.translation.width < 0 { // Свайп влево
-                    showMessagesView = true
-                }
-            })
         }
-        .navigationDestination(isPresented: $showMessagesView, destination: { MessagesView(showChats: $showMessagesView) })
-        .navigationDestination(isPresented: $showProfileView, destination: { ProfileView(showProfile: $showProfileView, user: profileUser ?? User()).toolbar(.hidden, for: .tabBar) })
-    }
-    
-    func chechDestination() {
-        if let destination = authViewModel.destination {
-            let dest = destination.components(separatedBy: "/").first
-            if dest == "m" {
-                DispatchQueue.main.async {
-                    showMessagesView = true
-                }
-            } else if destination.contains("@") {
-                loadUser(String(destination.components(separatedBy: "@").last ?? "")) { error in
-                    if let error {
-                        print(error)
-                    } else {
-                        showProfileView = true
-                    }
-                }
-            }
-        }
-    }
-    
-    func loadUser(_ user: String, completion: @escaping (String?) -> Void) {
-        Firestore.firestore().collection("users").document(user).getDocument { snap, error in
-            if let error {
-                completion(error.localizedDescription)
-            } else {
-                self.profileUser = try? snap?.data(as: User.self)
-                completion(nil)
-            }
+        .navigationDestination(isPresented: $showProfileView) {
+            ProfileView(/*showProfile: $showProfileView,*/user: profileUser ?? User())
+                .toolbar(.hidden, for: .tabBar)
         }
     }
     
@@ -311,11 +270,15 @@ struct FeedMainView: View {
 }
 
 struct HeaderMainView: View {
-    @Binding var showMessagesView: Bool
     @EnvironmentObject var authViewModel: AuthViewModel
-    @Binding var count: Int
+    @EnvironmentObject var callManager: CallManager
+    
+    @State private var showTopView = false
     
     var body: some View {
+        if showTopView {
+            CallTopView()
+        }
         HStack {
             if let user = authViewModel.currentUser, UserHelper.isUserPro(user.pro) {
                 Image("logoPro")
@@ -328,30 +291,29 @@ struct HeaderMainView: View {
                     .scaledToFit()
                     .frame(width: 125)
             }
+            
             Spacer()
+            
             Button {
-                self.showMessagesView = true
+                requestReview()
             } label: {
-                Image(systemName: "message")
-                    .resizable()
-                    .foregroundColor(.primary)
-                    .scaledToFit()
-                    .frame(width: 25, height: 25)
-                    .overlay(
-                        // Проверяем, есть ли непрочитанные сообщения и применяем логику сокращения
-                        count > 0 ? Text(count <= 9 ? "\(count)" : "9+")
-                            .font(.caption2)
-                            .foregroundColor(.white)
-                            .frame(width: 20, height: 20)
-                            .background(Color.red)
-                            .clipShape(Circle())
-                            .offset(x: 10, y: -10) : nil,
-                        alignment: .topTrailing
-                    )
+                Image(systemName: "star")
             }
         }
         .padding(.bottom, 5)
         .padding(.horizontal, 15)
+        .onChange(of: callManager.show) { _, _ in
+            withAnimation {
+                showTopView = callManager.show
+            }
+        }
+    }
+    
+    func requestReview() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
+            return
+        }
+        SKStoreReviewController.requestReview(in: windowScene)
     }
 }
 
@@ -523,7 +485,7 @@ struct UserSearchView: View {
         ScrollView {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())]) {
                 ForEach(viewModel.users) { user in
-                    NavigationLink(destination: ProfileView(showProfile: $showProfile, user: user)) {
+                    NavigationLink(destination: ProfileView(/*showProfile: $showProfile, */user: user)) {
                         SearchElementView(user: user)
                             .foregroundColor(Color.primary)
                     }

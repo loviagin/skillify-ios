@@ -23,7 +23,9 @@ class AuthViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var isLoading = true
     @Published var users = [User]()
+    
     @Published var destination: String? = nil
+    @Published var selectedTab: TabType = .home
 
     private let db: Firestore
     
@@ -105,12 +107,26 @@ class AuthViewModel: ObservableObject {
                         if let user = result?.user {
                             self?.userSession = user
                             OneSignal.login(user.uid)
+                            
+                            var firstName: String = ""
+                            var lastName: String = ""
+                            
+                            if let displayName = user.displayName {
+                                let nameComponents = displayName.split(separator: " ")
+                                if nameComponents.count > 0 {
+                                    firstName = String(nameComponents[0])
+                                }
+                                if nameComponents.count > 1 {
+                                    lastName = String(nameComponents[1])
+                                }
+                            }
+                            
                             Task {
                                 [weak self] in // Capture self as a weak reference
                                 guard let strongSelf = self else {
                                     return
                                 }
-                                await strongSelf.registerUserAndLoadProfile(uid: user.uid, email: user.email ?? "", name: user.displayName ?? "", phone: "")
+                                await strongSelf.registerUserAndLoadProfile(uid: user.uid, email: user.email ?? "", firstName: firstName, lastName: lastName, phone: "")
                             }
                             completion(nil)
                         }
@@ -232,10 +248,12 @@ class AuthViewModel: ObservableObject {
             if let lastDataText, !lastDataText.isEmpty {
                 placeholder = lastDataText
             }
+            
+            print("tap 33")
             userRef.updateData([
                 str: isAdd ? FieldValue.arrayUnion([chatDictionary]) : FieldValue.arrayRemove([chatDictionary]),
-                "lastData": [newChat.cUid, newChat.text == nil ? placeholder : newChat.text, "u"],
-                "time": newChat.time
+                "last": LastData(userId: newChat.cUid, status: "u", text: newChat.text ?? placeholder) as? [String: Any],
+                "date": newChat.date ?? Date()
             ]) { error in
                 if let error = error {
                     print("Error updating user: \(error)")
@@ -243,6 +261,7 @@ class AuthViewModel: ObservableObject {
                     print("Chat successfully updated")
                 }
             }
+            print("end of tap 33")
         } catch {
             print("Error serializing chat object: \(error)")
         }
@@ -334,7 +353,7 @@ class AuthViewModel: ObservableObject {
                                 guard let strongSelf = self else {
                                     return
                                 }
-                                await strongSelf.registerUserAndLoadProfile(uid: user.uid, email: "", name: "", phone: user.phoneNumber ?? "")
+                                await strongSelf.registerUserAndLoadProfile(uid: user.uid, email: "", firstName: "", lastName: "", phone: user.phoneNumber ?? "")
                             }
                             completion(nil)
                         }
@@ -344,7 +363,7 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    func registerUserAndLoadProfile(uid: String, email: String, name: String, phone: String, user: FirebaseAuth.User? = nil) async {
+    func registerUserAndLoadProfile(uid: String, email: String, firstName: String, lastName: String, phone: String, user: FirebaseAuth.User? = nil) async {
         DispatchQueue.main.async {
             self.isLoading = true
         }
@@ -355,7 +374,7 @@ class AuthViewModel: ObservableObject {
             if documentSnapshot.data() != nil {} else {
                 print("create a document")
                 // Документ не существует, создаем новый документ.
-                let newUser = User(id: uid, first_name: name, last_name: "", email: email, nickname: "", phone: phone, birthday: Date())
+                let newUser = User(id: uid, first_name: firstName, last_name: lastName, email: email, nickname: "", phone: phone, birthday: Date())
                 DispatchQueue.main.async {
                     self.currentUser = newUser
                     print("\(self.currentUser!.first_name) + \(Date().timeIntervalSince1970)")
@@ -540,17 +559,11 @@ class AuthViewModel: ObservableObject {
         if let newName = data["selfSkills"] as? [Skill], newName != currentUser?.selfSkills {
             currentUser?.selfSkills = newName
         }
-        if let newName = data["messages"] as? [[String: String]], newName != currentUser?.messages {
-            currentUser?.messages = newName
-        }
         if let newName = data["blockedUsers"] as? [String], newName != currentUser?.blockedUsers {
             currentUser?.blockedUsers = newName
         }
         if let newName = data["proData"] as? [String], newName != currentUser?.proData {
             currentUser?.proData = newName
-        }
-        if let newName = data["privacyData"] as? [String], newName != currentUser?.privacyData {
-            currentUser?.privacyData = newName
         }
         if let newName = data["privacyData"] as? [String], newName != currentUser?.privacyData {
             currentUser?.privacyData = newName
@@ -700,11 +713,15 @@ class AuthViewModel: ObservableObject {
 extension AuthViewModel {
     static var mock: AuthViewModel {
         let viewModel = AuthViewModel()
-        viewModel.currentUser = User(id: "4Ap9I0MuuLMmN7ihf4mj01rNV913", first_name: "Elian", last_name: "Loviagin", email: "ilia@loviagin.com", nickname: "nick", phone: "+70909998876", birthday: Date())
+        viewModel.currentUser = User(id: "Support", first_name: "Elian", last_name: "Loviagin", email: "ilia@loviagin.com", nickname: "nick", phone: "+70909998876", birthday: Date())
         viewModel.currentUser?.pro = Calendar.current.date(byAdding: .month, value: 1, to: Date())?.timeIntervalSince1970 ?? 0
         viewModel.currentUser?.proData = ["user", "cover:3"]
         viewModel.currentUser?.urlAvatar = "avatar2"
         viewModel.currentUser?.devices = ["f3498hervuhivuheiqidcjeq", "owivje9qfh9r8euqw9e"]
         return viewModel
     }
+}
+
+enum TabType {
+    case home, chats, discovery, account
 }

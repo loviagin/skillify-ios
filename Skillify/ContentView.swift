@@ -7,49 +7,74 @@
 
 import SwiftUI
 import FirebaseAuth
+import FirebaseFirestore
 
 struct ContentView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var messagesViewModel: MessagesViewModel
-    @EnvironmentObject var callManager: CallManager
     
     @State private var hasLoadedMessages = false
-    @State private var showTopView = false
-
+    
+    @State var profileUser: User? = nil
+    @State var userId: MessageUser?
+    
     var body: some View {
-        Group {
-            NavigationStack {
+        NavigationStack{
+            Group {
                 if authViewModel.isLoading {
                     ProgressView()
                 } else if authViewModel.userSession != nil {
-                    VStack {
-                        if showTopView {
-                            CallTopView()
-                        }
-                        AccountView()
-                    }
+                    AccountView()
                 } else {
                     AuthView()
                 }
             }
+            .onOpenURL { url in
+                if let scheme = url.scheme, scheme == "skillify" {
+                    let destination = url.absoluteString.split(separator: "://").last
+                    
+                    let dest = destination?.components(separatedBy: "/").first
+                    if dest == "m", let dest = destination?.components(separatedBy: "/").last {
+                        authViewModel.selectedTab = .chats
+                        userId = MessageUser(id: dest)
+                    } else if let _ = destination?.contains("@") {
+                        print("profile")
+                        loadUser(String(destination?.components(separatedBy: "@").last ?? ""))
+                    }
+                }
+            }
+            .navigationDestination(item: $profileUser) { user in
+                ProfileView(user: user)
+            }
+            .navigationDestination(item: $userId) { user in
+                NewChatView(userId: user.id)
+            }
         }
         .onAppear {
-//            do {
-//                try Auth.auth().signOut()
-//                DispatchQueue.main.async {
-//                    authViewModel.userSession = nil
-//                }
-//            } catch let signOutError as NSError {
-//                print("Error signing out: %@", signOutError)
-//            }
+            //                        do {
+            //                try Auth.auth().signOut()
+            //                DispatchQueue.main.async {
+            //                    authViewModel.userSession = nil
+            //                }
+            //            } catch let signOutError as NSError {
+            //                print("Error signing out: %@", signOutError)
+            //            }
             loadMessagesIfNeeded()
         }
-        .onChange(of: authViewModel.isLoading) { _ in
+        .onChange(of: authViewModel.isLoading) { _, _ in
             loadMessagesIfNeeded()
         }
-        .onChange(of: callManager.show) { _ in
-            withAnimation {
-                showTopView = callManager.show
+    }
+    
+    private func loadUser(_ user: String) {
+        Firestore.firestore().collection("users")
+            .whereField("nickname", isEqualTo: user)
+            .getDocuments 
+        { snap, error in
+            if let error {
+                print("error App user link")
+            } else {
+                self.profileUser = try? snap?.documents.first?.data(as: User.self)
             }
         }
     }
@@ -64,3 +89,9 @@ struct ContentView: View {
     }
 }
 
+#Preview {
+    ContentView()
+        .environmentObject(AuthViewModel.mock)
+        .environmentObject(MessagesViewModel.mock)
+        .environmentObject(CallManager.mock)
+}

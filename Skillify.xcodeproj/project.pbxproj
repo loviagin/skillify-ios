@@ -49,10 +49,8 @@
 		866286BB2BEECB8400102FA0 /* Favorite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8662867A2BEECB8400102FA0 /* Favorite.swift */; };
 		866286BC2BEECB8400102FA0 /* GroupSkill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8662867B2BEECB8400102FA0 /* GroupSkill.swift */; };
 		866286BD2BEECB8400102FA0 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8662867C2BEECB8400102FA0 /* Message.swift */; };
-		866286BE2BEECB8400102FA0 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8662867D2BEECB8400102FA0 /* Notification.swift */; };
 		866286BF2BEECB8400102FA0 /* Skill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8662867E2BEECB8400102FA0 /* Skill.swift */; };
 		866286C02BEECB8400102FA0 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8662867F2BEECB8400102FA0 /* User.swift */; };
-		866286C12BEECB8400102FA0 /* UserPro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286802BEECB8400102FA0 /* UserPro.swift */; };
 		866286C22BEECB8400102FA0 /* CallTopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286822BEECB8400102FA0 /* CallTopView.swift */; };
 		866286C32BEECB8400102FA0 /* CarouselMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286832BEECB8400102FA0 /* CarouselMainView.swift */; };
 		866286C42BEECB8400102FA0 /* ChipContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286842BEECB8400102FA0 /* ChipContainerView.swift */; };
@@ -92,6 +90,10 @@
 		866286E72BEECB8400102FA0 /* UsersSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286A82BEECB8400102FA0 /* UsersSearchView.swift */; };
 		866286EF2BEECFEB00102FA0 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286EE2BEECFEB00102FA0 /* NotificationService.swift */; };
 		866286F32BEECFEB00102FA0 /* OneSignalNotificationServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 866286EC2BEECFEB00102FA0 /* OneSignalNotificationServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		868164DA2C5D4F03004A67B0 /* Member.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868164D92C5D4F03004A67B0 /* Member.swift */; };
+		868164DC2C5D4FDD004A67B0 /* NewChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868164DB2C5D4FDD004A67B0 /* NewChatView.swift */; };
+		868164DE2C5D554B004A67B0 /* LastData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868164DD2C5D554B004A67B0 /* LastData.swift */; };
+		868164E02C5D6093004A67B0 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868164DF2C5D6093004A67B0 /* ChatViewModel.swift */; };
 		86A9ABF92BEEBF0300F4C7FE /* SkillifyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A9ABF82BEEBF0300F4C7FE /* SkillifyApp.swift */; };
 		86A9ABFB2BEEBF0300F4C7FE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A9ABFA2BEEBF0300F4C7FE /* ContentView.swift */; };
 		86A9ABFD2BEEBF0300F4C7FE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86A9ABFC2BEEBF0300F4C7FE /* Assets.xcassets */; };
@@ -110,6 +112,7 @@
 		86C96D392C19D3600058600C /* CoursesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C96D382C19D3600058600C /* CoursesViewModel.swift */; };
 		86C96D3B2C19D3780058600C /* Course.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C96D3A2C19D3780058600C /* Course.swift */; };
 		86F025542C005997008BE8B4 /* Avatar2View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86F025532C005997008BE8B4 /* Avatar2View.swift */; };
+		86F239BE2C6E1E1800F359E4 /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 86F239BD2C6E1E1800F359E4 /* FirebaseFirestoreSwift */; };
 		86F9F4CE2C176BCF00C6DC28 /* ChangeThemeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86F9F4CD2C176BCF00C6DC28 /* ChangeThemeView.swift */; };
 /* End PBXBuildFile section */
 
@@ -173,10 +176,8 @@
 		8662867A2BEECB8400102FA0 /* Favorite.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Favorite.swift; sourceTree = "<group>"; };
 		8662867B2BEECB8400102FA0 /* GroupSkill.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupSkill.swift; sourceTree = "<group>"; };
 		8662867C2BEECB8400102FA0 /* Message.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
-		8662867D2BEECB8400102FA0 /* Notification.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		8662867E2BEECB8400102FA0 /* Skill.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Skill.swift; sourceTree = "<group>"; };
 		8662867F2BEECB8400102FA0 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
-		866286802BEECB8400102FA0 /* UserPro.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserPro.swift; sourceTree = "<group>"; };
 		866286822BEECB8400102FA0 /* CallTopView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CallTopView.swift; sourceTree = "<group>"; };
 		866286832BEECB8400102FA0 /* CarouselMainView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CarouselMainView.swift; sourceTree = "<group>"; };
 		866286842BEECB8400102FA0 /* ChipContainerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChipContainerView.swift; sourceTree = "<group>"; };
@@ -218,6 +219,10 @@
 		866286EE2BEECFEB00102FA0 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		866286F02BEECFEB00102FA0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		866286F82BEED03C00102FA0 /* OneSignalNotificationServiceExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OneSignalNotificationServiceExtension.entitlements; sourceTree = "<group>"; };
+		868164D92C5D4F03004A67B0 /* Member.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Member.swift; sourceTree = "<group>"; };
+		868164DB2C5D4FDD004A67B0 /* NewChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewChatView.swift; sourceTree = "<group>"; };
+		868164DD2C5D554B004A67B0 /* LastData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastData.swift; sourceTree = "<group>"; };
+		868164DF2C5D6093004A67B0 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
 		86A9ABF52BEEBF0300F4C7FE /* Skillify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Skillify.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		86A9ABF82BEEBF0300F4C7FE /* SkillifyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillifyApp.swift; sourceTree = "<group>"; };
 		86A9ABFA2BEEBF0300F4C7FE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -254,6 +259,7 @@
 				865ADB2D2BFE297D009CDA90 /* FirebaseFunctions in Frameworks */,
 				865ADB222BFE16EF009CDA90 /* RtcBasic in Frameworks */,
 				86A9AC102BEEC12100F4C7FE /* FirebaseFirestore in Frameworks */,
+				86F239BE2C6E1E1800F359E4 /* FirebaseFirestoreSwift in Frameworks */,
 				86A9AC172BEEC21500F4C7FE /* GoogleSignInSwift in Frameworks */,
 				86A9AC0A2BEEC12100F4C7FE /* FirebaseAnalytics in Frameworks */,
 				865ADB242BFE16EF009CDA90 /* VideoCodecDec in Frameworks */,
@@ -289,6 +295,7 @@
 				8662866E2BEECB8400102FA0 /* UserViewModel.swift */,
 				86AAE95E2C19667B005F9267 /* VideoScrollModel.swift */,
 				86C96D382C19D3600058600C /* CoursesViewModel.swift */,
+				868164DF2C5D6093004A67B0 /* ChatViewModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -316,12 +323,12 @@
 				8662867A2BEECB8400102FA0 /* Favorite.swift */,
 				8662867B2BEECB8400102FA0 /* GroupSkill.swift */,
 				8662867C2BEECB8400102FA0 /* Message.swift */,
-				8662867D2BEECB8400102FA0 /* Notification.swift */,
 				8662867E2BEECB8400102FA0 /* Skill.swift */,
 				8662867F2BEECB8400102FA0 /* User.swift */,
-				866286802BEECB8400102FA0 /* UserPro.swift */,
 				86AAE9602C19669C005F9267 /* Video.swift */,
 				86C96D3A2C19D3780058600C /* Course.swift */,
+				868164D92C5D4F03004A67B0 /* Member.swift */,
+				868164DD2C5D554B004A67B0 /* LastData.swift */,
 			);
 			path = Object;
 			sourceTree = "<group>";
@@ -387,6 +394,7 @@
 				861092512C0DB83200062EBE /* PrivacyView.swift */,
 				861092532C0DB86B00062EBE /* BlockedUsersView.swift */,
 				86AAE95C2C19664B005F9267 /* VideoScrollsView.swift */,
+				868164DB2C5D4FDD004A67B0 /* NewChatView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -502,6 +510,7 @@
 				865ADB2C2BFE297D009CDA90 /* FirebaseFunctions */,
 				86023CCF2C3497A60035F995 /* RevenueCat */,
 				86023CD12C3497A60035F995 /* RevenueCatUI */,
+				86F239BD2C6E1E1800F359E4 /* FirebaseFirestoreSwift */,
 			);
 			productName = Skillify;
 			productReference = 86A9ABF52BEEBF0300F4C7FE /* Skillify.app */;
@@ -626,7 +635,6 @@
 				866286CD2BEECB8400102FA0 /* SkillView.swift in Sources */,
 				866286AE2BEECB8400102FA0 /* SearchViewModel.swift in Sources */,
 				866286C02BEECB8400102FA0 /* User.swift in Sources */,
-				866286BE2BEECB8400102FA0 /* Notification.swift in Sources */,
 				866286DE2BEECB8400102FA0 /* PhoneRegisterView.swift in Sources */,
 				866286B52BEECB8400102FA0 /* ImagePicker.swift in Sources */,
 				866286E02BEECB8400102FA0 /* ProfileView.swift in Sources */,
@@ -674,7 +682,7 @@
 				866286B82BEECB8400102FA0 /* Call.swift in Sources */,
 				866286BD2BEECB8400102FA0 /* Message.swift in Sources */,
 				8610924E2C0DB58F00062EBE /* DismissButton.swift in Sources */,
-				866286C12BEECB8400102FA0 /* UserPro.swift in Sources */,
+				868164E02C5D6093004A67B0 /* ChatViewModel.swift in Sources */,
 				86AAE9612C19669C005F9267 /* Video.swift in Sources */,
 				866286D22BEECB8400102FA0 /* ChatView.swift in Sources */,
 				861092502C0DB81300062EBE /* DevicesView.swift in Sources */,
@@ -686,12 +694,15 @@
 				866286BC2BEECB8400102FA0 /* GroupSkill.swift in Sources */,
 				866286BF2BEECB8400102FA0 /* Skill.swift in Sources */,
 				866286E22BEECB8400102FA0 /* RegisterView.swift in Sources */,
+				868164DC2C5D4FDD004A67B0 /* NewChatView.swift in Sources */,
 				866286E52BEECB8400102FA0 /* ShareProfileView.swift in Sources */,
 				866286CE2BEECB8400102FA0 /* VideoCallView.swift in Sources */,
 				866286B32BEECB8400102FA0 /* DeepLinkManager.swift in Sources */,
 				866286B62BEECB8400102FA0 /* UserHelper.swift in Sources */,
 				866286C32BEECB8400102FA0 /* CarouselMainView.swift in Sources */,
 				866286DF2BEECB8400102FA0 /* Pro2View.swift in Sources */,
+				868164DA2C5D4F03004A67B0 /* Member.swift in Sources */,
+				868164DE2C5D554B004A67B0 /* LastData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -717,7 +728,7 @@
 				INFOPLIST_FILE = OneSignalNotificationServiceExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = OneSignalNotificationServiceExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -748,7 +759,7 @@
 				INFOPLIST_FILE = OneSignalNotificationServiceExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = OneSignalNotificationServiceExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -820,7 +831,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -877,7 +888,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -895,7 +906,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Skillify/Skillify.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 40;
+				CURRENT_PROJECT_VERSION = 44;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"Skillify/Preview Content\"";
 				DEVELOPMENT_TEAM = GWXUDX4MQT;
@@ -912,12 +923,12 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen.storyboard";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.4.4;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -939,7 +950,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Skillify/Skillify.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 40;
+				CURRENT_PROJECT_VERSION = 44;
 				DEVELOPMENT_ASSET_PATHS = "\"Skillify/Preview Content\"";
 				DEVELOPMENT_TEAM = GWXUDX4MQT;
 				ENABLE_PREVIEWS = YES;
@@ -955,12 +966,12 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen.storyboard";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.4.4;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1124,6 +1135,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 86A9AC132BEEC21500F4C7FE /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
+		};
+		86F239BD2C6E1E1800F359E4 /* FirebaseFirestoreSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 86A9AC082BEEC12100F4C7FE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestoreSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

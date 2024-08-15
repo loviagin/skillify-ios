@@ -8,17 +8,19 @@
 import Foundation
  
 struct Message: Identifiable, Codable, Hashable {
-    var id: String
-    var lastData: [String]
-    var messages: [Chat]?
-    var time: Double?
-    var uids: [String]
-    
-    enum CodingKeys: String, CodingKey {
-        case id
-        case lastData
-        case messages
-        case time
-        case uids
-    }
+    var id: String = UUID().uuidString
+    var lastData: [String]? = nil
+    var last: LastData? = nil
+    var messages: [Chat] = []
+    var time: Double? = nil
+    var date: Date? = Date()
+    var uids: [String]? = nil
+    var members: [Member]? = []
+    var type: MessageType? = .personal
+}
+
+enum MessageType: String, Codable {
+    case personal = "personal"
+    case privateGroup = "privateGroup"
+    case publicGroup = "publicGroup"
 }

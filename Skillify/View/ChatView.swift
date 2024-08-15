@@ -16,7 +16,6 @@ import UIKit
 
 struct ChatView: View {
     @State var userId: String
-    @Binding var showMessage: Bool
     @Environment(\.dismiss) private var dismiss
     var user: User
     
@@ -75,13 +74,13 @@ struct ChatView: View {
                                 }
                             }
                         }
-                        .onChange(of: scrollTo) { _ in
+                        .onChange(of: scrollTo) { _, _ in
                             withAnimation {
                                 scrollViewProxy.scrollTo(scrollTo, anchor: .top)
                             }
                             scrollTo = ""
                         }
-                        .onChange(of: messagesList) { _ in
+                        .onChange(of: messagesList) { _, _ in
                             if let lastMessage = messagesList.last {
                                 withAnimation {
                                     scrollViewProxy.scrollTo(lastMessage.id)
@@ -303,21 +302,7 @@ struct ChatView: View {
             .onAppear {
                 getBackground()
             }
-            .navigationBarBackButtonHidden()
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button {
-                        if authViewModel.destination == nil {
-                            dismiss()
-                        } else {
-                            authViewModel.destination = nil
-                            showMessage = false
-                        }
-                    } label: {
-                        Label("Back", systemImage: "chevron.backward")
-                    }
-                }
-                
                 ToolbarItem(placement: .principal) {
                     Button {
                         showProfile = true
@@ -379,7 +364,7 @@ struct ChatView: View {
             .sheet(isPresented: $showProfile, onDismiss: {
                 showProfile = false
             }, content: {
-                ProfileView(showProfile: $showProfile, user: user)
+                ProfileView(/*showProfile: $showProfile,*/user: user)
             })
             .sheet(isPresented: $showChangeTheme, onDismiss: {
                 getBackground()
@@ -499,22 +484,23 @@ struct ChatView: View {
     }
     
     func loadSaveMessage() {
-        self.userId = "\(authViewModel.currentUser!.id)\(user.id)"
+        self.userId = UUID().uuidString
+        print("tap 89")
         let message = Message(
-            id: userId,
-            lastData: ["you: ", "Chat created", "status"],
+            id: self.userId,
+            last: LastData(userId: authViewModel.currentUser?.id ?? "", status: "u", text: "Chat created"),
             messages: [],
-            time: Date().timeIntervalSince1970,
-            uids: [authViewModel.currentUser!.id, user.id])
+            date: Date(),
+            members: [Member(userId: authViewModel.currentUser?.id ?? "", level: .usually), Member(userId: user.id, level: .usually)]
+            )
         var chat: Chat
         if let reply = replyMessage {
-            print("optional here")
             chat = Chat(
                 id: UUID().uuidString,
                 cUid: authViewModel.currentUser!.id,
                 text: messageText,
                 mediaUrl: nil,
-                time: Date().timeIntervalSince1970,
+                date: Date(),
                 replyTo: [String(reply.text!/*.prefix(8)*/), reply.id]
             )
             replyMessage = nil
@@ -524,22 +510,15 @@ struct ChatView: View {
                 cUid: authViewModel.currentUser!.id,
                 text: messageText,
                 mediaUrl: nil,
-                time: Date().timeIntervalSince1970)
+                date: Date()
+            )
         }
         let userRef = Firestore.firestore().collection("messages").document(userId)
-        authViewModel.currentUser!.messages.append([user.id: self.userId])
         Task {
             do {
                 let encodedUser = try Firestore.Encoder().encode(message)
                 try await userRef.setData(encodedUser)
-                authViewModel.updateUsersAFirebase(
-                    str: "messages",
-                    newStr: [user.id: userId],
-                    cUid: authViewModel.currentUser!.id)
-                authViewModel.updateUsersAFirebase(
-                    str: "messages",
-                    newStr: [authViewModel.currentUser!.id: userId],
-                    cUid: user.id)
+                
                 authViewModel.updateMessageFirebase(
                     str: "messages",
                     newChat: chat,
@@ -657,13 +636,10 @@ struct ChatView: View {
             
             do {
                 let messageData = try document.data(as: Message.self)
-                guard let fetchedMessages = messageData.messages else {
-                    print("Нет сообщений для обработки.")
-                    return
+                let fetchedMessages = messageData.messages
+                if !fetchedMessages.isEmpty {
+                    synchronizeMessages(with: fetchedMessages)
                 }
-                
-                // Синхронизация сообщений
-                synchronizeMessages(with: fetchedMessages)
             } catch {
                 print("Ошибка декодирования сообщений: \(error)")
             }
@@ -704,7 +680,7 @@ struct ChatView: View {
                         if let status = messages[index]["status"] as? String, status != "r",
                            let cUid = messages[index]["cUid"] as? String, cUid != authViewModel.currentUser!.id {
                             messages[index]["status"] = "r"
-                            mViewModel.countUnread -= 1
+//                            mViewModel.countUnread -= 1
                             isUpdated = true
                         }
                     }
@@ -719,10 +695,14 @@ struct ChatView: View {
                         }
                     }
                 }
+                print("start chat")
                 if let sn = try? document.data(as: Message.self) {
-                    if sn.lastData[0] != authViewModel.currentUser!.id {
+                    if let last = sn.last, last.userId != (authViewModel.currentUser?.id ?? "") {
+                        var newLast = last
+                        newLast.status = "r"
+                        
                         documentRef.updateData([
-                            "lastData": [sn.lastData[0], sn.lastData[1], "r"]
+                            "last": newLast
                         ]) { error in
                             if let error = error {
                                 print("Error updating user: \(error)")
@@ -755,10 +735,10 @@ struct ChatView: View {
                                 print("Document successfully updated")
                             }
                         }
-                        //                        UserDefaults.standard.set(text, forKey: userId)
-                        // Check if the message is the last in the list
+                        
                         if index == messages.count - 1 {
-                            documentRef.updateData(["lastData" : ["\(authViewModel.currentUser!.id)", "\(text)"]])
+                            let last = LastData(userId: "\(authViewModel.currentUser!.id)", status: "u", text: "\(text)")
+                            documentRef.updateData(["last" : last as! [String: Any]])
                         }
                     }
                 }
@@ -837,7 +817,7 @@ struct ImageVideoPicker: UIViewControllerRepresentable {
 }
 
 #Preview {
-    ChatView(userId: "", showMessage: .constant(true), user: User(id: "", first_name: "Child", last_name: "red", email: "mail", nickname: "oil", phone: "", birthday: Date()))
+    ChatView(userId: "", user: User(id: "", first_name: "Child", last_name: "red", email: "mail", nickname: "oil", phone: "", birthday: Date()))
         .environmentObject(AuthViewModel.mock)
         .environmentObject(CallManager.mock)
         .environmentObject(MessagesViewModel.mock)
@@ -1007,7 +987,7 @@ struct ChatItemView: View {
             
             if isCurrentUser {
                 HStack {
-                    Text(timeString(from: message.time))
+                    Text(message.date?.formatted() ?? "")
                         .padding(.top, 2)
                         .font(.caption2)
                     
@@ -1025,7 +1005,7 @@ struct ChatItemView: View {
                             .padding(.top, 2)
                     }
                     
-                    Text(timeString(from: message.time))
+                    Text(message.date?.formatted() ?? "")
                         .padding(.top, 2)
                         .font(.caption2)
                     
@@ -1322,27 +1302,6 @@ struct ChatItemView: View {
         documentRef.delete { err in
             print("error")
         }
-        let userDocRef = Firestore.firestore().collection("users").document(viewModel.currentUser!.id)
-        userDocRef.getDocument { (document, error) in
-            if let document = document, document.exists, let messages = document.data()?["messages"] as? [[String: Any]] {
-                // Находим индекс элемента для удаления
-                if let indexToRemove = messages.firstIndex(where: { $0.values.contains(where: { $0 as? String == userId }) }) {
-                    var updatedMessages = messages
-                    updatedMessages.remove(at: indexToRemove)
-                    
-                    // Обновляем документ, устанавливая обновленный массив
-                    userDocRef.updateData(["messages": updatedMessages]) { err in
-                        if let err = err {
-                            print("Error updating document: \(err)")
-                        } else {
-                            print("Document successfully updated")
-                        }
-                    }
-                }
-            } else {
-                print("Document does not exist or failed to fetch messages.")
-            }
-        }
     }
     
     func deleteMessage(messageId: String, mId: String) {
@@ -1357,7 +1316,8 @@ struct ChatItemView: View {
                     if let index = messages.firstIndex(where: { $0["id"] as? String == mId }) {
                         if messages.count > 2 {
                             if index == messages.count - 1 && index > 1 {
-                                documentRef.updateData(["lastData" : ["\(messages[index - 1]["cUid"] ?? userId)", "\(messages[index - 1]["text"] ?? "")", "u"]])
+                                let last = LastData(userId: "\(messages[index - 1]["cUid"] ?? userId)", status: "u", text: "\(messages[index - 1]["text"] ?? "")")
+                                documentRef.updateData(["last": last as! [String: Any]])
                             }
                         } else {
                             print("delete chating")

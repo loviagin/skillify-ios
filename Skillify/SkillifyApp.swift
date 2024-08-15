@@ -144,7 +144,6 @@ extension AppDelegate: PKPushRegistryDelegate {
 
    
         let _ = try? await URLSession.shared.data(for: request)
-        
     }
 }
 
@@ -163,14 +162,8 @@ struct SkillifyApp: App {
                 .environmentObject(authViewModel)
                 .environmentObject(messagesViewModel)
                 .environmentObject(delegate.callManager)
-                .onOpenURL(perform: { url in
-                    if let scheme = url.scheme, scheme == "skillify" {
-                        let destination = url.absoluteString.split(separator: "://").last
-                        authViewModel.destination = String(destination ?? "")
-                    }
-                })
         }
-        .onChange(of: scenePhase) { newScenePhase in
+        .onChange(of: scenePhase) { _, newScenePhase in // skillify://@salvador  skillify://m/Support
             switch newScenePhase {
             case .background:
                 print("App is in background")
@@ -183,4 +176,8 @@ struct SkillifyApp: App {
             }
         }
     }
+}
+
+struct MessageUser: Identifiable, Hashable {
+    var id: String
 }

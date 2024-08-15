@@ -8,7 +8,6 @@
 import Foundation
 
 struct User: Identifiable, Codable, Hashable {
-    
     var id: String = UUID().uuidString
     var first_name: String = ""
     var last_name: String = ""
@@ -24,10 +23,11 @@ struct User: Identifiable, Codable, Hashable {
     var sex: String = "-"
     var birthday: Date = Date()
     var pro: Double = 0
+    var proDate: Date? = nil
     var favorites: [Favorite] = []
-    var calls: [[String: String]] = []
+    var calls: [[String: String]]? = nil
     var learningSkills: [Skill] = []
-    var messages: [[String: String]] = []
+    var messages: [[String: String]]? = nil
     var selfSkills: [Skill] = []
     var blockedUsers: [String] = []
     var devices: [String] = []
@@ -37,6 +37,7 @@ struct User: Identifiable, Codable, Hashable {
     var lastData: [String]? = ["ios", UserHelper.getStringDate(), UserHelper.getAppVersion()]
     var tags: [String]? = ["user"]
     var proData: [String]? = nil
+    var registered: Date? = Date()
     var courses: [String]? = []
     var privacyData: [String]? = []
 }

@@ -99,6 +99,7 @@ struct PhoneCallView: View {
                 }
             }
         }
+        .toolbar(.hidden, for: .tabBar)
         .onAppear {
             print("phone call onAppear")
             callManager.show = false
@@ -121,7 +122,7 @@ struct PhoneCallView: View {
                 callManager.show = true
             }
         }
-        .onChange(of: callManager.status) { _ in
+        .onChange(of: callManager.status) { _, _ in
             if callManager.status == "Ended call" {
                 presentationMode.wrappedValue.dismiss()
             }

@@ -60,37 +60,37 @@ class CallManager: NSObject, ObservableObject {
         callTimer = nil
         callTimeSeconds = 0
         completion()
-        sendMessage()
+//        sendMessage()
     }
     
-    private func sendMessage() {
-        if let chat = handler?.messages.first(where: { $0.keys.contains(receiver?.id ?? "") }) {
-            let newChat = Chat(id: UUID().uuidString, cUid: handler?.id ?? "", time: Date().timeIntervalSince1970)
-            let chatData = try? JSONEncoder().encode(newChat)
-            guard let chatDictionary = try? JSONSerialization.jsonObject(with: chatData!, options: []) as? [String: Any] else {
-                print("Ошибка при сериализации объекта Chat")
-                return
-            }
-            Firestore.firestore()
-                .collection("messages")
-                .document(chat.values.first ?? "error")
-                .updateData(["messages": FieldValue.arrayUnion([
-                    chatDictionary
-                ])]) { error in
-                    if error != nil {
-                        print("error \(error?.localizedDescription ?? "")")
-                    }
-                }
-            Firestore.firestore()
-                .collection("messages")
-                .document(chat.values.first ?? "error")
-                .updateData(["lastData": [handler?.id ?? "", "📞 Call", "u"], "time": Date().timeIntervalSince1970]) { error in
-                    if error != nil {
-                        print("error \(error?.localizedDescription ?? "")")
-                    }
-                }
-        }
-    }
+//    private func sendMessage() {
+//        if let chat = handler?.messages.first(where: { $0.keys.contains(receiver?.id ?? "") }) {
+//            let newChat = Chat(id: UUID().uuidString, cUid: handler?.id ?? "", time: Date().timeIntervalSince1970)
+//            let chatData = try? JSONEncoder().encode(newChat)
+//            guard let chatDictionary = try? JSONSerialization.jsonObject(with: chatData!, options: []) as? [String: Any] else {
+//                print("Ошибка при сериализации объекта Chat")
+//                return
+//            }
+//            Firestore.firestore()
+//                .collection("messages")
+//                .document(chat.values.first ?? "error")
+//                .updateData(["messages": FieldValue.arrayUnion([
+//                    chatDictionary
+//                ])]) { error in
+//                    if error != nil {
+//                        print("error \(error?.localizedDescription ?? "")")
+//                    }
+//                }
+//            Firestore.firestore()
+//                .collection("messages")
+//                .document(chat.values.first ?? "error")
+//                .updateData(["lastData": [handler?.id ?? "", "📞 Call", "u"], "time": Date().timeIntervalSince1970]) { error in
+//                    if error != nil {
+//                        print("error \(error?.localizedDescription ?? "")")
+//                    }
+//                }
+//        }
+//    }
     
     // only for incoming calls
     func setCall(caller: String, uuid callId: String, channelName: String, hasVideo: Bool, token: String, completion: @escaping () -> Void) {

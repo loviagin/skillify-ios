@@ -24,8 +24,8 @@ struct CallTopView: View {
                     .padding()
             }
             .background(.blue)
+            .padding(0)
         }
-        .padding(0)
         .frame(maxHeight: 30)
     }
 }

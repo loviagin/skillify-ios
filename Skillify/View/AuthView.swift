@@ -97,4 +97,5 @@ struct ButtonTextView: View {
 
 #Preview {
     AuthView()
+        .environmentObject(AuthViewModel.mock)
 }

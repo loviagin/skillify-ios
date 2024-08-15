@@ -26,55 +26,61 @@ struct AccountView: View {
 }
 
 struct TabsMainView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var viewModel: AuthViewModel
 
-    @State private var selectedTab = 0
     @State var blocked: Int = 0
     
     @State var showSelfSkill = false
     @State var showLearningSkill = false
     
     var body: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: $viewModel.selectedTab) {
             FeedMainView(extraSkillsList: [])
                 .tabItem {
-                    Label("Main", systemImage: "house.circle")
-                        .environment(\.symbolVariants, selectedTab == 0 ? .fill : .none)
+                    Label("Main", systemImage: "house")
+                        .environment(\.symbolVariants, viewModel.selectedTab == .home ? .fill : .none)
                 }
-                .tag(0)
+                .tag(TabType.home)
+            
+            MessagesView()
+                .tabItem {
+                    Label("Chats", systemImage: "bubble.left.and.bubble.right")
+                        .environment(\.symbolVariants, viewModel.selectedTab == .chats ? .fill : .none)
+                }
+                .tag(TabType.chats)
             
             DiscoverView()
                 .tabItem {
-                    Label("Discover", systemImage: "magnifyingglass.circle")
-                        .environment(\.symbolVariants, selectedTab == 1 ? .fill : .none)
+                    Label("Discover", systemImage: "magnifyingglass")
+                        .environment(\.symbolVariants, viewModel.selectedTab == .discovery ? .fill : .none)
                 }
-                .tag(1)
+                .tag(TabType.discovery)
             
             MainAccountView(blocked: $blocked)
                 .tabItem {
-                    Label("Account", systemImage: "person.crop.circle")
-                        .environment(\.symbolVariants, selectedTab == 3 ? .fill : .none)
+                    Label("Account", systemImage: "person")
+                        .environment(\.symbolVariants, viewModel.selectedTab == .account ? .fill : .none)
                 }
                 .toolbar(.visible, for: .tabBar)
-                .tag(3)
+                .tag(TabType.account)
         }
-        .tabViewStyle(DefaultTabViewStyle())
+//        .tabViewStyle(DefaultTabViewStyle())
         .background(Color.gray)
         .navigationDestination(isPresented: $showSelfSkill) {
-            SelfSkillsView(authViewModel: authViewModel, isRegistration: true)
+            SelfSkillsView(authViewModel: viewModel, isRegistration: true)
         }
         .navigationDestination(isPresented: $showLearningSkill) {
-            LearningSkillsView(authViewModel: authViewModel, isRegistration: true)
+            LearningSkillsView(authViewModel: viewModel, isRegistration: true)
         }
         .onAppear {
-            let tabBarAppearance = UITabBarAppearance()
-            tabBarAppearance.configureWithDefaultBackground()
-            UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+//            let tabBarAppearance = UITabBarAppearance()
+//            tabBarAppearance.configureWithDefaultBackground()
+//            UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                if authViewModel.currentUser?.selfSkills.isEmpty ?? false {
+                if viewModel.currentUser?.selfSkills.isEmpty ?? false {
                     showSelfSkill = true
-                } else if authViewModel.currentUser?.learningSkills.isEmpty ?? false {
+                } else if viewModel.currentUser?.learningSkills.isEmpty ?? false {
                     showLearningSkill = true
                 }
             }
@@ -131,7 +137,7 @@ struct MainAccountView: View {
     @Binding var blocked: Int   
     @State var isOnline: Bool = true
     
-    @State var showProfile = false
+//    @State var showProfile = false
         
     var body: some View {
         NavigationView {
@@ -181,13 +187,13 @@ struct MainAccountView: View {
                         if let currentUser = authViewModel.currentUser {
                             LinkSettingView(nameIcon: "eye",
                                             name: "View profile",
-                                            action: AnyView(ProfileView(showProfile: $showProfile, user: currentUser)))
+                                            action: AnyView(ProfileView(/*showProfile: $showProfile, */user: currentUser)))
                         }
                         Toggle(isOn: $isOnline) {
                             Text("Status online \(UserHelper.isUserPro(authViewModel.currentUser?.pro) ? "" : "(only for pro)")")
                         }
                         .disabled(!UserHelper.isUserPro(authViewModel.currentUser?.pro))
-                        .onChange(of: isOnline) { _ in
+                        .onChange(of: isOnline) { _, _ in
                             if isOnline {
                                 authViewModel.onlineMode()
                             } else {
@@ -304,3 +310,9 @@ struct MainAccountView: View {
 //    }
 //}
 
+#Preview {
+    AccountView()
+        .environmentObject(AuthViewModel.mock)
+        .environmentObject(MessagesViewModel.mock)
+        .environmentObject(CallManager.mock)
+}

@@ -140,8 +140,6 @@ struct OtherMethodsToSignInView: View {
                 }
                 isLoading = false
             }
-            
-            NavigationLink("", destination: AccountView(), isActive: $isUserAuthenticated)
         },
                            text: "Continue with Google",
                            image: .name("googleIcon"),
@@ -169,6 +167,9 @@ struct OtherMethodsToSignInView: View {
         .frame(width: 300, height: 45)
         .cornerRadius(25)
         .padding()
+        .navigationDestination(isPresented: $isUserAuthenticated) {
+            AccountView()
+        }
         .onAppear {
             signInWithAppleManager.authViewModel = authViewModel
         }
@@ -236,22 +237,26 @@ class SignInWithAppleManager: NSObject, ObservableObject {
             }
             DispatchQueue.main.async {
                 if let user = authResult?.user {
-                    print("uid m \(authResult!.user.uid)")
-                    var nameComponents: String = ""
+                    var firstName: String = ""
+                    var lastName: String = ""
+                    
                     if let fullName = appleIDCredential.fullName {
-                        nameComponents = PersonNameComponentsFormatter().string(from: fullName)
+                        let name = PersonNameComponentsFormatter().string(from: fullName)
+                        
+                        if name.split(separator: " ").count == 1 {
+                            firstName = name
+                        } else {
+                            firstName = String(name.split(separator: " ").first ?? "")
+                            lastName = String(name.split(separator: " ").last ?? "")
+                        }
                     }
 
-//                    Task {
-//                        await self?.authViewModel?.registerUserAndLoadProfile(
-//                            uid: user.uid, email: user.email ?? "", name: nameComponents, phone: user.phoneNumber ?? "", user: user)
-//                    }
                     Task {
                         // Capture `self` weakly to avoid a retain cycle
                         [weak self] in
                         guard let self = self else { return }
                         await self.authViewModel?.registerUserAndLoadProfile(
-                            uid: user.uid, email: user.email ?? "", name: nameComponents, phone: user.phoneNumber ?? "", user: user
+                            uid: user.uid, email: user.email ?? "", firstName: firstName, lastName: lastName, phone: user.phoneNumber ?? "", user: user
                         )
                     }
                 }

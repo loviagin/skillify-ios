@@ -31,7 +31,7 @@ struct EditProfileView: View {
     @State private var showNicknameAlert = false // Для отображения предупреждения
     @State private var showNicknameUAlert = false // Для отображения предупреждения
     @State private var showAlert: String? = nil
-    @State var colorAvatar: Color = .blue.opacity(0.4)
+    @State var colorAvatar: Color = .brandBlue
     
     let genders = ["-", "Male", "Female", "Other"]
     
