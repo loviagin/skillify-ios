@@ -24,6 +24,8 @@ struct User: Identifiable, Codable, Hashable {
     var birthday: Date = Date()
     var pro: Double = 0
     var proDate: Date? = nil
+    var registered: Date? = Date()
+    
     var favorites: [Favorite] = []
     var calls: [[String: String]]? = nil
     var learningSkills: [Skill] = []
@@ -37,7 +39,6 @@ struct User: Identifiable, Codable, Hashable {
     var lastData: [String]? = ["ios", UserHelper.getStringDate(), UserHelper.getAppVersion()]
     var tags: [String]? = ["user"]
     var proData: [String]? = nil
-    var registered: Date? = Date()
     var courses: [String]? = []
     var privacyData: [String]? = []
 }

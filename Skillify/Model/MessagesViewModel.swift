@@ -1,331 +1,393 @@
 //
 //  MessagesViewModel.swift
-//  Skillify App
+//  Skillify
 //
 //  Created by Ilia Loviagin on 23.12.2023.
 //
 
 import Foundation
-import Firebase
+import Combine
 import FirebaseFirestore
-import FirebaseAuth
 import FirebaseFirestoreSwift
+import FirebaseAuth
+import FirebaseStorage
 import AVFoundation
 
 class MessagesViewModel: ObservableObject {
     @Published var messages: [Message] = []
-    @Published var isLoading = false
-    @Published var unread: [String] = []
-    
-    private var authViewModel: AuthViewModel?
     private var listener: ListenerRegistration?
-    
-    func loadMessages(_ authViewModel: AuthViewModel) async {
-        guard let uid = Auth.auth().currentUser?.uid else {
-            DispatchQueue.main.async {
-                self.isLoading = false
-            }
-            return
-        }
-        self.authViewModel = authViewModel
-        
-        addMessageListener(userId: uid)
-    }
-    
-    func setReadToAllMessages(_ chatId: String?, currentUserId: String) {
-        guard let chatId else { return }
-        
-        if let chatIndex = messages.firstIndex(where: { $0.id == chatId }) {
-            var messagesToUpdate = messages[chatIndex].messages
 
-            // Обновляем статус сообщений
-            for i in 0..<messagesToUpdate.count {
-                if messagesToUpdate[i].status != "r" && messagesToUpdate[i].cUid != currentUserId {
-                    messagesToUpdate[i].status = "r"
-                }
-            }
-
-            // Обновляем Firestore
-            let documentRef = Firestore.firestore().collection("messages").document(chatId)
-            do {
-                // Обернем массив сообщений в словарь перед кодированием
-                let encodedData = try Firestore.Encoder().encode(["messages": messagesToUpdate])
-                documentRef.updateData(encodedData) { error in
-                    if let error = error {
-                        print("Failed to update messages: \(error)")
-                    } else {
-                        print("Messages successfully updated!")
-                    }
-                }
-            } catch {
-                print("Failed to encode messages: \(error)")
-            }
-        }
-    }
-    
-    func sendSupportMessage(id: String?, chat: Chat, user: User, message: Message?) {
-        let text = chat.text ?? "🏞️ attachment"
-        playSendSound()
-        
-        if let message {
-            print("send message")
-            try? Firestore.firestore().collection("messages").document(message.id).setData(from: message) { error in
-                if let error {
-                    print("Error in message creation \(error)")
-                } else {
-                    self.sendToSupport(id: message.id, userName: user.first_name, text: text)
-                    print("sent")
-                }
-            }
-        } else if let id { // если чат не новый 
-            Firestore.firestore()
-                .collection("messages")
-                .document(id)
-                .updateData([
-                    "messages": FieldValue.arrayUnion([try! Firestore.Encoder().encode(chat)]),
-                    "last": try! Firestore.Encoder().encode(LastData(userId: user.id, status: "u", text: text)),
-                    "date": Date()
-                ])
-            { error in
-                if let error {
-                    print("Error in message \(error)")
-                } else {
-                    self.sendToSupport(id: id, userName: user.first_name, text: text)
-                }
-            }
-        }
-    }
-    
-    func sendMessage(id: String?, chat: Chat, cUser: User, receiverUser: User, message: Message?) {
-        let text = chat.text ?? "🏞️ attachment"
-        playSendSound()
-        
-//        if let message {
-//            print("send message")
-//            try? Firestore.firestore().collection("messages").document(message.id).setData(from: message) { error in
-//                if let error {
-//                    print("Error in message creation \(error)")
-//                } else {
-//                    self.sendToSupport(id: message.id, userName: user.first_name, text: text)
-//                    print("sent")
-//                }
-//            }
-//        } else if let id { // если чат не новый 
-//            Firestore.firestore()
-//                .collection("messages")
-//                .document(id)
-//                .updateData([
-//                    "messages": FieldValue.arrayUnion([try! Firestore.Encoder().encode(chat)]),
-//                    "last": try! Firestore.Encoder().encode(LastData(userId: user.id, status: "u", text: text)),
-//                    "date": Date()
-//                ])
-//            { error in
-//                if let error {
-//                    print("Error in message \(error)")
-//                } else {
-//                    self.sendToSupport(id: id, userName: user.first_name, text: text)
-//                }
-//            }
-//        }
-    }
-    
-    private func sendToSupport(id: String, userName: String, text: String) {
-//        Task {
-//            await sendSupportNotification(chatId: id, text: "New message to Support. \(userName) writes: \(text)")
-//        }
-    }
-    
-    func addMessageListener(userId: String) {
+    func fetchMessages(for chatId: String) {
         if listener == nil {
-            DispatchQueue.main.async {
-                self.isLoading = true
-            }
-            
-            listener = Firestore.firestore().collection("messages")
-                .addSnapshotListener(includeMetadataChanges: true) { snap, error in
+            let db = Firestore.firestore()
+            guard let currentUserId = Auth.auth().currentUser?.uid else { return }
+
+            listener = db.collection("chats").document(chatId).collection("messages")
+                .order(by: "time", descending: false)
+                .addSnapshotListener { [weak self] snapshot, error in
                     if let error = error {
-                        print(error)
-                    } else if let snap = snap {
-                        snap.documentChanges.forEach { diff in
-                            if (diff.type == .added) {
-                                if let item = try? diff.document.data(as: Message.self), self.isOurMessage(item: item) {
-                                    self.messages.append(item)
-                                    print("new message added \(item.id)")
-                                }
-                            }
-                            if (diff.type == .modified) {
-                                if let item = try? diff.document.data(as: Message.self), self.isOurMessage(item: item) {
-                                    if let index = self.messages.firstIndex(where: { $0.id == item.id }) {
-                                        self.messages[index] = item
-                                        print("edited chat \(item.id)")
-                                    }
-                                }
-                            }
-                            if (diff.type == .removed) {
-                                if let item = try? diff.document.data(as: Message.self) {
-                                    if let index = self.messages.firstIndex(where: { $0.id == item.id }) {
-                                        self.messages.remove(at: index)
-                                        print("message removed \(item.id)")
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // Сортируем сообщения после всех изменений
-                        self.messages = self.messages.sorted(by: { m1, m2 in
-                            if let time = m1.time, let time2 = m2.time {
-                                return time > time2
-                            } else if let date = m1.date, let date2 = m2.date {
-                                return date > date2
-                            }
-                            return false
-                        })
+                        print("Error fetching messages: \(error)")
+                        return
                     }
                     
-                    DispatchQueue.main.async {
-                        self.isLoading = false
-                    }
+                    self?.messages = snapshot?.documents.compactMap { doc in
+                        let message = try? doc.data(as: Message.self)
+                        
+                        // Если сообщение не прочитано и отправлено не текущим пользователем, обновляем его статус на "read"
+                        if let message, message.status != "read", message.userId != currentUserId {
+                            self?.markMessageAsRead(chatId: chatId, messageId: doc.documentID)
+                        }
+                        
+                        return message
+                    } ?? []
+                    
+                    self?.checkRead(chatId, cUid: currentUserId)
                 }
         }
     }
     
-    private func isOurMessage(item: Message) -> Bool {
-        if let members = item.members, members.contains(where: { $0.userId == self.authViewModel?.currentUser?.id ?? "" }) {
-            return true
-        } else if let members = item.uids, members.contains(where: { $0 == (self.authViewModel?.currentUser?.id ?? "") }) {
-            return true
-        } else {
-            return false
+    func checkRead(_ chatId: String, cUid: String) {
+        Firestore.firestore().collection("chats").document(chatId).getDocument { snap, error in
+            if let error {
+                print(error)
+            } else {
+                if let doc = try? snap?.data(as: Chat.self) {
+                    if doc.last.userId != cUid && doc.last.status != "read" {
+                        Firestore.firestore().collection("chats").document(chatId).updateData(["last.status": "read"])
+                    }
+                }
+            }
         }
     }
     
-    func getMessageId(cUid: String, userId: String) -> String? {
-        return messages.first { message in
-            if let members = message.members {
-                let userIds = members.map { $0.userId }
-                return userIds.contains(userId) && userIds.contains(cUid)
-            } else if let uids = message.uids {
-                return uids.contains(userId) && uids.contains(cUid)
+    func getUser(userId: String, completion: @escaping (User?) -> Void) {
+        let db = Firestore.firestore()
+        
+        // Получаем документ чата по его ID
+        db.collection("users").document(userId).getDocument { (document, error) in
+            if let error {
+                print(error)
+                completion(nil)
+                return
             }
-            return false
-        }?.id
+            
+            guard let document = document, document.exists else {
+                completion(nil) // Если документ не найден
+                return
+            }
+            
+            if let data = try? document.data(as: User.self) {
+                completion(data)
+            } else {
+                completion(nil)
+            }
+        }
+    }
+ 
+    func getUserIdByChatId(chatId: String, currentId: String, completion: @escaping (String?) -> Void) {
+        let db = Firestore.firestore()
+        
+        // Получаем документ чата по его ID
+        db.collection("chats").document(chatId).getDocument { (document, error) in
+            if let error {
+                print(error)
+                completion(nil)
+                return
+            }
+            
+            guard let document = document, document.exists, let data = try? document.data(as: Chat.self) else {
+                completion(nil) // Если документ не найден
+                return
+            }
+            
+            // Извлекаем массив пользователей
+            if data.users.count == 2 {
+                // Находим ID собеседника
+                let companionId = data.users.first(where: { $0 != currentId })
+                completion(companionId)
+            } else {
+                completion(nil) // Если пользователей не два или массив отсутствует
+            }
+        }
     }
     
-    func getUserByUserId(userId: String, completion: @escaping (User?) -> Void) {
-        Firestore.firestore().collection("users").document(userId).getDocument { snap, error in
+    func getChatIdByUserId(userId: String, currentId: String, completion: @escaping (String?) -> Void) {
+        Firestore.firestore().collection("chats")
+            .whereField("users", arrayContains: currentId)
+            .getDocuments { (snapshot, error) in
+                if let error {
+                    print(error)
+                    completion(nil)
+                    return
+                }
+                
+                guard let documents = snapshot?.documents else {
+                    completion(nil) // Если ничего не найдено
+                    return
+                }
+                
+                // Фильтруем документы на клиентской стороне
+                for document in documents {
+                    if let chat = try? document.data(as: Chat.self) {
+                        let users = chat.users
+                        
+                        // Проверяем, что в массиве ровно два элемента и это именно userId и currentId
+                        if users.count == 2 && Set(users) == Set([userId, currentId]) {
+                            completion(chat.id)
+                            return
+                        }
+                    }
+                }
+                
+                completion(nil) // Если подходящий документ не найден
+            }
+    }
+    
+    // Функция для установки статуса "read" для сообщения
+    private func markMessageAsRead(chatId: String, messageId: String) {
+        let db = Firestore.firestore()
+        let messageRef = db.collection("chats").document(chatId).collection("messages").document(messageId)
+        
+        messageRef.updateData(["status": "read"]) { error in
+            if let error {
+                print("Error updating message status: \(error)")
+            }
+        }
+    }
+    
+    func deleteMessage(chatId: String, messageId: String) {
+        let db = Firestore.firestore()
+        
+        if messages.count > 1 {
+            if let index = messages.firstIndex(where: { $0.id == messageId }), messages.count == index + 1 { // if it's the last message in messages
+                print("the last")
+                db.collection("chats").document(chatId).updateData([
+                    "last": try! Firestore.Encoder().encode(
+                        LastData(text: messages[index - 1].text ?? "🏞️ attachment", userId: messages[index - 1].userId, status: messages[index - 1].status)
+                    ),
+                    "lastTime": messages[index - 1].time
+                ])
+            }
+            
+            db.collection("chats").document(chatId).collection("messages").document(messageId).delete { error in
+                if let error {
+                    print(error)
+                }
+            }
+        } else {
+            deleteChat(chatId: chatId)
+        }
+    }
+    
+    func deleteChat(chatId: String) {
+        Firestore.firestore().collection("chats").document(chatId).delete { error in
+            if let error {
+                print(error)
+            }
+        }
+    }
+    
+    func editTextMessage(chatId: String, messageId: String, newText: String) {
+        let db = Firestore.firestore()
+        db.collection("chats").document(chatId).collection("messages").document(messageId).updateData(["text": newText]) { error in
+            if let error {
+                print(error)
+            }
+        }
+        
+        if let index = messages.firstIndex(where: { $0.id == messageId }), messages.count == index + 1 { // if it's the last message in messages
+            print("the last")
+            db.collection("chats").document(chatId).updateData([
+                "last.text": newText
+            ])
+        }
+    }
+    
+    
+    func addEmojiToMessage(chatId: String, messageId: String, emoji: String) {
+        let db = Firestore.firestore()
+        db.collection("chats").document(chatId).collection("messages").document(messageId).updateData(["emoji": emoji]) { error in
+            if let error {
+                print(error)
+            }
+        }
+    }
+    
+    func sendMessage(chatId: String, message: Message, chat: Chat? = nil, imageData: [Data]? = nil, userName: String) {
+        playSendSound()
+        
+        let db = Firestore.firestore()
+        if let chat { // new chat
+            try? db.collection("chats").document(chatId).setData(from: chat) { error in
+                if let error {
+                    print(error)
+                } else {
+                    try? db.collection("chats").document(chatId).collection("messages").document(message.id).setData(from: message) { error in
+                        if let error {
+                            print(error)
+                        }
+                    }
+//                    completion(.success(()))
+                }
+            }
+        } else {
+            try? db.collection("chats").document(chatId).collection("messages").document(message.id).setData(from: message) { error in
+                if let error {
+                    print(error)
+                } else {
+                    db.collection("chats").document(chatId).updateData([
+                        "last": try! Firestore.Encoder().encode(LastData(text: message.text ?? "🏞️ attachment", userId: message.userId, status: "sent")),
+                        "lastTime": Timestamp()
+                    ]) { error in
+                        if let error {
+                            print(error)
+                        }
+                    }
+                }
+            }
+        }
+        
+        if let imageData {
+            uploadImages(imageData: imageData, chatId: chatId, messageId: message.id)
+        }
+        
+        getPlayersIds(chatId: chatId) { users in
+            if let users {
+                for user in users {
+                    self.sendNotification(header: userName, playerId: user, messageText: message.text ?? "🏞️ attachment", targetText: "chat/\(chatId)")
+                }
+            }
+        }
+    }
+    
+    private func getPlayersIds(chatId: String, completion: @escaping ([String]?) -> Void) {
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            completion(nil)
+            return
+        }
+        
+        Firestore.firestore().collection("chats").document(chatId).getDocument { snap, error in
             if let error {
                 print(error)
                 completion(nil)
             } else {
-                if let user = try? snap?.data(as: User.self) {
-                    completion(user)
-                } else {
-                    completion(nil)
+                if let chat = try? snap?.data(as: Chat.self) {
+                    var players: [String] = []
+
+                    for user in chat.users {
+                        if user != currentUserId {
+                            players.append(user)
+                        }
+                    }
+                    
+                    completion(players)
                 }
             }
         }
     }
     
-    func getUserByMessageId(id chatId: String, completion: @escaping (User?) -> Void) {
-        if let message = messages.first(where: { $0.id == chatId }) {
-            var id: String {
-                if let members = message.members, let cUsr = members.first(
-                    where: { $0.userId != (Auth.auth().currentUser?.uid ?? "") }) {
-                    return cUsr.userId
-                } else if let uids = message.uids, let cUsr = uids.first(where: { $0 != (Auth.auth().currentUser?.uid ?? "") }) {
-                    return cUsr
+    private func updateFirestoreDocument(with imageUrl: String, chatId: String, messageId: String, completion: @escaping (Bool) -> Void) {
+        let db = Firestore.firestore()
+        let documentRef = db.collection("chats").document(chatId).collection("messages").document(messageId)
+        
+        documentRef.updateData([
+            "media": FieldValue.arrayUnion([imageUrl]) // Обновляем массив URL изображений
+        ]) { error in
+            if let error = error {
+                print("Error updating document: \(error.localizedDescription)")
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    private func uploadImages(imageData: [Data], chatId: String, messageId: String) {
+        let group = DispatchGroup()
+        
+        for data in imageData {
+            group.enter() // Входим в группу
+            
+            uploadImage(data: data) { [weak self] url in
+                guard let self = self else {
+                    group.leave()
+                    return
+                }
+                
+                if let imageUrl = url {
+                    self.updateFirestoreDocument(with: imageUrl, chatId: chatId, messageId: messageId) { success in
+                        group.leave() // Выходим из группы после завершения обновления Firestore
+                    }
                 } else {
-                    return "User"
+                    group.leave()
                 }
             }
-            
-            Firestore.firestore().collection("users").document(id).getDocument { snap, error in
-                if let error {
-                    print(error)
-                    completion(nil)
-                } else {
-                    if let user = try? snap?.data(as: User.self) {
-                        completion(user)
-                    } else {
+        }
+    }
+    
+    private func uploadImage(data: Data, completion: @escaping (String?) -> Void) {
+        let storage = Storage.storage()
+        let storageRef = storage.reference().child("iosUsers/\(Auth.auth().currentUser?.uid ?? "c")/\(UUID().uuidString).jpg")
+        
+        storageRef.putData(data, metadata: nil) { metadata, error in
+            if let error = error {
+                print("Error uploading image: \(error.localizedDescription)")
+                completion(nil)
+            } else {
+                storageRef.downloadURL { url, error in
+                    if let error = error {
+                        print("Error getting download URL: \(error.localizedDescription)")
                         completion(nil)
+                    } else if let downloadURL = url?.absoluteString {
+                        completion(downloadURL) // Возвращаем URL загруженного изображения
                     }
                 }
             }
         }
     }
     
-    func checkUnreadMessages(for message: Message) {
-        if let last = message.last {
-            if last.userId != (authViewModel?.currentUser?.id ?? "") && last.status == "u" {
-                unread.append(message.id)
-                unread.append(message.id)
-                print("\(unread)")
-            }
-        }
-    }
-    
-    private func sendSupportNotification(chatId: String, text: String) async {
-        let parameters = [
-            "contents": ["en": text],
-            "app_id": "8c7d91d2-8a8d-43c8-945e-649cac38f30b",
-            "include_external_user_ids": ["Support"],
-            "data": [
-                "chatId": chatId
-            ]
-        ] as [String : Any?]
-        
-        let postData = try! JSONSerialization.data(withJSONObject: parameters, options: [])
-        
-        let url = URL(string: "https://api.onesignal.com/notifications")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.timeoutInterval = 10
-        request.allHTTPHeaderFields = [
+    private func sendNotification(header: String, playerId: String, messageText: String, targetText: String) {
+        let headers = [
             "accept": "application/json",
-            "Authorization": "Basic YzA2ZGI5MWUtYmZjZS00Y2ViLThiODItMTY5ODFjNzEwY2Zj",
+            "Authorization": "Basic NjcwMjEwOWItY2ZjZS00YTY3LTgyZTUtNzkzOTQ4ZGEwNzcy",
             "content-type": "application/json"
         ]
-        request.httpBody = postData
         
-        let (data, _) = try! await URLSession.shared.data(for: request)
-        print(String(decoding: data, as: UTF8.self))
+        let parameters = [
+            "include_external_user_ids": [playerId],
+            "headings": ["en": header],
+            "contents": ["en": "\(messageText)"],
+            "app_id": "e57ccffe-08a9-4fa8-8a63-8c3b143d2efd",
+            "url": targetText
+        ] as [String : Any]
+                
+        let postData = try? JSONSerialization.data(withJSONObject: parameters, options: [])
+        
+        let request = NSMutableURLRequest(url: NSURL(string: "https://onesignal.com/api/v1/notifications")! as URL,
+                                          cachePolicy: .useProtocolCachePolicy,
+                                          timeoutInterval: 10.0)
+        request.httpMethod = "POST"
+        request.allHTTPHeaderFields = headers
+        request.httpBody = postData! as Data
+        
+        let session = URLSession.shared
+        let dataTask = session.dataTask(with: request as URLRequest, completionHandler: { (data, response, error) -> Void in
+            if (error != nil) {
+                print(error as Any)
+            } else {
+                _ = response as? HTTPURLResponse
+            }
+        })
+        
+        dataTask.resume()
+        print("sent notification")
     }
-    
-//    private func convertLastToDictionary(_ data: LastData) -> [String: Any]? {
-//        do {
-//            let data = try JSONEncoder().encode(data)
-//            let json = try JSONSerialization.jsonObject(with: data, options: [])
-//            return json as? [String: Any]
-//        } catch {
-//            print("Error converting chat to dictionary: \(error)")
-//            return nil
-//        }
-//    }
     
     private func playSendSound() {
         AudioServicesPlaySystemSound(1004) // ID звука отправки SMS
     }
-}
-
-extension MessagesViewModel {
-    static var mock: MessagesViewModel {
-        let viewModel = MessagesViewModel()
-        viewModel.messages.append(Message(id: "Support", messages: [
-            Chat(cUid: "h3jcyd6EZSW1wpNbkvHwMxEdJgB2", text: "Hi", status: "u", type: .text),
-            Chat(cUid: "h3jcyd6EZSW1wpNbkvHwMxEdJgB2", text: "Hi", status: "u", type: .text),
-            Chat(cUid: "Support", text: "Hi222", status: "u", type: .text),
-            Chat(cUid: "h3jcyd6EZSW1wpNbkvHwMxEdJgB2", text: "Hi", status: "u", type: .text),
-            Chat(cUid: "h3jcyd6EZSW1wpNbkvHwMxEdJgB2", text: "Hijdncievieuhvuihviesdnvij sd nieajnvij", status: "u", type: .text),
-            Chat(cUid: "h3jcyd6EZSW1wpNbkvHwMxEdJgB2", text: "Hijdncievieuhvuihviesdnvij sd nieajnvijveojvjnijvnkn  kvdjkvnk jnks ckjn is dj iuhfufhcu huhvurh ubh uhvihiuhiu  heiruhieuhviuhiushehh udhusd", status: "u", type: .text),
-            Chat(cUid: "h3jcyd6EZSW1wpNbkvHwMxEdJgB2", text: "Hi", status: "u", type: .text)
-        ], type: .personal))
-        return viewModel
+    
+    func detachListener() {
+        listener?.remove()
     }
 }
-
-//extension Firestore {
-//    func arrayUnion<T: Encodable>(_ value: T) throws -> FieldValue {
-//        let encoded = try Firestore.Encoder().encode(value)
-//        return FieldValue.arrayUnion([encoded])
-//    }
-//}

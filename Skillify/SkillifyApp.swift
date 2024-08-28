@@ -153,17 +153,17 @@ struct SkillifyApp: App {
     
     @Environment(\.scenePhase) private var scenePhase
     
-    @StateObject var authViewModel = AuthViewModel()
-    @StateObject var messagesViewModel = MessagesViewModel()
+    @StateObject private var authViewModel = AuthViewModel()
+    @StateObject private var chatViewModel = ChatViewModel()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(authViewModel)
-                .environmentObject(messagesViewModel)
+                .environmentObject(chatViewModel)
                 .environmentObject(delegate.callManager)
         }
-        .onChange(of: scenePhase) { _, newScenePhase in // skillify://@salvador  skillify://m/Support
+        .onChange(of: scenePhase) { _, newScenePhase in 
             switch newScenePhase {
             case .background:
                 print("App is in background")

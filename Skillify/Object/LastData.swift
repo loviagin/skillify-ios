@@ -8,7 +8,7 @@
 import Foundation
 
 struct LastData: Codable, Hashable {
-    var userId: String = ""
-    var status: String = "u"
     var text: String = ""
+    var userId: String = ""
+    var status: String = "sent"
 }

@@ -233,39 +233,39 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    func updateMessageFirebase(isAdd: Bool = true, str: String, newChat: Chat, cUid: String, lastDataText: String? = "") {
-        let db = Firestore.firestore()
-        let userRef = db.collection("messages").document(cUid)
-        
-        do {
-            // Сериализация объекта Chat в словарь
-            let chatData = try JSONEncoder().encode(newChat)
-            guard let chatDictionary = try JSONSerialization.jsonObject(with: chatData, options: []) as? [String: Any] else {
-                print("Ошибка при сериализации объекта Chat")
-                return
-            }
-            var placeholder = "🌄 attachment"
-            if let lastDataText, !lastDataText.isEmpty {
-                placeholder = lastDataText
-            }
-            
-            print("tap 33")
-            userRef.updateData([
-                str: isAdd ? FieldValue.arrayUnion([chatDictionary]) : FieldValue.arrayRemove([chatDictionary]),
-                "last": LastData(userId: newChat.cUid, status: "u", text: newChat.text ?? placeholder) as? [String: Any],
-                "date": newChat.date ?? Date()
-            ]) { error in
-                if let error = error {
-                    print("Error updating user: \(error)")
-                } else {
-                    print("Chat successfully updated")
-                }
-            }
-            print("end of tap 33")
-        } catch {
-            print("Error serializing chat object: \(error)")
-        }
-    }
+//    func updateMessageFirebase(isAdd: Bool = true, str: String, newChat: Chat, cUid: String, lastDataText: String? = "") {
+//        let db = Firestore.firestore()
+//        let userRef = db.collection("messages").document(cUid)
+//        
+//        do {
+//            // Сериализация объекта Chat в словарь
+//            let chatData = try JSONEncoder().encode(newChat)
+//            guard let chatDictionary = try JSONSerialization.jsonObject(with: chatData, options: []) as? [String: Any] else {
+//                print("Ошибка при сериализации объекта Chat")
+//                return
+//            }
+//            var placeholder = "🌄 attachment"
+//            if let lastDataText, !lastDataText.isEmpty {
+//                placeholder = lastDataText
+//            }
+//            
+//            print("tap 33")
+//            userRef.updateData([
+//                str: isAdd ? FieldValue.arrayUnion([chatDictionary]) : FieldValue.arrayRemove([chatDictionary]),
+//                "last": LastData(userId: newChat.cUid, status: "u", text: newChat.text ?? placeholder) as? [String: Any],
+//                "date": newChat.date ?? Date()
+//            ]) { error in
+//                if let error = error {
+//                    print("Error updating user: \(error)")
+//                } else {
+//                    print("Chat successfully updated")
+//                }
+//            }
+//            print("end of tap 33")
+//        } catch {
+//            print("Error serializing chat object: \(error)")
+//        }
+//    }
     
     func updateDataFirebase(isAdd: Bool = true, str: String, newData: Favorite) {
         let db = Firestore.firestore()
@@ -700,14 +700,16 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    public enum NotificationType {
-        case subscription, message, system
-    }
-    
-    public enum ProOption {
-        case year
-        case month
-    }
+}
+
+
+enum NotificationType {
+    case subscription, message, system
+}
+
+enum ProOption {
+    case year
+    case month
 }
 
 extension AuthViewModel {

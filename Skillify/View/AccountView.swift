@@ -42,7 +42,7 @@ struct TabsMainView: View {
                 }
                 .tag(TabType.home)
             
-            MessagesView()
+            ChatsView()
                 .tabItem {
                     Label("Chats", systemImage: "bubble.left.and.bubble.right")
                         .environment(\.symbolVariants, viewModel.selectedTab == .chats ? .fill : .none)

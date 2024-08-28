@@ -30,16 +30,17 @@ struct ContentView: View {
                 }
             }
             .onOpenURL { url in
-                if let scheme = url.scheme, scheme == "skillify" {
-                    let destination = url.absoluteString.split(separator: "://").last
-                    
-                    let dest = destination?.components(separatedBy: "/").first
-                    if dest == "m", let dest = destination?.components(separatedBy: "/").last {
-                        authViewModel.selectedTab = .chats
-                        userId = MessageUser(id: dest)
-                    } else if let _ = destination?.contains("@") {
-                        print("profile")
-                        loadUser(String(destination?.components(separatedBy: "@").last ?? ""))
+                if Auth.auth().currentUser != nil {
+                    if let scheme = url.scheme, scheme == "skillify" {
+                        let destination = url.absoluteString.split(separator: "://").last
+                        
+                        let dest = destination?.components(separatedBy: "/").first
+                        if dest == "m", let dest = destination?.components(separatedBy: "/").last {
+                            authViewModel.selectedTab = .chats
+                            userId = MessageUser(id: dest)
+                        } else if let _ = destination?.contains("@") {
+                            loadUser(String(destination?.components(separatedBy: "@").last ?? ""))
+                        }
                     }
                 }
             }

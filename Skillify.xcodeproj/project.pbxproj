@@ -44,11 +44,11 @@
 		866286B62BEECB8400102FA0 /* UserHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286742BEECB8400102FA0 /* UserHelper.swift */; };
 		866286B72BEECB8400102FA0 /* VideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286752BEECB8400102FA0 /* VideoViewController.swift */; };
 		866286B82BEECB8400102FA0 /* Call.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286772BEECB8400102FA0 /* Call.swift */; };
-		866286B92BEECB8400102FA0 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286782BEECB8400102FA0 /* Chat.swift */; };
+		866286B92BEECB8400102FA0 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286782BEECB8400102FA0 /* Message.swift */; };
 		866286BA2BEECB8400102FA0 /* ChipModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286792BEECB8400102FA0 /* ChipModel.swift */; };
 		866286BB2BEECB8400102FA0 /* Favorite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8662867A2BEECB8400102FA0 /* Favorite.swift */; };
 		866286BC2BEECB8400102FA0 /* GroupSkill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8662867B2BEECB8400102FA0 /* GroupSkill.swift */; };
-		866286BD2BEECB8400102FA0 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8662867C2BEECB8400102FA0 /* Message.swift */; };
+		866286BD2BEECB8400102FA0 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8662867C2BEECB8400102FA0 /* Chat.swift */; };
 		866286BF2BEECB8400102FA0 /* Skill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8662867E2BEECB8400102FA0 /* Skill.swift */; };
 		866286C02BEECB8400102FA0 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8662867F2BEECB8400102FA0 /* User.swift */; };
 		866286C22BEECB8400102FA0 /* CallTopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286822BEECB8400102FA0 /* CallTopView.swift */; };
@@ -67,7 +67,7 @@
 		866286CF2BEECB8400102FA0 /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286902BEECB8400102FA0 /* AccountView.swift */; };
 		866286D02BEECB8400102FA0 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286912BEECB8400102FA0 /* AuthView.swift */; };
 		866286D12BEECB8400102FA0 /* BlockedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286922BEECB8400102FA0 /* BlockedView.swift */; };
-		866286D22BEECB8400102FA0 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286932BEECB8400102FA0 /* ChatView.swift */; };
+		866286D22BEECB8400102FA0 /* ChatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286932BEECB8400102FA0 /* ChatsView.swift */; };
 		866286D32BEECB8400102FA0 /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286942BEECB8400102FA0 /* DiscoverView.swift */; };
 		866286D42BEECB8400102FA0 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286952BEECB8400102FA0 /* EditProfileView.swift */; };
 		866286D52BEECB8400102FA0 /* EmailRegistrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286962BEECB8400102FA0 /* EmailRegistrationView.swift */; };
@@ -108,6 +108,7 @@
 		86AAE95D2C19664B005F9267 /* VideoScrollsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AAE95C2C19664B005F9267 /* VideoScrollsView.swift */; };
 		86AAE95F2C19667B005F9267 /* VideoScrollModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AAE95E2C19667B005F9267 /* VideoScrollModel.swift */; };
 		86AAE9612C19669C005F9267 /* Video.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AAE9602C19669C005F9267 /* Video.swift */; };
+		86C086A62C7F51BA00719941 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 86C086A52C7F51BA00719941 /* Kingfisher */; };
 		86C96D372C19CDDC0058600C /* VideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C96D362C19CDDC0058600C /* VideoView.swift */; };
 		86C96D392C19D3600058600C /* CoursesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C96D382C19D3600058600C /* CoursesViewModel.swift */; };
 		86C96D3B2C19D3780058600C /* Course.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C96D3A2C19D3780058600C /* Course.swift */; };
@@ -171,11 +172,11 @@
 		866286742BEECB8400102FA0 /* UserHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserHelper.swift; sourceTree = "<group>"; };
 		866286752BEECB8400102FA0 /* VideoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoViewController.swift; sourceTree = "<group>"; };
 		866286772BEECB8400102FA0 /* Call.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Call.swift; sourceTree = "<group>"; };
-		866286782BEECB8400102FA0 /* Chat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Chat.swift; sourceTree = "<group>"; };
+		866286782BEECB8400102FA0 /* Message.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
 		866286792BEECB8400102FA0 /* ChipModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChipModel.swift; sourceTree = "<group>"; };
 		8662867A2BEECB8400102FA0 /* Favorite.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Favorite.swift; sourceTree = "<group>"; };
 		8662867B2BEECB8400102FA0 /* GroupSkill.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupSkill.swift; sourceTree = "<group>"; };
-		8662867C2BEECB8400102FA0 /* Message.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
+		8662867C2BEECB8400102FA0 /* Chat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Chat.swift; sourceTree = "<group>"; };
 		8662867E2BEECB8400102FA0 /* Skill.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Skill.swift; sourceTree = "<group>"; };
 		8662867F2BEECB8400102FA0 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		866286822BEECB8400102FA0 /* CallTopView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CallTopView.swift; sourceTree = "<group>"; };
@@ -194,7 +195,7 @@
 		866286902BEECB8400102FA0 /* AccountView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		866286912BEECB8400102FA0 /* AuthView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		866286922BEECB8400102FA0 /* BlockedView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BlockedView.swift; sourceTree = "<group>"; };
-		866286932BEECB8400102FA0 /* ChatView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		866286932BEECB8400102FA0 /* ChatsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatsView.swift; sourceTree = "<group>"; };
 		866286942BEECB8400102FA0 /* DiscoverView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DiscoverView.swift; sourceTree = "<group>"; };
 		866286952BEECB8400102FA0 /* EditProfileView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		866286962BEECB8400102FA0 /* EmailRegistrationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EmailRegistrationView.swift; sourceTree = "<group>"; };
@@ -266,6 +267,7 @@
 				86023CD02C3497A60035F995 /* RevenueCat in Frameworks */,
 				86A9AC122BEEC12100F4C7FE /* FirebaseStorage in Frameworks */,
 				86023CD42C3498770035F995 /* StoreKit.framework in Frameworks */,
+				86C086A62C7F51BA00719941 /* Kingfisher in Frameworks */,
 				86A9AC0C2BEEC12100F4C7FE /* FirebaseAuth in Frameworks */,
 				86A9AC152BEEC21500F4C7FE /* GoogleSignIn in Frameworks */,
 			);
@@ -289,13 +291,13 @@
 				866286682BEECB8400102FA0 /* FavoritesViewModel.swift */,
 				866286692BEECB8400102FA0 /* LearningSkillsModel.swift */,
 				8662866A2BEECB8400102FA0 /* MessagesViewModel.swift */,
+				868164DF2C5D6093004A67B0 /* ChatViewModel.swift */,
 				8662866B2BEECB8400102FA0 /* SearchViewModel.swift */,
 				8662866C2BEECB8400102FA0 /* SelfSkillsModel.swift */,
 				8662866D2BEECB8400102FA0 /* SubscribersViewModel.swift */,
 				8662866E2BEECB8400102FA0 /* UserViewModel.swift */,
 				86AAE95E2C19667B005F9267 /* VideoScrollModel.swift */,
 				86C96D382C19D3600058600C /* CoursesViewModel.swift */,
-				868164DF2C5D6093004A67B0 /* ChatViewModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -318,11 +320,11 @@
 			isa = PBXGroup;
 			children = (
 				866286772BEECB8400102FA0 /* Call.swift */,
-				866286782BEECB8400102FA0 /* Chat.swift */,
+				866286782BEECB8400102FA0 /* Message.swift */,
 				866286792BEECB8400102FA0 /* ChipModel.swift */,
 				8662867A2BEECB8400102FA0 /* Favorite.swift */,
 				8662867B2BEECB8400102FA0 /* GroupSkill.swift */,
-				8662867C2BEECB8400102FA0 /* Message.swift */,
+				8662867C2BEECB8400102FA0 /* Chat.swift */,
 				8662867E2BEECB8400102FA0 /* Skill.swift */,
 				8662867F2BEECB8400102FA0 /* User.swift */,
 				86AAE9602C19669C005F9267 /* Video.swift */,
@@ -367,7 +369,7 @@
 				866286902BEECB8400102FA0 /* AccountView.swift */,
 				866286912BEECB8400102FA0 /* AuthView.swift */,
 				866286922BEECB8400102FA0 /* BlockedView.swift */,
-				866286932BEECB8400102FA0 /* ChatView.swift */,
+				866286932BEECB8400102FA0 /* ChatsView.swift */,
 				866286942BEECB8400102FA0 /* DiscoverView.swift */,
 				866286952BEECB8400102FA0 /* EditProfileView.swift */,
 				866286962BEECB8400102FA0 /* EmailRegistrationView.swift */,
@@ -511,6 +513,7 @@
 				86023CCF2C3497A60035F995 /* RevenueCat */,
 				86023CD12C3497A60035F995 /* RevenueCatUI */,
 				86F239BD2C6E1E1800F359E4 /* FirebaseFirestoreSwift */,
+				86C086A52C7F51BA00719941 /* Kingfisher */,
 			);
 			productName = Skillify;
 			productReference = 86A9ABF52BEEBF0300F4C7FE /* Skillify.app */;
@@ -549,6 +552,7 @@
 				862813012BEF878B003FA32E /* XCRemoteSwiftPackageReference "OneSignal-XCFramework" */,
 				865ADB202BFE16EF009CDA90 /* XCRemoteSwiftPackageReference "AgoraRtcEngine_iOS" */,
 				86023CCE2C3497A60035F995 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+				86C086A42C7F51BA00719941 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			productRefGroup = 86A9ABF62BEEBF0300F4C7FE /* Products */;
 			projectDirPath = "";
@@ -672,7 +676,7 @@
 				866286C82BEECB8400102FA0 /* LinesSkillView.swift in Sources */,
 				866286AA2BEECB8400102FA0 /* AuthViewModel.swift in Sources */,
 				866286E32BEECB8400102FA0 /* SelfSkillsView.swift in Sources */,
-				866286B92BEECB8400102FA0 /* Chat.swift in Sources */,
+				866286B92BEECB8400102FA0 /* Message.swift in Sources */,
 				866286D52BEECB8400102FA0 /* EmailRegistrationView.swift in Sources */,
 				866286DC2BEECB8400102FA0 /* NotificationsView.swift in Sources */,
 				866286D92BEECB8400102FA0 /* LearningSkillsView.swift in Sources */,
@@ -680,11 +684,11 @@
 				8610924A2C0D9E2400062EBE /* CoverChooserView.swift in Sources */,
 				866286D62BEECB8400102FA0 /* FavoritesView.swift in Sources */,
 				866286B82BEECB8400102FA0 /* Call.swift in Sources */,
-				866286BD2BEECB8400102FA0 /* Message.swift in Sources */,
+				866286BD2BEECB8400102FA0 /* Chat.swift in Sources */,
 				8610924E2C0DB58F00062EBE /* DismissButton.swift in Sources */,
 				868164E02C5D6093004A67B0 /* ChatViewModel.swift in Sources */,
 				86AAE9612C19669C005F9267 /* Video.swift in Sources */,
-				866286D22BEECB8400102FA0 /* ChatView.swift in Sources */,
+				866286D22BEECB8400102FA0 /* ChatsView.swift in Sources */,
 				861092502C0DB81300062EBE /* DevicesView.swift in Sources */,
 				866286E72BEECB8400102FA0 /* UsersSearchView.swift in Sources */,
 				866286D32BEECB8400102FA0 /* DiscoverView.swift in Sources */,
@@ -906,7 +910,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Skillify/Skillify.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 44;
+				CURRENT_PROJECT_VERSION = 47;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"Skillify/Preview Content\"";
 				DEVELOPMENT_TEAM = GWXUDX4MQT;
@@ -928,7 +932,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.4;
+				MARKETING_VERSION = 1.4.7;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -950,7 +954,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Skillify/Skillify.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 44;
+				CURRENT_PROJECT_VERSION = 47;
 				DEVELOPMENT_ASSET_PATHS = "\"Skillify/Preview Content\"";
 				DEVELOPMENT_TEAM = GWXUDX4MQT;
 				ENABLE_PREVIEWS = YES;
@@ -971,7 +975,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.4;
+				MARKETING_VERSION = 1.4.7;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1058,6 +1062,14 @@
 				minimumVersion = 7.1.0;
 			};
 		};
+		86C086A42C7F51BA00719941 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.12.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1135,6 +1147,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 86A9AC132BEEC21500F4C7FE /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
+		};
+		86C086A52C7F51BA00719941 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 86C086A42C7F51BA00719941 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
 		};
 		86F239BD2C6E1E1800F359E4 /* FirebaseFirestoreSwift */ = {
 			isa = XCSwiftPackageProductDependency;
