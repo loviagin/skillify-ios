@@ -14,10 +14,8 @@ struct ProfileView: View {
     
     @EnvironmentObject private var authViewModel: AuthViewModel
     @EnvironmentObject private var callManager: CallManager
-    @EnvironmentObject private var mViewModel: MessagesViewModel
     @State var user: User // пользователь который отображается в профиле
     
-    @State var isLoadingMessage = true // для лоадера на кнопке сообщений
     @State var isVisible: Bool = false // флаг для звонков (true на несколько секунд, если звонки запрещены)
     @State var showPhoneCall: Bool = false // переход на вью звонка
     @State private var showMenu = false // Состояние для отслеживания видимости меню
@@ -166,20 +164,16 @@ struct ProfileView: View {
                             HStack(spacing: 15) {
                                 //MARK: - Кнопка "Сообщение"
                                 if (UserHelper.isMessagesBlocked(viewModel: authViewModel, user: user) == nil) { // проверка что пользователя не блокнули
-                                    NavigationLink(destination: NewChatView(userId: user.id)) {
-                                        if isLoadingMessage { //лоадер если мы еще ищем id чата
-                                            ProgressView()
-                                        } else {
-                                            HStack {
-                                                Image(systemName: "message.fill")
-                                                Text("Message")
-                                            }
-                                            .padding()
-                                            .frame(width: 200, height: 35)
-                                            .background(.gray)
-                                            .foregroundColor(.white)
-                                            .cornerRadius(15)
+                                    NavigationLink(destination: MessagesView(userId: user.id)) {
+                                        HStack {
+                                            Image(systemName: "message.fill")
+                                            Text("Message")
                                         }
+                                        .padding()
+                                        .frame(width: 200, height: 35)
+                                        .background(.gray)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(15)
                                     }
                                 }
                                 //MARK: - Кнопка "Подписаться"
@@ -377,9 +371,6 @@ struct ProfileView: View {
                                 authViewModel.currentUser?.selfSkills[0].isSelected = true
                             }
                         }
-                        
-                        //поиск id чата с текущим пользователем
-                        isLoadingMessage = false
                     }
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
@@ -803,5 +794,5 @@ struct SkillProgressView: View {
     ProfileView(user: User(id: "gs1mFrOnlaYcb4h0OdgteWeY6Yf2", first_name: "ELian", last_name: "Test", bio: "vk jj .", email: "", block: nil, nickname: "nick", phone: "+8", birthday: Date()))
         .environmentObject(AuthViewModel.mock)
         .environmentObject(CallManager.mock)
-        .environmentObject(MessagesViewModel.mock)
+        .environmentObject(ChatViewModel.mock)
 }

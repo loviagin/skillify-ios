@@ -141,13 +141,13 @@ struct EditProfileView: View {
                             }
                         }
                     Text("Short description")
-                    PlaceholderTextEditor(placeholder: "Enter your bio...", text: $bio)
-                        .frame(minHeight: 10, maxHeight: 80)
-                        .padding(.bottom, 20)
-                        .border(.lGray, width: 1)
-                        .background(.background)
-                        .cornerRadius(15)
-                        .fixedSize(horizontal: false, vertical: true)
+                    TextEditor(text: $bio)
+                        .frame(height: 100)
+                        .padding(5)
+                        .background(
+                            RoundedRectangle(cornerRadius: 5)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        )
                         .onReceive(bio.publisher.collect()) {
                             let filtered = String($0)
                             if filtered.count > 75 {

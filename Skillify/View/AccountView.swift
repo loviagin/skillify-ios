@@ -10,7 +10,7 @@ import SwiftUI
 import FirebaseFirestore
 
 struct AccountView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject private var authViewModel: AuthViewModel
         
     var body: some View {
         if authViewModel.isLoading {
@@ -26,7 +26,8 @@ struct AccountView: View {
 }
 
 struct TabsMainView: View {
-    @EnvironmentObject var viewModel: AuthViewModel
+    @EnvironmentObject private var viewModel: AuthViewModel
+    @EnvironmentObject private var chatViewModel: ChatViewModel
 
     @State var blocked: Int = 0
     
@@ -48,6 +49,7 @@ struct TabsMainView: View {
                         .environment(\.symbolVariants, viewModel.selectedTab == .chats ? .fill : .none)
                 }
                 .tag(TabType.chats)
+                .badge(chatViewModel.countUnread())
             
             DiscoverView()
                 .tabItem {
@@ -313,6 +315,6 @@ struct MainAccountView: View {
 #Preview {
     AccountView()
         .environmentObject(AuthViewModel.mock)
-        .environmentObject(MessagesViewModel.mock)
+        .environmentObject(ChatViewModel.mock)
         .environmentObject(CallManager.mock)
 }

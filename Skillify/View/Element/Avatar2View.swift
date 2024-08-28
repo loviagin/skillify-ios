@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct Avatar2View: View {
     var avatarUrl: String
@@ -25,23 +26,20 @@ struct Avatar2View: View {
                     .background(Color.fromRGBAString(avatarUrl.split(separator: ":").last.map(String.init) ?? "") ?? .blue.opacity(0.4))
                     .clipShape(Circle())
             } else if let url = URL(string: avatarUrl) {
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: size, height: size)
-                        .clipShape(Circle())
-                } placeholder: {
-                    Rectangle()
-//                        .resizable()
-//                        .aspectRatio(contentMode: .fill)
-                        .frame(width: size, height: size)
-                        .clipShape(Circle())
-//                    ProgressView()
-                }
-                .frame(width: size, height: size)
-                .clipShape(Circle())
-//                .padding(.bottom)
+                KFImage(url)
+                    .resizable()
+                    .placeholder {
+                        Image("avatar1")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: size, height: size)
+                            .clipShape(Circle())
+                            .clipped()
+                    }
+                    .scaledToFill()
+                    .frame(width: size, height: size)
+                    .clipShape(Circle())
+                    .clipped()
             } else {
                 Image(systemName: "person.crop.circle.fill")
                     .resizable()

@@ -20,7 +20,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         picker.allowsEditing = allowsEditing // Позволяет редактировать фото
         return picker
     }
-
+ 
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
 
     func makeCoordinator() -> Coordinator {

@@ -67,6 +67,14 @@ class ChatViewModel: ObservableObject {
             }
     }
     
+    func deleteChat(chatId: String) {
+        Firestore.firestore().collection("chats").document(chatId).delete { error in
+            if let error {
+                print(error)
+            }
+        }
+    }
+    
     func unreadsChatCount(for chatId: String) -> Int? {
         return unreadChats[chatId]
     }

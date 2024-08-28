@@ -138,7 +138,7 @@ struct DiscoverView: View {
 
                         ForEach(viewModel.users) { user in
                             UserCardView(user: user,
-                                         authViewModel: authViewModel, activeSkillManager: activeSkillManager, id: authViewModel.currentUser!.id)
+                                         authViewModel: authViewModel, activeSkillManager: activeSkillManager, id: (authViewModel.currentUser?.id ?? ""))
                             .foregroundColor(.primary)
                         }
                     }

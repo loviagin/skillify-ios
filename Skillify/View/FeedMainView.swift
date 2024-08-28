@@ -8,14 +8,15 @@
 import SwiftUI
 import FirebaseFirestore
 import StoreKit
+import Kingfisher
 
 struct FeedMainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var mViewModel: MessagesViewModel
+    @StateObject var viewModel = ChipsViewModel()
+
     @State var showProfileView: Bool = false
     @State private var selectedValue: SearchType = .learningsSkills
     @State private var isEditSettings = false
-    @StateObject var viewModel = ChipsViewModel()
     @State var searchViewModel = SearchViewModel(chipArray: [])
     
     @State var extraSkillsList: [String]
@@ -339,22 +340,20 @@ struct SelfStoryImageView: View {
                         .background(Color.fromRGBAString(authViewModel.currentUser?.urlAvatar.split(separator: ":").last.map(String.init) ?? "") ?? .blue.opacity(0.4))
                         .clipShape(Circle())
                 } else if let urlString = authViewModel.currentUser?.urlAvatar, !urlString.isEmpty, let url = URL(string: urlString) {
-                    AsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 80, height: 80)
-                            .clipShape(Circle())
-                    } placeholder: {
-                        Rectangle()
-//                            .resizable()
-//                            .scaledToFill()
-                            .frame(width: 80, height: 80)
-                            .foregroundColor(.white.opacity(0.4))
-                            .padding(.trailing, 10)
-                    }
-                    .frame(width: 80, height: 80)
-                    .clipShape(Circle())
+                    KFImage(url)
+                        .resizable()
+                        .placeholder {
+                            Image("avatar1")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 80, height: 80)
+                                .clipShape(Circle())
+                                .clipped()
+                        }
+                        .scaledToFill()
+                        .frame(width: 80, height: 80)
+                        .clipShape(Circle())
+                        .clipped()
                 } else {
                     Image(systemName: "person.crop.circle.fill")
                         .resizable()
@@ -416,22 +415,20 @@ struct StoryImageView: View {
                         .background(Color.fromRGBAString(u.urlAvatar.split(separator: ":").last.map(String.init) ?? "") ?? .blue.opacity(0.4))
                         .clipShape(Circle())
                 } else if let url = URL(string: u.urlAvatar) {
-                    AsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 80, height: 80)
-                            .clipShape(Circle())
-                    } placeholder: {
-                        Rectangle()
-//                            .resizable()
-//                            .scaledToFill()
-                            .frame(width: 80, height: 80)
-                            .foregroundColor(.white.opacity(0.4))
-                            .padding(.trailing, 10)
-                    }
-                    .frame(width: 80, height: 80)
-                    .clipShape(Circle())
+                    KFImage(url)
+                        .resizable()
+                        .placeholder {
+                            Image("avatar1")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 80, height: 80)
+                                .clipShape(Circle())
+                                .clipped()
+                        }
+                        .scaledToFill()
+                        .frame(width: 80, height: 80)
+                        .clipShape(Circle())
+                        .clipped()
                 } else {
                     Image(systemName: "person.crop.circle.fill")
                         .resizable()
@@ -507,5 +504,5 @@ extension Array {
 #Preview {
     FeedMainView(extraSkillsList: [])
         .environmentObject(AuthViewModel.mock)
-        .environmentObject(MessagesViewModel.mock)
+        .environmentObject(ChatViewModel.mock)
 }

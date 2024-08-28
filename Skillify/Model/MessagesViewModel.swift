@@ -254,7 +254,7 @@ class MessagesViewModel: ObservableObject {
         getPlayersIds(chatId: chatId) { users in
             if let users {
                 for user in users {
-                    self.sendNotification(header: userName, playerId: user, messageText: message.text ?? "🏞️ attachment", targetText: "chat/\(chatId)")
+                    self.sendNotification(header: userName, playerId: user, messageText: message.text ?? "🏞️ attachment", targetText: "m/\(message.userId)")
                 }
             }
         }
@@ -358,7 +358,7 @@ class MessagesViewModel: ObservableObject {
             "headings": ["en": header],
             "contents": ["en": "\(messageText)"],
             "app_id": "e57ccffe-08a9-4fa8-8a63-8c3b143d2efd",
-            "url": targetText
+            "url": "skillify://\(targetText)"
         ] as [String : Any]
                 
         let postData = try? JSONSerialization.data(withJSONObject: parameters, options: [])

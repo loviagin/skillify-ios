@@ -18,6 +18,13 @@ struct ChatsView: View {
         
     var body: some View {
         NavigationStack {
+            Text("Chats")
+                .font(.title)
+                .bold()
+                .foregroundStyle(Color.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+            
             List {
                 if chats.isEmpty {
                     ContentUnavailableView("No chats", systemImage: "bubble.middle.top")
@@ -29,18 +36,29 @@ struct ChatsView: View {
                                     showChat = chat.wrappedValue
                                 }
                             }
+                            .contextMenu(ContextMenu(menuItems: {
+                                Menu {
+                                    Button(role: .destructive) {
+                                        viewModel.deleteChat(chatId: chat.id)
+                                    } label: {
+                                        Text("Confirm deleting")
+                                    }
+                                } label: {
+                                    Label("Delete chat", systemImage: "trash")
+                                }
+                            }))
                     }
                 }
             }
             .listStyle(.plain)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Text("Chats")
-                        .font(.title)
-                        .bold()
-                        .foregroundStyle(Color.primary)
-                }
-                
+//            .toolbar {
+//                ToolbarItem(placement: .topBarLeading) {
+//                    Text("Chats")
+//                        .font(.title)
+//                        .bold()
+//                        .foregroundStyle(Color.primary)
+//                }
+//                
 //                if Auth.auth().currentUser != nil {
 //                    ToolbarItem(placement: .topBarTrailing) {
 //                        Menu {
@@ -54,7 +72,7 @@ struct ChatsView: View {
 //                        }
 //                    }
 //                }
-            }
+//            }
             .navigationDestination(item: $showChat) { chat in
                 MessagesView(chatId: chat.id)
                     .toolbar(.hidden, for: .tabBar)
@@ -77,35 +95,8 @@ struct ChatView: View {
     
     var body: some View {
         HStack {
-            if let user {
-                if UserHelper.avatars.contains(user.urlAvatar) {
-                    Image(user.urlAvatar)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 60, height: 60)
-                        .clipShape(Circle())
-                } else if let url = URL(string: user.urlAvatar) {
-                    KFImage(url)
-                        .resizable()
-                        .placeholder {
-                            Image("avatar1")
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 30, height: 30)
-                                .clipShape(Circle())
-                                .clipped()
-                        }
-                        .scaledToFill()
-                        .frame(width: 60, height: 60)
-                        .clipShape(Circle())
-                        .clipped()
-                }
-            } else {
-                Image("avatar1")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 60, height: 60)
-                    .clipShape(Circle())
+            if let urlAvatar = user?.urlAvatar {
+                Avatar2View(avatarUrl: urlAvatar, size: 60, maxHeight: 60, maxWidth: 60)
             }
             
             VStack(alignment: .leading) {

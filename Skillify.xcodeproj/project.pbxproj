@@ -90,8 +90,8 @@
 		866286E72BEECB8400102FA0 /* UsersSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286A82BEECB8400102FA0 /* UsersSearchView.swift */; };
 		866286EF2BEECFEB00102FA0 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286EE2BEECFEB00102FA0 /* NotificationService.swift */; };
 		866286F32BEECFEB00102FA0 /* OneSignalNotificationServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 866286EC2BEECFEB00102FA0 /* OneSignalNotificationServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		867257B72C7F6ADD004841F2 /* Media.swift in Sources */ = {isa = PBXBuildFile; fileRef = 867257B62C7F6ADD004841F2 /* Media.swift */; };
 		868164DA2C5D4F03004A67B0 /* Member.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868164D92C5D4F03004A67B0 /* Member.swift */; };
-		868164DC2C5D4FDD004A67B0 /* NewChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868164DB2C5D4FDD004A67B0 /* NewChatView.swift */; };
 		868164DE2C5D554B004A67B0 /* LastData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868164DD2C5D554B004A67B0 /* LastData.swift */; };
 		868164E02C5D6093004A67B0 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868164DF2C5D6093004A67B0 /* ChatViewModel.swift */; };
 		86A9ABF92BEEBF0300F4C7FE /* SkillifyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A9ABF82BEEBF0300F4C7FE /* SkillifyApp.swift */; };
@@ -109,6 +109,7 @@
 		86AAE95F2C19667B005F9267 /* VideoScrollModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AAE95E2C19667B005F9267 /* VideoScrollModel.swift */; };
 		86AAE9612C19669C005F9267 /* Video.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AAE9602C19669C005F9267 /* Video.swift */; };
 		86C086A62C7F51BA00719941 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 86C086A52C7F51BA00719941 /* Kingfisher */; };
+		86C086A82C7F549600719941 /* ImageChatPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C086A72C7F549600719941 /* ImageChatPicker.swift */; };
 		86C96D372C19CDDC0058600C /* VideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C96D362C19CDDC0058600C /* VideoView.swift */; };
 		86C96D392C19D3600058600C /* CoursesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C96D382C19D3600058600C /* CoursesViewModel.swift */; };
 		86C96D3B2C19D3780058600C /* Course.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C96D3A2C19D3780058600C /* Course.swift */; };
@@ -220,8 +221,8 @@
 		866286EE2BEECFEB00102FA0 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		866286F02BEECFEB00102FA0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		866286F82BEED03C00102FA0 /* OneSignalNotificationServiceExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OneSignalNotificationServiceExtension.entitlements; sourceTree = "<group>"; };
+		867257B62C7F6ADD004841F2 /* Media.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Media.swift; sourceTree = "<group>"; };
 		868164D92C5D4F03004A67B0 /* Member.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Member.swift; sourceTree = "<group>"; };
-		868164DB2C5D4FDD004A67B0 /* NewChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewChatView.swift; sourceTree = "<group>"; };
 		868164DD2C5D554B004A67B0 /* LastData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastData.swift; sourceTree = "<group>"; };
 		868164DF2C5D6093004A67B0 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
 		86A9ABF52BEEBF0300F4C7FE /* Skillify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Skillify.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -233,6 +234,7 @@
 		86AAE95C2C19664B005F9267 /* VideoScrollsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoScrollsView.swift; sourceTree = "<group>"; };
 		86AAE95E2C19667B005F9267 /* VideoScrollModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoScrollModel.swift; sourceTree = "<group>"; };
 		86AAE9602C19669C005F9267 /* Video.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Video.swift; sourceTree = "<group>"; };
+		86C086A72C7F549600719941 /* ImageChatPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageChatPicker.swift; sourceTree = "<group>"; };
 		86C96D362C19CDDC0058600C /* VideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoView.swift; sourceTree = "<group>"; };
 		86C96D382C19D3600058600C /* CoursesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoursesViewModel.swift; sourceTree = "<group>"; };
 		86C96D3A2C19D3780058600C /* Course.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Course.swift; sourceTree = "<group>"; };
@@ -319,6 +321,7 @@
 		866286812BEECB8400102FA0 /* Object */ = {
 			isa = PBXGroup;
 			children = (
+				867257B62C7F6ADD004841F2 /* Media.swift */,
 				866286772BEECB8400102FA0 /* Call.swift */,
 				866286782BEECB8400102FA0 /* Message.swift */,
 				866286792BEECB8400102FA0 /* ChipModel.swift */,
@@ -358,6 +361,7 @@
 				8610924D2C0DB58F00062EBE /* DismissButton.swift */,
 				86F9F4CD2C176BCF00C6DC28 /* ChangeThemeView.swift */,
 				86C96D362C19CDDC0058600C /* VideoView.swift */,
+				86C086A72C7F549600719941 /* ImageChatPicker.swift */,
 			);
 			path = Element;
 			sourceTree = "<group>";
@@ -396,7 +400,6 @@
 				861092512C0DB83200062EBE /* PrivacyView.swift */,
 				861092532C0DB86B00062EBE /* BlockedUsersView.swift */,
 				86AAE95C2C19664B005F9267 /* VideoScrollsView.swift */,
-				868164DB2C5D4FDD004A67B0 /* NewChatView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -638,6 +641,7 @@
 				866286C52BEECB8400102FA0 /* ChipView.swift in Sources */,
 				866286CD2BEECB8400102FA0 /* SkillView.swift in Sources */,
 				866286AE2BEECB8400102FA0 /* SearchViewModel.swift in Sources */,
+				867257B72C7F6ADD004841F2 /* Media.swift in Sources */,
 				866286C02BEECB8400102FA0 /* User.swift in Sources */,
 				866286DE2BEECB8400102FA0 /* PhoneRegisterView.swift in Sources */,
 				866286B52BEECB8400102FA0 /* ImagePicker.swift in Sources */,
@@ -695,10 +699,10 @@
 				86AAE95F2C19667B005F9267 /* VideoScrollModel.swift in Sources */,
 				866286C22BEECB8400102FA0 /* CallTopView.swift in Sources */,
 				866286B42BEECB8400102FA0 /* FirestoreUpdater.swift in Sources */,
+				86C086A82C7F549600719941 /* ImageChatPicker.swift in Sources */,
 				866286BC2BEECB8400102FA0 /* GroupSkill.swift in Sources */,
 				866286BF2BEECB8400102FA0 /* Skill.swift in Sources */,
 				866286E22BEECB8400102FA0 /* RegisterView.swift in Sources */,
-				868164DC2C5D4FDD004A67B0 /* NewChatView.swift in Sources */,
 				866286E52BEECB8400102FA0 /* ShareProfileView.swift in Sources */,
 				866286CE2BEECB8400102FA0 /* VideoCallView.swift in Sources */,
 				866286B32BEECB8400102FA0 /* DeepLinkManager.swift in Sources */,
@@ -910,7 +914,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Skillify/Skillify.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 47;
+				CURRENT_PROJECT_VERSION = 50;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"Skillify/Preview Content\"";
 				DEVELOPMENT_TEAM = GWXUDX4MQT;
@@ -932,7 +936,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.7;
+				MARKETING_VERSION = 1.5.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -954,7 +958,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Skillify/Skillify.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 47;
+				CURRENT_PROJECT_VERSION = 50;
 				DEVELOPMENT_ASSET_PATHS = "\"Skillify/Preview Content\"";
 				DEVELOPMENT_TEAM = GWXUDX4MQT;
 				ENABLE_PREVIEWS = YES;
@@ -975,7 +979,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.7;
+				MARKETING_VERSION = 1.5.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
 				PRODUCT_NAME = "$(TARGET_NAME)";
