@@ -20,7 +20,7 @@ struct ContentView: View {
             Group {
                 if authViewModel.isLoading {
                     ProgressView()
-                } else if authViewModel.userSession != nil {
+                } else if Auth.auth().currentUser != nil {
                     AccountView()
                 } else {
                     AuthView()
@@ -51,9 +51,6 @@ struct ContentView: View {
         .onAppear {
             //                        do {
             //                try Auth.auth().signOut()
-            //                DispatchQueue.main.async {
-            //                    authViewModel.userSession = nil
-            //                }
             //            } catch let signOutError as NSError {
             //                print("Error signing out: %@", signOutError)
             //            }

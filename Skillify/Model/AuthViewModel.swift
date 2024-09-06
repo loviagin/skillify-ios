@@ -18,7 +18,7 @@ import RevenueCat
 
 class AuthViewModel: ObservableObject {
     
-    @Published var userSession: FirebaseAuth.User?
+//    @Published var userSession: FirebaseAuth.User?
     @Published var currentUser: User?
     @Published var errorMessage: String?
     @Published var isLoading = true
@@ -30,7 +30,7 @@ class AuthViewModel: ObservableObject {
     private let db: Firestore
     
     init() {
-        self.userSession = Auth.auth().currentUser
+//        self.userSession = Auth.auth().currentUser
         self.db = Firestore.firestore()
         Task {
             await loadUser()
@@ -43,7 +43,7 @@ class AuthViewModel: ObservableObject {
         }
         do {
             let result = try await Auth.auth().createUser(withEmail: email, password: pass)
-            self.userSession = result.user
+//            self.userSession = result.user
             let user = User(id: result.user.uid, first_name: "", last_name: "", email: email, nickname: "", phone: "", birthday: Date())
             let encodedUser = try Firestore.Encoder().encode(user)
             try await Firestore.firestore().collection("users").document(user.id).setData(encodedUser)
@@ -61,7 +61,7 @@ class AuthViewModel: ObservableObject {
             let authResult = try await Auth.auth().signIn(withEmail: email, password: pass)
             OneSignal.login(authResult.user.uid)
             DispatchQueue.main.async { [weak self] in
-                self?.userSession = authResult.user
+//                self?.userSession = authResult.user
                 Task {
                     await self?.loadUser()
                 }
@@ -105,7 +105,7 @@ class AuthViewModel: ObservableObject {
                 Auth.auth().signIn(with: credential) { [weak self] result, error in
                     DispatchQueue.main.async {
                         if let user = result?.user {
-                            self?.userSession = user
+//                            self?.userSession = user
                             OneSignal.login(user.uid)
                             
                             var firstName: String = ""
@@ -346,7 +346,7 @@ class AuthViewModel: ObservableObject {
                 } else {
                     DispatchQueue.main.async {
                         if let user = authResult?.user {
-                            self?.userSession = user
+//                            self?.userSession = user
                             OneSignal.login(user.uid)
                             Task {
                                 [weak self] in // Capture self as a weak reference
@@ -363,7 +363,7 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    func registerUserAndLoadProfile(uid: String, email: String, firstName: String, lastName: String, phone: String, user: FirebaseAuth.User? = nil) async {
+    func registerUserAndLoadProfile(uid: String, email: String, firstName: String, lastName: String, phone: String) async {
         DispatchQueue.main.async {
             self.isLoading = true
         }
@@ -377,12 +377,12 @@ class AuthViewModel: ObservableObject {
                 let newUser = User(id: uid, first_name: firstName, last_name: lastName, email: email, nickname: "", phone: phone, birthday: Date())
                 DispatchQueue.main.async {
                     self.currentUser = newUser
-                    print("\(self.currentUser!.first_name) + \(Date().timeIntervalSince1970)")
+//                    print("\(self.currentUser!.first_name) + \(Date().timeIntervalSince1970)")
                 }
                 let encodedUser = try Firestore.Encoder().encode(newUser)
                 try await userRef.setData(encodedUser)
             }
-            await loadUser(user: user != nil ? user : nil) // Загрузка данных пользователя после регистрации или обнаружения существующего профиля.
+            await loadUser() // Загрузка данных пользователя после регистрации или обнаружения существующего профиля.
         } catch {
             // Обработка возникших ошибок.
             print("Error in registerUserAndLoadProfile: \(error)")
@@ -400,21 +400,18 @@ class AuthViewModel: ObservableObject {
             .first(where: { $0.isKeyWindow })?.rootViewController
     }
     
-    func loadUser (user: FirebaseAuth.User? = nil) async {
+    func loadUser () async {
         DispatchQueue.main.async {
             self.isLoading = true
         }
-        let uid = Auth.auth().currentUser?.uid ?? userSession?.uid
-        if uid != nil && !((uid?.isEmpty) == nil) {
-            OneSignal.login(uid!)
-            guard let snapshot = try? await Firestore.firestore().collection("users").document(uid!).getDocument() else { return }
+        
+        if let uid = Auth.auth().currentUser?.uid, !uid.isEmpty {
+            OneSignal.login(uid)
+            guard let snapshot = try? await Firestore.firestore().collection("users").document(uid).getDocument() else { return }
             self.currentUser = try? snapshot.data(as: User.self)
             onlineMode()
             checkPro()
-            addUserListener(userId: uid!)
-            if userSession == nil && user != nil {
-                userSession = user
-            }
+            addUserListener(userId: uid)
             fetchAllUsers()
         } else {
             print("empty uid or user isn't log in")
@@ -477,9 +474,6 @@ class AuthViewModel: ObservableObject {
             try firebaseAuth.signOut()
             OneSignal.logout()
             clearUserDefaults()
-            DispatchQueue.main.async {
-                self.userSession = nil
-            }
         } catch let signOutError as NSError {
             print("Error signing out: %@", signOutError)
         }

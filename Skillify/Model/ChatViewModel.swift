@@ -83,20 +83,27 @@ class ChatViewModel: ObservableObject {
         return unreadChats.values.reduce(0, +)
     }
     
-    func fetchUnreadMessagesCount(chatId: String, completion: @escaping (Result<Int, Error>) -> Void) {
-        let db = Firestore.firestore()
-        
-        db.collection("chats").document(chatId).collection("messages")
-            .whereField("status", isEqualTo: "sent")
-            .getDocuments { snapshot, error in
-                if let error = error {
-                    completion(.failure(error))
-                } else {
-                    let count = snapshot?.documents.count ?? 0
-                    completion(.success(count))
-                }
-            }
+    func countSupportUnread() -> Int {
+        return unreadChats
+            .filter { $0.key.hasPrefix("Support") }  // Фильтрация по ключам, которые начинаются с "Support"
+            .values
+            .reduce(0, +)  // Суммируем значения непрочитанных чатов
     }
+    
+//    func fetchUnreadMessagesCount(chatId: String, completion: @escaping (Result<Int, Error>) -> Void) {
+//        let db = Firestore.firestore()
+//        
+//        db.collection("chats").document(chatId).collection("messages")
+//            .whereField("status", isEqualTo: "sent")
+//            .getDocuments { snapshot, error in
+//                if let error = error {
+//                    completion(.failure(error))
+//                } else {
+//                    let count = snapshot?.documents.count ?? 0
+//                    completion(.success(count))
+//                }
+//            }
+//    }
     
     func loadChatUser(chat: Chat, completion: @escaping (User?) -> Void) {
         guard let currentUserId = Auth.auth().currentUser?.uid else {

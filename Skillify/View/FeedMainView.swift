@@ -9,6 +9,7 @@ import SwiftUI
 import FirebaseFirestore
 import StoreKit
 import Kingfisher
+import TipKit
 
 struct FeedMainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
@@ -27,7 +28,6 @@ struct FeedMainView: View {
     
     @State var profileUser: User?
     @State private var systemMessage: String? = nil
-    @State private var tip1Show = UserDefaults.standard.bool(forKey: "tipFeedMainForSelfSkills") != true
     
     var body: some View {
         NavigationStack {
@@ -71,7 +71,7 @@ struct FeedMainView: View {
                                         }
                                     if !authViewModel.users.isEmpty {
                                         ForEach(authViewModel.users) { user in
-                                            NavigationLink(destination: ProfileView(/*showProfile: $showProfileView, */user: user)) {
+                                            NavigationLink(destination: ProfileView(user: user)) {
                                                 StoryImageView(u: user).foregroundColor(.brandBlue)
                                             }
                                         }
@@ -83,28 +83,14 @@ struct FeedMainView: View {
                             }
                             .sheet(isPresented: $profileViewShow) {
                                 NavigationStack {
-                                    ProfileView(/*showProfile: $showProfileView, */user: authViewModel.currentUser!)
+                                    ProfileView(user: authViewModel.currentUser!)
                                         .toolbar(.hidden, for: .navigationBar)
                                 }
                             }
-                            if tip1Show {
-                                HStack {
-                                    Text("You can add your skills and skills you wanna learn in Account tab")
-                                        .padding()
-                                    Spacer()
-                                    Button {
-                                        tip1Show = false
-                                        UserDefaults.standard.setValue(true, forKey: "tipFeedMainForSelfSkills")
-                                    } label: {
-                                        Image(systemName: "xmark")
-                                    }
-                                    .padding(.trailing)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .background(.lGray)
-                                .cornerRadius(15)
-                                .padding([.trailing, .top], 10)
-                            }
+                            
+                            TipView(TipNewVersion151())
+                                .padding(.trailing, 10)
+                            
                             Text("Search by:")
                                 .foregroundColor(.gray)
                                 .font(.callout)
@@ -137,7 +123,6 @@ struct FeedMainView: View {
                             
                             // Conditional content based on selectedValue
                             if !isEditSettings {
-                                //                            if !authViewModel.isLoading {
                                 if selectedValue == .learningsSkills {
                                     if let list = authViewModel.currentUser?.learningSkills {
                                         if list.isEmpty {
@@ -505,4 +490,20 @@ extension Array {
     FeedMainView(extraSkillsList: [])
         .environmentObject(AuthViewModel.mock)
         .environmentObject(ChatViewModel.mock)
+}
+
+
+struct TipNewVersion151: Tip {
+    var title: Text {
+        Text("New version 1.5.1")
+    }
+    
+    var message: Text? {
+        Text("🚀 Change the chat color right from the top right.\n🚀 Open images in the chat and download them to the gallery.\n🚀 New emojies view - set and unset up to 3 on each message.\n🚀 Now if you remove the last message in a chat this chat will be deleting immediately")
+    }
+    
+    var image: Image? {
+        Image(systemName: "wand.and.stars")
+            .symbolRenderingMode(.palette)
+    }
 }

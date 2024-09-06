@@ -91,8 +91,8 @@ struct RegisterView: View {
                     Text("Come back later")
                 }
             }
-            .onChange(of: authViewModel.userSession) { _ in
-                isUserAuthenticated = authViewModel.userSession != nil
+            .onChange(of: Auth.auth().currentUser) { _, newValue in
+                isUserAuthenticated = newValue != nil
             }
             .onAppear {
                 Firestore.firestore().collection("admin").document("system").getDocument { doc, error in
@@ -215,7 +215,7 @@ struct ButtonRegisterView: View {
 
 // SignInWithAppleManager.swift
 class SignInWithAppleManager: NSObject, ObservableObject {
-    @Published var userSession: Firebase.User?
+//    @Published var userSession: Firebase.User?
     var currentNonce: String?
     var authViewModel: AuthViewModel?
     
@@ -256,7 +256,7 @@ class SignInWithAppleManager: NSObject, ObservableObject {
                         [weak self] in
                         guard let self = self else { return }
                         await self.authViewModel?.registerUserAndLoadProfile(
-                            uid: user.uid, email: user.email ?? "", firstName: firstName, lastName: lastName, phone: user.phoneNumber ?? "", user: user
+                            uid: user.uid, email: user.email ?? "", firstName: firstName, lastName: lastName, phone: user.phoneNumber ?? ""
                         )
                     }
                 }

@@ -16,6 +16,7 @@ import CallKit
 import AgoraRtcKit
 import FirebaseFirestore
 import RevenueCat
+import TipKit
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     
@@ -162,8 +163,15 @@ struct SkillifyApp: App {
                 .environmentObject(authViewModel)
                 .environmentObject(chatViewModel)
                 .environmentObject(delegate.callManager)
+                .task {
+//                    try? Tips.resetDatastore()
+
+                    try? Tips.configure([
+                        .displayFrequency(.immediate)
+                    ])
+                }
         }
-        .onChange(of: scenePhase) { _, newScenePhase in 
+        .onChange(of: scenePhase) { _, newScenePhase in
             switch newScenePhase {
             case .background:
                 print("App is in background")

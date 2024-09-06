@@ -8,10 +8,13 @@
 import SwiftUI
 import PhotosUI
 import Kingfisher
+import FirebaseAuth
 
 struct MessagesView: View {
-    @StateObject private var viewModel = MessagesViewModel()
+    @EnvironmentObject private var chatViewModel: ChatViewModel
     @EnvironmentObject private var userViewModel: AuthViewModel
+
+    @StateObject private var viewModel = MessagesViewModel()
     
     @State var chatId = ""
     @State var userId = ""
@@ -144,15 +147,20 @@ struct MessagesView: View {
                             .frame(width: 10, height: 10)
                     }
 
-                    Text(user?.first_name ?? " ")
-                        .fontWeight(.bold)
-                        .onTapGesture {
-                            if !isSystem() {
-                                withAnimation {
-                                    showProfile = true
+                    if isSystem() {
+                        Text("Support")
+                            .fontWeight(.bold)
+                    } else {
+                        Text(user?.first_name ?? " ")
+                            .fontWeight(.bold)
+                            .onTapGesture {
+                                if !isSystem() {
+                                    withAnimation {
+                                        showProfile = true
+                                    }
                                 }
                             }
-                        }
+                    }
                     
                     if isSystem() {
                         Image(.verify)
@@ -215,7 +223,7 @@ struct MessagesView: View {
             }
         }
         .onChange(of: replyMessage) { _, new in
-            if let new {
+            if new != nil {
                 withAnimation {
                     focusing = .textField
                 }
@@ -304,12 +312,14 @@ struct MessagesView: View {
             print("чат новый")
             
             newChat = Chat(
+                id: isSystem() ? "Support\(Auth.auth().currentUser?.uid ?? "")" : UUID().uuidString,
                 users: [
                     currentUser.id,
                     userId
                 ],
                 last: LastData(text: message.text ?? "🏞️ attachment", userId: currentUser.id, status: "sent"),
-                lastTime: Date()
+                lastTime: Date(),
+                type: isSystem() ? .privateGroup : .personal
             )
             
             chatId = newChat!.id
@@ -335,7 +345,14 @@ struct MessagesView: View {
     }
     
     private func appearAction() {
-        if chatId.isEmpty && !userId.isEmpty { // it's a new chat
+        if isSystem() {
+            if let chat = chatViewModel.chats.first(where:
+                                                        { $0.id == "\(userId)\(Auth.auth().currentUser?.uid ?? "")" })
+            { // existing chat
+                self.chatId = chat.id
+                viewModel.fetchMessages(for: chatId)
+            }
+        } else if chatId.isEmpty && !userId.isEmpty { // it's a new chat
             viewModel.getChatIdByUserId(userId: userId, currentId: (userViewModel.currentUser?.id ?? "")) { chatId in
                 if let chatId {
                     self.chatId = chatId
@@ -363,6 +380,8 @@ struct MessagesView: View {
                     }
                 }
             }
+        } else {
+            self.text = "error"
         }
         
         self.messages = viewModel.messages
@@ -384,7 +403,9 @@ struct MessagesView: View {
 }
 
 struct NewChatItemView: View {
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var viewModel: MessagesViewModel
+    @EnvironmentObject private var authViewModel: AuthViewModel
     
     @Binding var message: Message
     @State var chatId: String
@@ -393,6 +414,7 @@ struct NewChatItemView: View {
     @Binding var editMessage: Message?
     
     @State private var offset: CGFloat = 0
+    @State private var user: User? = nil
         
     var body: some View {
         HStack {
@@ -421,13 +443,43 @@ struct NewChatItemView: View {
                 }
                 
                 HStack(spacing: 0) {
-                    if let emoji = message.emoji {
-                        Text(emoji)
-                            .font(.callout)
-                            .padding(5)
-                            .background(.white)
-                            .clipShape(Circle())
+                    if let emojiArray = message.emoji {
+                        ForEach(viewModel.groupEmojisAndUsers(from: emojiArray), id: \.emoji) { group in
+                            HStack(spacing: 0) {
+                                Text(group.emoji)
+                                    .font(.callout)
+                                    .padding(5)
+                                    .clipShape(Circle())
+                                    .padding(.trailing, 5)
+                                
+                                if group.userIds.count > 2 {
+                                    Text("\(group.userIds.count)")
+                                        .font(.callout)
+                                        .foregroundStyle(isCurrent ? .blue : .white)
+                                        .padding(.trailing, 8)
+                                        .padding(.leading, -5)
+                                } else {
+                                    ForEach(group.userIds, id: \.self) { userId in
+                                        Avatar2View(
+                                            avatarUrl: isCurrentUser(userId: userId) ? (authViewModel.currentUser?.urlAvatar ?? "avatar1") : (user?.urlAvatar ?? "avatar1"),
+                                            size: 30, maxHeight: 30)
+                                            .overlay(
+                                                Circle().stroke(Color.white, lineWidth: 2)  // Добавление белой обводки
+                                            )
+                                            .padding(.leading, -8)
+                                    }
+                                }
+                            }
+                            .fixedSize()
+                            .background(isCurrent ? Color.white : Color.blue)
+                            .clipShape(RoundedRectangle(cornerRadius: 50))
+                            .onTapGesture {
+                                withAnimation {
+                                    viewModel.addEmojiToMessage(chatId: chatId, messageId: message.id, emoji: group.emoji, userId: authViewModel.currentUser?.id ?? "")
+                                }
+                            }
                             .padding(.trailing)
+                        }
                     }
                     
                     Text(getDate(message: message))
@@ -451,24 +503,24 @@ struct NewChatItemView: View {
             }
             .padding(.vertical)
             .padding(.horizontal, 15)
-            .background(isCurrent ? .blue : .white)
+            .background(isCurrent ? Color.blue : Color.lightBlue)
             .foregroundColor(isCurrent ? .white : .black)
             .contextMenu {
                 ControlGroup {
                     Button("❤️") {
-                        viewModel.addEmojiToMessage(chatId: chatId, messageId: message.id, emoji: "❤️")
+                        viewModel.addEmojiToMessage(chatId: chatId, messageId: message.id, emoji: "❤️", userId: (authViewModel.currentUser?.id ?? ""))
                     }
                     
                     Button("🔥") {
-                        viewModel.addEmojiToMessage(chatId: chatId, messageId: message.id, emoji: "🔥")
+                        viewModel.addEmojiToMessage(chatId: chatId, messageId: message.id, emoji: "🔥", userId: (authViewModel.currentUser?.id ?? ""))
                     }
                     
                     Button("😂") {
-                        viewModel.addEmojiToMessage(chatId: chatId, messageId: message.id, emoji: "😂")
+                        viewModel.addEmojiToMessage(chatId: chatId, messageId: message.id, emoji: "😂", userId: (authViewModel.currentUser?.id ?? ""))
                     }
                     
                     Button("😵‍💫") {
-                        viewModel.addEmojiToMessage(chatId: chatId, messageId: message.id, emoji: "😵‍💫")
+                        viewModel.addEmojiToMessage(chatId: chatId, messageId: message.id, emoji: "😵‍💫", userId: (authViewModel.currentUser?.id ?? ""))
                     }
                 }
                 .controlGroupStyle(.compactMenu)
@@ -495,7 +547,11 @@ struct NewChatItemView: View {
                     }
                     
                     Button("Delete", systemImage: "trash", role: .destructive) {
-                        viewModel.deleteMessage(chatId: chatId, messageId: message.id)
+                        viewModel.deleteMessage(chatId: chatId, messageId: message.id) { info in
+                            if let info, info == "deleted chat" {
+                                dismiss()
+                            }
+                        }
                     }
                 }
             }
@@ -544,6 +600,25 @@ struct NewChatItemView: View {
                     }
                 }
         )
+        .onAppear {
+            if !message.userId.isEmpty && message.userId != (authViewModel.currentUser?.id ?? "") && message.userId != "Support" {
+                viewModel.getUser(userId: message.userId) { user in
+                    if let user {
+                        self.user = user
+                    }
+                }
+            } else {
+                print("messageId \(message.id)")
+            }
+        }
+    }
+    
+    private func isCurrentUser(userId: String) -> Bool {
+        if userId == (Auth.auth().currentUser?.uid ?? "") {
+            return true
+        }
+        
+        return false
     }
     
     private func getDate(message: Message) -> String {
@@ -612,7 +687,7 @@ struct BottomBarChatView: View {
                         .frame(width: 23, height: 23)
                 }
                 
-                TextField("Type ...", text: $text)
+                TextField("Type", text: $text, prompt: Text("Type..."), axis: .vertical)
                     .padding(5)
                     .background(.gray.opacity(0.1))
                     .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -646,131 +721,14 @@ struct BottomBarChatView: View {
     }
 }
 
-struct FlexibleGridView: View {
-    var media: [String]
-
-    var body: some View {
-        GeometryReader { geometry in
-            let size = geometry.size
-            let spacing: CGFloat = 5
-            
-            switch media.count {
-            case 1:
-                KFImage(URL(string: media[0]))
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: size.width, height: size.height)
-                    .clipped()
-                    .aspectRatio(1, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 15))
-            case 2:
-                HStack(spacing: spacing) {
-                    ForEach(media, id: \.self) { urlString in
-                        KFImage(URL(string: urlString))
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: (size.width - spacing) / 2, height: (size.height - spacing) / 2)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .clipped()
-                    }
-                }
-                
-            case 3:
-                VStack(spacing: spacing) {
-                    KFImage(URL(string: media[0]))
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: size.width, height: size.height * 2 / 3)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                        .clipped()
-                    
-                    HStack(spacing: spacing) {
-                        KFImage(URL(string: media[1]))
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: (size.width - spacing) / 2, height: (size.height / 3))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .clipped()
-                        
-                        KFImage(URL(string: media[2]))
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: (size.width - spacing) / 2, height: (size.height / 3))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .clipped()
-                    }
-                }
-                
-            case 4:
-                let gridItems = Array(repeating: GridItem(.flexible(), spacing: spacing), count: 2)
-                
-                LazyVGrid(columns: gridItems, spacing: spacing) {
-                    ForEach(media, id: \.self) { urlString in
-                        KFImage(URL(string: urlString))
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: (size.width - spacing) / 2, height: (size.height - spacing) / 2)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .clipped()
-                    }
-                }
-                
-            case 5:
-                VStack(spacing: spacing) {
-                    KFImage(URL(string: media[0]))
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: size.width, height: size.height / 2)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                        .clipped()
-                    
-                    let gridItems = Array(repeating: GridItem(.flexible(), spacing: spacing), count: 2)
-                    
-                    LazyVGrid(columns: gridItems, spacing: spacing) {
-                        ForEach(Array(media[1...4]), id: \.self) { urlString in
-                            KFImage(URL(string: urlString))
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: (size.width - spacing) / 2, height: (size.height / 4))
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                .clipped()
-                        }
-                    }
-                }
-                
-            default:
-                EmptyView()
-            }
-        }
-        .frame(height: calculateHeight(for: media.count, width: UIScreen.main.bounds.width - 80))
-    }
-    
-    private func calculateHeight(for count: Int, width: CGFloat) -> CGFloat {
-        let spacing: CGFloat = 5
-
-        switch count {
-        case 1:
-            return width
-        case 2:
-            return (width / 2)
-        case 3:
-            return (width * 2 / 3) + (width / 3) + spacing
-        case 4:
-            return (width / 2) * 2 + spacing
-        case 5:
-            return (width / 2) + ((width / 4) * 2) + spacing
-        default:
-            return 0
-        }
-    }
-}
-
 enum ChatFocus {
     case textField
 }
 
 #Preview {
-    ChatsView(showChat: Chat())
-        .environmentObject(ChatViewModel.mock)
-        .environmentObject(AuthViewModel.mock)
+    NavigationStack {
+        MessagesView(userId: "Support")
+            .environmentObject(ChatViewModel.mock)
+            .environmentObject(AuthViewModel.mock)
+    }
 }

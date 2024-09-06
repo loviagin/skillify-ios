@@ -18,12 +18,38 @@ struct ChatsView: View {
         
     var body: some View {
         NavigationStack {
-            Text("Chats")
-                .font(.title)
-                .bold()
-                .foregroundStyle(Color.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            HStack {
+                Text("Chats")
+                    .font(.title)
+                    .bold()
+                    .foregroundStyle(Color.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                
+                Spacer()
+                
+                NavigationLink {
+                    MessagesView(userId: "Support")
+                } label: {
+                    ZStack(alignment: .topTrailing) {
+                        Image(systemName: "questionmark.bubble")
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                        
+                        if viewModel.countSupportUnread() > 0 { // Показываем бэдж только если есть непрочитанные сообщения
+                            Text("\(viewModel.countSupportUnread())")
+                                .font(.caption2)
+                                .foregroundColor(.white)
+                                .padding(6)
+                                .background(Color.red)
+                                .clipShape(Circle())
+                                .offset(x: 10, y: -10) // Смещение бэджа относительно иконки
+                        }
+                    }
+                }
                 .padding()
+                
+            }
             
             List {
                 if chats.isEmpty {
@@ -51,37 +77,15 @@ struct ChatsView: View {
                 }
             }
             .listStyle(.plain)
-//            .toolbar {
-//                ToolbarItem(placement: .topBarLeading) {
-//                    Text("Chats")
-//                        .font(.title)
-//                        .bold()
-//                        .foregroundStyle(Color.primary)
-//                }
-//                
-//                if Auth.auth().currentUser != nil {
-//                    ToolbarItem(placement: .topBarTrailing) {
-//                        Menu {
-//                            Button("Message", systemImage: "bubble.left.and.text.bubble.right") {
-//                                withAnimation {
-//                                    showNewChat = true
-//                                }
-//                            }
-//                        } label: {
-//                            Image(systemName: "plus")
-//                        }
-//                    }
-//                }
-//            }
             .navigationDestination(item: $showChat) { chat in
                 MessagesView(chatId: chat.id)
                     .toolbar(.hidden, for: .tabBar)
             }
             .onAppear {
-                self.chats = viewModel.chats
+                self.chats = viewModel.chats.filter({ $0.type == .personal })
             }
             .onChange(of: viewModel.chats) { oldValue, newValue in
-                self.chats = newValue
+                self.chats = newValue.filter({ $0.type == .personal })
             }
         }
     }

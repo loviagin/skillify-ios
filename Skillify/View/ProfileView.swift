@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import FirebaseFirestore
+import Kingfisher
 
 struct ProfileView: View {
     @Environment(\.dismiss) private var dismiss
@@ -15,6 +16,7 @@ struct ProfileView: View {
     @EnvironmentObject private var authViewModel: AuthViewModel
     @EnvironmentObject private var callManager: CallManager
     @State var user: User // пользователь который отображается в профиле
+    @State var userId: NewChatUser? // for opening chat
     
     @State var isVisible: Bool = false // флаг для звонков (true на несколько секунд, если звонки запрещены)
     @State var showPhoneCall: Bool = false // переход на вью звонка
@@ -164,7 +166,12 @@ struct ProfileView: View {
                             HStack(spacing: 15) {
                                 //MARK: - Кнопка "Сообщение"
                                 if (UserHelper.isMessagesBlocked(viewModel: authViewModel, user: user) == nil) { // проверка что пользователя не блокнули
-                                    NavigationLink(destination: MessagesView(userId: user.id)) {
+                                    Button {
+                                        withAnimation {
+                                            authViewModel.selectedTab = .chats
+                                            userId = NewChatUser(userId: user.id)
+                                        }
+                                    } label: {
                                         HStack {
                                             Image(systemName: "message.fill")
                                             Text("Message")
@@ -174,10 +181,12 @@ struct ProfileView: View {
                                         .background(.gray)
                                         .foregroundColor(.white)
                                         .cornerRadius(15)
+                                        
                                     }
                                 }
+                                
                                 //MARK: - Кнопка "Подписаться"
-                                Button(action: {
+                                Button {
                                     if authViewModel.currentUser?.subscriptions.contains(user.id) == true {
                                         let index = authViewModel.currentUser?.subscriptions.firstIndex(where: { $0 == user.id })
                                         authViewModel.currentUser?.subscriptions.remove(at: index!)
@@ -201,7 +210,7 @@ struct ProfileView: View {
                                                 privacy: user.privacyData)
                                         }
                                     }
-                                }) {
+                                } label: {
                                     if authViewModel.currentUser?.subscriptions.contains(user.id) == true {
                                         if authViewModel.currentUser?.subscribers.contains(user.id) == true {
                                             Image(systemName: "person.2.fill")
@@ -234,7 +243,7 @@ struct ProfileView: View {
                                     && (user.blocked ?? 0 < 3) {
                                     // Кнопка "Позвонить"
                                     if callManager.callId == nil {
-                                        Button(action: {
+                                        Button {
                                             if authViewModel.currentUser?.subscriptions.contains(user.id) == true &&
                                                 authViewModel.currentUser?.subscribers.contains(user.id) == true
                                             {
@@ -248,7 +257,7 @@ struct ProfileView: View {
                                                     isVisible = false
                                                 }
                                             }
-                                        }) {
+                                        } label: {
                                             Image(systemName: "phone.fill")
                                                 .padding()
                                                 .frame(width: 35, height: 35)
@@ -449,6 +458,9 @@ struct ProfileView: View {
                 .navigationDestination(isPresented: $showPhoneCall) {
                     PhoneCallView().toolbar(.hidden, for: .tabBar)
                 }
+                .navigationDestination(item: $userId) { user in
+                    MessagesView(userId: user.userId)
+                }
             }
         }
     }
@@ -498,6 +510,11 @@ struct ProfileView: View {
     }
 }
 
+struct NewChatUser: Identifiable, Hashable {
+    var id: String = UUID().uuidString
+    var userId: String
+}
+
 struct MenuItem: Identifiable {
     let id: String
 }
@@ -517,19 +534,18 @@ struct AvatarView: View {
                     .background(Color.fromRGBAString(avatarUrl.split(separator: ":").last.map(String.init) ?? "") ?? .blue.opacity(0.4))
                     .clipShape(Circle())
             } else if let url = URL(string: avatarUrl) { // если обычная картинка из firebase storage
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 100, height: 100)
-                        .clipShape(Circle())
-                } placeholder: {
-                    Rectangle()
-                        .frame(width: 100, height: 100)
-                        .clipShape(Circle())
-                }
-                .frame(width: 100, height: 100)
-                .clipShape(Circle())
+                KFImage(url)
+                    .resizable()
+                    .placeholder {
+                        Rectangle()
+                            .frame(width: 100, height: 100)
+                            .clipShape(Circle())
+                    }
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 100, height: 100)
+                    .clipShape(Circle())
+                    .frame(width: 100, height: 100)
+                    .clipShape(Circle())
             } else { // ну и если вообще ее нет
                 Image(systemName: "person.crop.circle.fill")
                     .resizable()

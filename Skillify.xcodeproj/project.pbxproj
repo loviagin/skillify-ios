@@ -19,6 +19,7 @@
 		861092502C0DB81300062EBE /* DevicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8610924F2C0DB81300062EBE /* DevicesView.swift */; };
 		861092522C0DB83200062EBE /* PrivacyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861092512C0DB83200062EBE /* PrivacyView.swift */; };
 		861092542C0DB86B00062EBE /* BlockedUsersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861092532C0DB86B00062EBE /* BlockedUsersView.swift */; };
+		861A73DF2C8847A6001EA709 /* EmojiGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861A73DE2C8847A6001EA709 /* EmojiGroup.swift */; };
 		862813032BEF878B003FA32E /* OneSignalExtension in Frameworks */ = {isa = PBXBuildFile; productRef = 862813022BEF878B003FA32E /* OneSignalExtension */; };
 		862813052BEF878B003FA32E /* OneSignalFramework in Frameworks */ = {isa = PBXBuildFile; productRef = 862813042BEF878B003FA32E /* OneSignalFramework */; };
 		8656D5832C023E8300396B45 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8656D5822C023E8300396B45 /* GoogleService-Info.plist */; };
@@ -94,6 +95,8 @@
 		868164DA2C5D4F03004A67B0 /* Member.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868164D92C5D4F03004A67B0 /* Member.swift */; };
 		868164DE2C5D554B004A67B0 /* LastData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868164DD2C5D554B004A67B0 /* LastData.swift */; };
 		868164E02C5D6093004A67B0 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868164DF2C5D6093004A67B0 /* ChatViewModel.swift */; };
+		86A1CFE72C80615600B4F432 /* ImageOpenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A1CFE62C80615600B4F432 /* ImageOpenView.swift */; };
+		86A1CFE92C80618000B4F432 /* FlexibleGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A1CFE82C80618000B4F432 /* FlexibleGridView.swift */; };
 		86A9ABF92BEEBF0300F4C7FE /* SkillifyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A9ABF82BEEBF0300F4C7FE /* SkillifyApp.swift */; };
 		86A9ABFB2BEEBF0300F4C7FE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A9ABFA2BEEBF0300F4C7FE /* ContentView.swift */; };
 		86A9ABFD2BEEBF0300F4C7FE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86A9ABFC2BEEBF0300F4C7FE /* Assets.xcassets */; };
@@ -153,6 +156,7 @@
 		8610924F2C0DB81300062EBE /* DevicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicesView.swift; sourceTree = "<group>"; };
 		861092512C0DB83200062EBE /* PrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyView.swift; sourceTree = "<group>"; };
 		861092532C0DB86B00062EBE /* BlockedUsersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedUsersView.swift; sourceTree = "<group>"; };
+		861A73DE2C8847A6001EA709 /* EmojiGroup.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EmojiGroup.swift; sourceTree = "<group>"; };
 		8656D5822C023E8300396B45 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		865ADB272BFE1815009CDA90 /* CallManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallManager.swift; sourceTree = "<group>"; };
 		865ADB292BFE1AC1009CDA90 /* AgoraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgoraManager.swift; sourceTree = "<group>"; };
@@ -225,6 +229,8 @@
 		868164D92C5D4F03004A67B0 /* Member.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Member.swift; sourceTree = "<group>"; };
 		868164DD2C5D554B004A67B0 /* LastData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LastData.swift; sourceTree = "<group>"; };
 		868164DF2C5D6093004A67B0 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
+		86A1CFE62C80615600B4F432 /* ImageOpenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageOpenView.swift; sourceTree = "<group>"; };
+		86A1CFE82C80618000B4F432 /* FlexibleGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlexibleGridView.swift; sourceTree = "<group>"; };
 		86A9ABF52BEEBF0300F4C7FE /* Skillify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Skillify.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		86A9ABF82BEEBF0300F4C7FE /* SkillifyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillifyApp.swift; sourceTree = "<group>"; };
 		86A9ABFA2BEEBF0300F4C7FE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -334,6 +340,7 @@
 				86C96D3A2C19D3780058600C /* Course.swift */,
 				868164D92C5D4F03004A67B0 /* Member.swift */,
 				868164DD2C5D554B004A67B0 /* LastData.swift */,
+				861A73DE2C8847A6001EA709 /* EmojiGroup.swift */,
 			);
 			path = Object;
 			sourceTree = "<group>";
@@ -362,6 +369,8 @@
 				86F9F4CD2C176BCF00C6DC28 /* ChangeThemeView.swift */,
 				86C96D362C19CDDC0058600C /* VideoView.swift */,
 				86C086A72C7F549600719941 /* ImageChatPicker.swift */,
+				86A1CFE62C80615600B4F432 /* ImageOpenView.swift */,
+				86A1CFE82C80618000B4F432 /* FlexibleGridView.swift */,
 			);
 			path = Element;
 			sourceTree = "<group>";
@@ -657,6 +666,7 @@
 				86AAE95D2C19664B005F9267 /* VideoScrollsView.swift in Sources */,
 				86A9ABFB2BEEBF0300F4C7FE /* ContentView.swift in Sources */,
 				866286BA2BEECB8400102FA0 /* ChipModel.swift in Sources */,
+				86A1CFE72C80615600B4F432 /* ImageOpenView.swift in Sources */,
 				866286E62BEECB8400102FA0 /* SubscribersView.swift in Sources */,
 				86F9F4CE2C176BCF00C6DC28 /* ChangeThemeView.swift in Sources */,
 				866286C92BEECB8400102FA0 /* SafariView.swift in Sources */,
@@ -664,6 +674,7 @@
 				8610924C2C0DA93B00062EBE /* EmojiCoverView.swift in Sources */,
 				866286C42BEECB8400102FA0 /* ChipContainerView.swift in Sources */,
 				866286C72BEECB8400102FA0 /* DocumentSaver.swift in Sources */,
+				861A73DF2C8847A6001EA709 /* EmojiGroup.swift in Sources */,
 				866286DB2BEECB8400102FA0 /* MessagesView.swift in Sources */,
 				866286E42BEECB8400102FA0 /* SettingsView.swift in Sources */,
 				866286AC2BEECB8400102FA0 /* LearningSkillsModel.swift in Sources */,
@@ -689,6 +700,7 @@
 				866286D62BEECB8400102FA0 /* FavoritesView.swift in Sources */,
 				866286B82BEECB8400102FA0 /* Call.swift in Sources */,
 				866286BD2BEECB8400102FA0 /* Chat.swift in Sources */,
+				86A1CFE92C80618000B4F432 /* FlexibleGridView.swift in Sources */,
 				8610924E2C0DB58F00062EBE /* DismissButton.swift in Sources */,
 				868164E02C5D6093004A67B0 /* ChatViewModel.swift in Sources */,
 				86AAE9612C19669C005F9267 /* Video.swift in Sources */,
@@ -914,7 +926,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Skillify/Skillify.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 50;
+				CURRENT_PROJECT_VERSION = 54;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"Skillify/Preview Content\"";
 				DEVELOPMENT_TEAM = GWXUDX4MQT;
@@ -925,6 +937,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_NSCameraUsageDescription = "For making video calls";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "For audio calls usage";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "The application requires access to a photo library to save images.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -936,7 +949,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.0;
+				MARKETING_VERSION = 1.5.4;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -958,7 +971,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Skillify/Skillify.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 50;
+				CURRENT_PROJECT_VERSION = 54;
 				DEVELOPMENT_ASSET_PATHS = "\"Skillify/Preview Content\"";
 				DEVELOPMENT_TEAM = GWXUDX4MQT;
 				ENABLE_PREVIEWS = YES;
@@ -968,6 +981,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_NSCameraUsageDescription = "For making video calls";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "For audio calls usage";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "The application requires access to a photo library to save images.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -979,7 +993,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.0;
+				MARKETING_VERSION = 1.5.4;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
 				PRODUCT_NAME = "$(TARGET_NAME)";

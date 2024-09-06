@@ -46,6 +46,21 @@ class MessagesViewModel: ObservableObject {
         }
     }
     
+//    func getUserAvatar(userId: String, completion: @escaping (String?) -> Void) {
+//        Firestore.firestore().collection("users").document(userId).getDocument { snap, error in
+//            if let error {
+//                print(error)
+//                completion(nil)
+//            } else {
+//                if let avatarUrl = snap?.get("urlAvatar") as? String {
+//                    completion(avatarUrl)
+//                } else {
+//                    completion(nil)
+//                }
+//            }
+//        }
+//    }
+    
     func checkRead(_ chatId: String, cUid: String) {
         Firestore.firestore().collection("chats").document(chatId).getDocument { snap, error in
             if let error {
@@ -58,6 +73,29 @@ class MessagesViewModel: ObservableObject {
                 }
             }
         }
+    }
+    
+    func groupEmojisAndUsers(from array: [String]) -> [EmojiGroup] {
+        var emojiDict: [String: [String]] = [:]
+        
+        for item in array {
+            let components = item.split(separator: ":")
+            if components.count == 2 {
+                let emoji = String(components[0])
+                let userId = String(components[1])
+                
+                if emojiDict[emoji] != nil {
+                    emojiDict[emoji]?.append(userId)
+                } else {
+                    emojiDict[emoji] = [userId]
+                }
+            }
+        }
+        
+        // Сортировка по количеству пользователей
+        return emojiDict
+            .map { EmojiGroup(emoji: $0.key, userIds: $0.value) }
+            .sorted { $0.userIds.count > $1.userIds.count }
     }
     
     func getUser(userId: String, completion: @escaping (User?) -> Void) {
@@ -155,7 +193,7 @@ class MessagesViewModel: ObservableObject {
         }
     }
     
-    func deleteMessage(chatId: String, messageId: String) {
+    func deleteMessage(chatId: String, messageId: String, completion: @escaping (String?) -> Void) {
         let db = Firestore.firestore()
         
         if messages.count > 1 {
@@ -175,6 +213,7 @@ class MessagesViewModel: ObservableObject {
                 }
             }
         } else {
+            completion("deleted chat")
             deleteChat(chatId: chatId)
         }
     }
@@ -204,11 +243,21 @@ class MessagesViewModel: ObservableObject {
     }
     
     
-    func addEmojiToMessage(chatId: String, messageId: String, emoji: String) {
+    func addEmojiToMessage(chatId: String, messageId: String, emoji: String, userId: String) {
         let db = Firestore.firestore()
-        db.collection("chats").document(chatId).collection("messages").document(messageId).updateData(["emoji": emoji]) { error in
-            if let error {
-                print(error)
+        let emojiString = "\(emoji):\(userId)"
+        
+        if let message = messages.first(where: { $0.id == messageId })?.emoji, message.contains(emojiString) {
+            db.collection("chats").document(chatId).collection("messages").document(messageId).updateData(["emoji": FieldValue.arrayRemove([emojiString])]) { error in
+                if let error {
+                    print(error)
+                }
+            }
+        } else {
+            db.collection("chats").document(chatId).collection("messages").document(messageId).updateData(["emoji": FieldValue.arrayUnion([emojiString])]) { error in
+                if let error {
+                    print(error)
+                }
             }
         }
     }
@@ -254,7 +303,7 @@ class MessagesViewModel: ObservableObject {
         getPlayersIds(chatId: chatId) { users in
             if let users {
                 for user in users {
-                    self.sendNotification(header: userName, playerId: user, messageText: message.text ?? "🏞️ attachment", targetText: "m/\(message.userId)")
+                    self.sendNotification(header: userName, playerId: user, messageText: message.text ?? "🏞️ attachment", targetText: "m/\(message.userId)", chatId: chatId)
                 }
             }
         }
@@ -346,21 +395,24 @@ class MessagesViewModel: ObservableObject {
         }
     }
     
-    private func sendNotification(header: String, playerId: String, messageText: String, targetText: String) {
+    private func sendNotification(header: String, playerId: String, messageText: String, targetText: String, chatId: String) {
         let headers = [
             "accept": "application/json",
-            "Authorization": "Basic NjcwMjEwOWItY2ZjZS00YTY3LTgyZTUtNzkzOTQ4ZGEwNzcy",
+            "Authorization": isSupport(playerId) ? "Basic YzA2ZGI5MWUtYmZjZS00Y2ViLThiODItMTY5ODFjNzEwY2Zj" : "Basic NjcwMjEwOWItY2ZjZS00YTY3LTgyZTUtNzkzOTQ4ZGEwNzcy",
             "content-type": "application/json"
         ]
         
         let parameters = [
             "include_external_user_ids": [playerId],
-            "headings": ["en": header],
+            "headings": ["en": isSupport(playerId) ? "New message to Support: \(header)" : header],
             "contents": ["en": "\(messageText)"],
-            "app_id": "e57ccffe-08a9-4fa8-8a63-8c3b143d2efd",
-            "url": "skillify://\(targetText)"
+            "thread_id": "chat_id_\(chatId)",
+            "app_id": isSupport(playerId) ? "8c7d91d2-8a8d-43c8-945e-649cac38f30b" : "e57ccffe-08a9-4fa8-8a63-8c3b143d2efd",
+            "url": isSupport(playerId) ? "skadmin://\(targetText)" : "skillify://\(targetText)",
+            "ios_badgeType": "Increase",
+            "ios_badgeCount": 1
         ] as [String : Any]
-                
+        
         let postData = try? JSONSerialization.data(withJSONObject: parameters, options: [])
         
         let request = NSMutableURLRequest(url: NSURL(string: "https://onesignal.com/api/v1/notifications")! as URL,
@@ -380,7 +432,12 @@ class MessagesViewModel: ObservableObject {
         })
         
         dataTask.resume()
+        
         print("sent notification")
+    }
+    
+    private func isSupport(_ playerId: String) -> Bool {
+        return (playerId == "Support")
     }
     
     private func playSendSound() {

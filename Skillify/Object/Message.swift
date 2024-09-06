@@ -10,13 +10,13 @@ import Foundation
 struct Message: Codable, Identifiable, Hashable {
     var id: String = UUID().uuidString
     var userId: String = ""
-    var text: String?
+    var text: String? = nil
     var messageType: MessageType = .text
     var status: String = "sent" // or read
     var media: [String]? = nil
     var time: Date = Date()
     var reply: String? = nil
-    var emoji: String? = nil
+    var emoji: [String]? = nil
     var info: [String]? = nil
     var tags: [String]? = nil
     var blocked: String? = nil

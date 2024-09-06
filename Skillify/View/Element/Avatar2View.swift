@@ -45,6 +45,7 @@ struct Avatar2View: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .foregroundColor(.gray)
+                    .background(.white)
                     .frame(width: size, height: size)
                     .clipShape(Circle())
 //                    .padding(.bottom)

@@ -100,7 +100,7 @@ struct PhoneRegisterView: View {
                 .alert(isPresented: $isShowingAlert) {
                     Alert(title: Text("Error"), message: Text(authViewModel.errorMessage ?? "Unknown error"), dismissButton: .default(Text("OK")))
                 }
-                .onChange(of: authViewModel.errorMessage) { _ in
+                .onChange(of: authViewModel.errorMessage) { _, _ in
                     isShowingAlert = authViewModel.errorMessage != nil
                 }
                 Spacer()
