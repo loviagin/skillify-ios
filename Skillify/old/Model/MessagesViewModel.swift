@@ -15,6 +15,8 @@ import AVFoundation
 
 class MessagesViewModel: ObservableObject {
     @Published var messages: [Message] = []
+    @Published var goToMessage: String? = nil
+    
     private var listener: ListenerRegistration?
 
     func fetchMessages(for chatId: String) {
@@ -262,7 +264,7 @@ class MessagesViewModel: ObservableObject {
         }
     }
     
-    func sendMessage(chatId: String, message: Message, chat: Chat? = nil, imageData: [Data]? = nil, userName: String) {
+    func sendMessage(chatId: String, message: Message, chat: Chat? = nil, imageData: [Data]? = nil, videoList: [URL]? = nil, audio: URL? = nil, userName: String) {
         playSendSound()
         
         let db = Firestore.firestore()
@@ -284,8 +286,20 @@ class MessagesViewModel: ObservableObject {
                 if let error {
                     print(error)
                 } else {
+                    var text: String {
+                        if message.messageType == .audio {
+                            return "Voice message"
+                        } else if message.messageType == .photo {
+                            return "🏞️ photo"
+                        } else if message.messageType == .video {
+                            return "🏞️ video"
+                        }
+                        
+                        return message.text ?? "🏞️ attachment"
+                    }
+                    
                     db.collection("chats").document(chatId).updateData([
-                        "last": try! Firestore.Encoder().encode(LastData(text: message.text ?? "🏞️ attachment", userId: message.userId, status: "sent")),
+                        "last": try! Firestore.Encoder().encode(LastData(text: text, userId: message.userId, status: "sent")),
                         "lastTime": Timestamp()
                     ]) { error in
                         if let error {
@@ -295,15 +309,143 @@ class MessagesViewModel: ObservableObject {
                 }
             }
         }
-        
-        if let imageData {
-            uploadImages(imageData: imageData, chatId: chatId, messageId: message.id)
+        if let audio {
+            sendVoiceMessage(audio, chatId: chatId, messageId: message.id)
+        } else {
+            if let imageData {
+                uploadImages(imageData: imageData, chatId: chatId, messageId: message.id)
+            }
+            
+            if let videoList {
+                uploadAllVideos(selectedVideos: videoList, chatId: chatId, messageId: message.id)
+            }
         }
         
         getPlayersIds(chatId: chatId) { users in
             if let users {
+                
+                var text: String {
+                    if message.messageType == .audio {
+                        return "Voice message"
+                    } else if message.messageType == .photo {
+                        return "🏞️ photo"
+                    } else if message.messageType == .video {
+                        return "🏞️ video"
+                    }
+                    
+                    return message.text ?? "🏞️ attachment"
+                }
+                
                 for user in users {
-                    self.sendNotification(header: userName, playerId: user, messageText: message.text ?? "🏞️ attachment", targetText: "m/\(message.userId)", chatId: chatId)
+                    self.sendNotification(header: userName, playerId: user, messageText: text, targetText: "m/\(message.userId)", chatId: chatId)
+                }
+            }
+        }
+    }
+    
+    private func sendVoiceMessage(_ audioFileURL: URL, chatId: String, messageId: String) {
+        let group = DispatchGroup()
+
+        let storage = Storage.storage()
+        let storageRef = storage.reference()
+        
+        // Создаем путь для файла в Firebase Storage
+        let audioRef = storageRef.child("iosUsers/\(Auth.auth().currentUser?.uid ?? "c")/\(UUID().uuidString).m4a")
+        
+        group.enter()
+        
+        // Загружаем файл в Firebase Storage
+        let uploadTask = audioRef.putFile(from: audioFileURL, metadata: nil) { metadata, error in
+            if let error = error {
+                // Обработка ошибки при загрузке
+                print("Error uploading audio file: \(error.localizedDescription)")
+                group.leave()
+                return
+            }
+            
+            // Получаем URL загруженного файла
+            audioRef.downloadURL { url, error in
+                if let error = error {
+                    print("Error fetching download URL: \(error.localizedDescription)")
+                    group.leave()
+                } else if let downloadURL = url {
+                    // URL загруженного аудиофайла
+                    print("Audio file uploaded successfully. Download URL: \(downloadURL.absoluteString)")
+                    
+                    // Здесь вы можете отправить URL в чат или сохранить его в базе данных
+                    self.updateFirestoreDocument(with: downloadURL.absoluteString, chatId: chatId, messageId: messageId) { success in
+                        group.leave() // Выходим из группы после завершения обновления Firestore
+                    }
+                }
+            }
+        }
+        // Здесь можно реализовать логику для загрузки файла на сервер или отправки в чат
+        print("Sending voice message: \(audioFileURL)")
+    }
+    
+    private func uploadAllVideos(selectedVideos: [URL], chatId: String, messageId: String) {
+        let group = DispatchGroup()
+        
+        for videoURL in selectedVideos {
+            group.enter() // Входим в группу
+            
+            uploadVideo(videoURL: videoURL) { [weak self] url in
+                guard let self = self else {
+                    group.leave()
+                    return
+                }
+                
+                if let videoUrl = url {
+                    self.updateFirestoreDocument(with: videoUrl, chatId: chatId, messageId: messageId) { success in
+                        group.leave() // Выходим из группы после завершения обновления Firestore
+                    }
+                } else {
+                    group.leave()
+                }
+            }
+        }
+    }
+    
+    private func uploadVideo(videoURL: URL, completion: @escaping (String?) -> Void) {
+        let storage = Storage.storage()
+        
+        let storageRef = storage.reference().child("iosUsers/\(Auth.auth().currentUser?.uid ?? "c")/\(UUID().uuidString).mov")
+        
+        storageRef.putFile(from: videoURL, metadata: nil) { metadata, error in
+            if let error = error {
+                print("Error uploading \(videoURL.lastPathComponent): \(error.localizedDescription)")
+                completion(nil)
+            }
+            print("Successfully uploaded \(videoURL.lastPathComponent)")
+            storageRef.downloadURL { url, error in
+                if let error = error {
+                    print("Error getting download URL: \(error.localizedDescription)")
+                    completion(nil)
+                } else if let downloadURL = url?.absoluteString {
+                    completion(downloadURL) // Возвращаем URL загруженного изображения
+                }
+            }
+        }
+    }
+    
+    private func uploadImages(imageData: [Data], chatId: String, messageId: String) {
+        let group = DispatchGroup()
+        
+        for data in imageData {
+            group.enter() // Входим в группу
+            
+            uploadImage(data: data) { [weak self] url in
+                guard let self = self else {
+                    group.leave()
+                    return
+                }
+                
+                if let imageUrl = url {
+                    self.updateFirestoreDocument(with: imageUrl, chatId: chatId, messageId: messageId) { success in
+                        group.leave() // Выходим из группы после завершения обновления Firestore
+                    }
+                } else {
+                    group.leave()
                 }
             }
         }
@@ -347,29 +489,6 @@ class MessagesViewModel: ObservableObject {
                 completion(false)
             } else {
                 completion(true)
-            }
-        }
-    }
-    
-    private func uploadImages(imageData: [Data], chatId: String, messageId: String) {
-        let group = DispatchGroup()
-        
-        for data in imageData {
-            group.enter() // Входим в группу
-            
-            uploadImage(data: data) { [weak self] url in
-                guard let self = self else {
-                    group.leave()
-                    return
-                }
-                
-                if let imageUrl = url {
-                    self.updateFirestoreDocument(with: imageUrl, chatId: chatId, messageId: messageId) { success in
-                        group.leave() // Выходим из группы после завершения обновления Firestore
-                    }
-                } else {
-                    group.leave()
-                }
             }
         }
     }

@@ -7,7 +7,7 @@
 
 import SwiftUI
 import CoreImage.CIFilterBuiltins
-
+//https://web.skillify.space/profile.html?n=
 struct ShareProfileView: View {
     @State var user: User
     
@@ -21,7 +21,7 @@ struct ShareProfileView: View {
                 .font(.title)
                 .bold()
             
-            if let qrImage = generateQRCode(from: "skillify://@\(user.nickname)") {
+            if let qrImage = generateQRCode(from: "https://web.skillify.space/profile.html?n=\(user.nickname)") {
                 Image(uiImage: qrImage)
                     .interpolation(.none)
                     .resizable()
@@ -43,7 +43,7 @@ struct ShareProfileView: View {
                 Spacer()
                 
                 Button {
-                    UIPasteboard.general.string = "skillify://@\(user.nickname)"
+                    UIPasteboard.general.string = "https://web.skillify.space/profile.html?n=\(user.nickname)"
                     showText = true
                     
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
@@ -59,6 +59,11 @@ struct ShareProfileView: View {
             .clipShape(RoundedRectangle(cornerRadius: 15))
             .padding(.horizontal, 30)
             .padding(.vertical)
+            
+            Text("web.skillify.space/profile.html?n=\(user.nickname)")
+                .multilineTextAlignment(.center)
+                .font(.footnote)
+                .foregroundStyle(.blue)
             
             if showText {
                 Text("Copied")

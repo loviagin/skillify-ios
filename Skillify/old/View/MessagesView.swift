@@ -11,6 +11,7 @@ import Kingfisher
 import FirebaseAuth
 
 struct MessagesView: View {
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var chatViewModel: ChatViewModel
     @EnvironmentObject private var userViewModel: AuthViewModel
 
@@ -27,7 +28,11 @@ struct MessagesView: View {
     @State private var showProfile = false
     @State private var replyMessage: Message?
     @State private var editMessage: Message?
+    
     @State var selectedImages: [UIImage] = []
+    @State var selectedVideos: [URL] = []
+    @State var audioFileURL: URL?
+    @State var audioLevels: [Float] = []
     
     @FocusState var focusing: ChatFocus?
 
@@ -50,12 +55,24 @@ struct MessagesView: View {
                 }
                 .onAppear {
                     if let lastItem = messages.last {
-                        proxy.scrollTo(lastItem.id, anchor: .bottom)
+                        withAnimation {
+                            proxy.scrollTo(lastItem.id, anchor: .bottom)
+                        }
                     }
                 }
                 .onChange(of: messages) { _, _ in
                     if let lastItem = messages.last {
-                        proxy.scrollTo(lastItem.id, anchor: .bottom)
+                        withAnimation {
+                            proxy.scrollTo(lastItem.id, anchor: .bottom)
+                        }
+                    }
+                }
+                .onChange(of: viewModel.goToMessage) { _, newValue in
+                    if let newValue {
+                        withAnimation {
+                            proxy.scrollTo(newValue, anchor: .top)
+                            viewModel.goToMessage = nil
+                        }
                     }
                 }
             }
@@ -130,7 +147,7 @@ struct MessagesView: View {
                         }
                     }
                     
-                    BottomBarChatView(text: $text, focusing: $focusing, sendAction: { sendChat() }, selectedImages: $selectedImages)
+                    BottomBarChatView(text: $text, focusing: $focusing, sendAction: { sendChat() }, selectedImages: $selectedImages, selectedVideos: $selectedVideos, audioFileURL: $audioFileURL, audioLevels: $audioLevels)
                 }
             }
             .padding(10)
@@ -194,6 +211,19 @@ struct MessagesView: View {
                                     self.theme = "theme1"
                                 }
                             }
+                        }
+                    }
+                    
+                    //MARK: - блокирование пользователя
+                    if let blockedUsers = userViewModel.currentUser?.blockedUsers, blockedUsers.contains(userId) {
+                        Button("Unblock user", systemImage: "person") {
+                            userViewModel.unblockUser(userId: userId)
+                        }
+                    } else {
+                        // Если пользователь не заблокирован
+                        Button("Block user", systemImage: "person.slash") {
+                            userViewModel.blockUser(userId: userId)
+                            dismiss()
                         }
                     }
                 } label: {
@@ -267,7 +297,7 @@ struct MessagesView: View {
         }
         
         //MARK: - проверка что есть или текст или медиа
-        if text.isEmpty && selectedImages.isEmpty {
+        if text.isEmpty && selectedImages.isEmpty && selectedVideos.isEmpty && audioFileURL == nil {
             return
         } else if let message = editMessage, !chatId.isEmpty {
             viewModel.editTextMessage(chatId: chatId, messageId: message.id, newText: text)
@@ -292,7 +322,11 @@ struct MessagesView: View {
         var newChat: Chat? = nil
         var imageData: [Data] = []
         
-        if !selectedImages.isEmpty {
+        if audioFileURL != nil {
+            message.messageType = .audio
+            message.text = nil
+            message.info = audioLevels
+        } else if !selectedImages.isEmpty {
             message.messageType = .photo
             
             for image in selectedImages {
@@ -302,6 +336,8 @@ struct MessagesView: View {
             }
             
             selectedImages.removeAll()
+        } else if !selectedVideos.isEmpty {
+            message.messageType = .video
         }
         
         //MARK: - в список сообщений добавляется новое сообщение до его отправки (если чат не новый)
@@ -311,13 +347,25 @@ struct MessagesView: View {
         } else if !userId.isEmpty {
             print("чат новый")
             
+            var text: String {
+                if message.messageType == .audio {
+                    return "Voice message"
+                } else if message.messageType == .photo {
+                    return "🏞️ photo"
+                } else if message.messageType == .video {
+                    return "🏞️ video"
+                }
+                
+                return message.text ?? "🏞️ attachment"
+            }
+            
             newChat = Chat(
                 id: isSystem() ? "Support\(Auth.auth().currentUser?.uid ?? "")" : UUID().uuidString,
                 users: [
                     currentUser.id,
                     userId
                 ],
-                last: LastData(text: message.text ?? "🏞️ attachment", userId: currentUser.id, status: "sent"),
+                last: LastData(text: text, userId: currentUser.id, status: "sent"),
                 lastTime: Date(),
                 type: isSystem() ? .privateGroup : .personal
             )
@@ -331,12 +379,16 @@ struct MessagesView: View {
             message: message,
             chat: newChat,
             imageData: imageData.isEmpty ? nil : imageData,
+            videoList: selectedVideos.isEmpty ? nil : selectedVideos,
+            audio: audioFileURL,
             userName: "\(currentUser.first_name) \(currentUser.last_name)"
         )
         
         withAnimation {
             text = ""
             replyMessage = nil
+            selectedVideos.removeAll()
+            audioFileURL = nil
         }
     }
     
@@ -346,9 +398,9 @@ struct MessagesView: View {
     
     private func appearAction() {
         if isSystem() {
-            if let chat = chatViewModel.chats.first(where:
-                                                        { $0.id == "\(userId)\(Auth.auth().currentUser?.uid ?? "")" })
-            { // existing chat
+            if let chat = chatViewModel.chats.first(where: {
+                $0.id == "\(userId)\(Auth.auth().currentUser?.uid ?? "")"
+            }) { // existing chat
                 self.chatId = chat.id
                 viewModel.fetchMessages(for: chatId)
             }
@@ -423,13 +475,20 @@ struct NewChatItemView: View {
             }
             
             VStack(alignment: isCurrent ? .trailing : .leading) {
-                if let media = message.media, !media.isEmpty {
-                    FlexibleGridView(media: media)
-                        .padding(.bottom, 5)
-                }
-               
                 if let replyId = message.reply, let replyMessage = viewModel.messages.first(where: { $0.id == replyId }) {
                     Text(replyMessage.text ?? "🏞️ attachment")
+                        .font(.caption)
+                        .lineLimit(1)
+                        .foregroundStyle(.primary.opacity(0.7))
+                        .onTapGesture {
+                            withAnimation {
+                                viewModel.goToMessage = replyId
+                            }
+                        }
+                    
+                    Divider()
+                } else if let forward = message.forward {
+                    Text("Forwarded from: \(forward)")
                         .font(.caption)
                         .lineLimit(1)
                         .foregroundStyle(.primary.opacity(0.7))
@@ -437,12 +496,26 @@ struct NewChatItemView: View {
                     Divider()
                 }
                 
+                if message.messageType == .photo, let media = message.media, !media.isEmpty {
+                    FlexibleGridView(media: media)
+                        .padding(.bottom, 5)
+                }
+                
+                if message.messageType == .video, let media = message.media, !media.isEmpty {
+                    FlexibleVideoView(media: media)
+                        .padding(.bottom, 5)
+                }
+                
                 if let text = message.text {
                     Text(text)
                         .multilineTextAlignment(isCurrent ? .trailing : .leading)
                 }
                 
-                HStack(spacing: 0) {
+                if message.messageType == .audio, let media = message.media?.first, let info = message.info, let url = URL(string: media) {
+                    AudioMessageView(audioURL: url, audioLevels: info, current: isCurrent)
+                }
+                
+                HStack(alignment: .bottom, spacing: 0) {
                     if let emojiArray = message.emoji {
                         ForEach(viewModel.groupEmojisAndUsers(from: emojiArray), id: \.emoji) { group in
                             HStack(spacing: 0) {
@@ -464,7 +537,7 @@ struct NewChatItemView: View {
                                             avatarUrl: isCurrentUser(userId: userId) ? (authViewModel.currentUser?.urlAvatar ?? "avatar1") : (user?.urlAvatar ?? "avatar1"),
                                             size: 30, maxHeight: 30)
                                             .overlay(
-                                                Circle().stroke(Color.white, lineWidth: 2)  // Добавление белой обводки
+                                                Circle().stroke(Color.white, lineWidth: 2)
                                             )
                                             .padding(.leading, -8)
                                     }
@@ -486,19 +559,22 @@ struct NewChatItemView: View {
                         .font(.caption)
                         .foregroundColor(isCurrent ? .white : .gray)
                     
-                    if isCurrent {
-                        Image(systemName: "checkmark")
-                            .resizable()
-                            .frame(width: 10, height: 10)
-                            .padding(.leading, 7)
-                        
-                        if message.status == "read" {
+                    Group {
+                        if isCurrent {
                             Image(systemName: "checkmark")
                                 .resizable()
                                 .frame(width: 10, height: 10)
-                                .padding(.leading, -7)
+                                .padding(.leading, 7)
+                            
+                            if message.status == "read" {
+                                Image(systemName: "checkmark")
+                                    .resizable()
+                                    .frame(width: 10, height: 10)
+                                    .padding(.leading, -7)
+                            }
                         }
                     }
+                    .padding(.bottom, 3)
                 }
             }
             .padding(.vertical)
@@ -539,19 +615,27 @@ struct NewChatItemView: View {
                 }
                 
                 if isCurrent {
-                    Button("Edit", systemImage: "square.and.pencil") {
-                        withAnimation {
-                            replyMessage = nil
-                            editMessage = message
+                    if message.messageType != .audio {
+                        Button("Edit", systemImage: "square.and.pencil") {
+                            withAnimation {
+                                replyMessage = nil
+                                editMessage = message
+                            }
                         }
                     }
                     
-                    Button("Delete", systemImage: "trash", role: .destructive) {
-                        viewModel.deleteMessage(chatId: chatId, messageId: message.id) { info in
-                            if let info, info == "deleted chat" {
-                                dismiss()
+                    Menu {
+                        Button("Confirm deleting", systemImage: "trash", role: .destructive) {
+                            viewModel.deleteMessage(chatId: chatId, messageId: message.id) { info in
+                                if let info, info == "deleted chat" {
+                                    dismiss()
+                                }
                             }
                         }
+                    } label: {
+                        Image(systemName: "trash")
+                            .tint(.red)
+                        Text("Delete")
                     }
                 }
             }
@@ -623,16 +707,143 @@ struct NewChatItemView: View {
     
     private func getDate(message: Message) -> String {
         let formatter = DateFormatter()
-        
-        // Определяем, в текущем ли году эта дата
         let calendar = Calendar.current
-        if calendar.isDate(message.time, equalTo: Date(), toGranularity: .year) {
-            formatter.dateFormat = "MMM d',' HH:mm"
-        } else {
-            formatter.dateFormat = "MMM d, yyyy',' HH:mm"
+        let now = Date()
+        
+        // Проверяем, является ли дата сегодняшней
+        if calendar.isDate(message.time, inSameDayAs: now) {
+            // Если сообщение отправлено сегодня, возвращаем только время
+            formatter.dateFormat = "HH:mm"
+            return formatter.string(from: message.time)
         }
         
-        return formatter.string(from: message.time)
+        // Проверяем, является ли дата вчерашней
+        if let yesterday = calendar.date(byAdding: .day, value: -1, to: now),
+           calendar.isDate(message.time, inSameDayAs: yesterday) {
+            // Если сообщение отправлено вчера, возвращаем "Yesterday" и время
+            formatter.dateFormat = "HH:mm"
+            return "Yesterday, \(formatter.string(from: message.time))"
+        }
+        
+        // Проверяем, является ли дата из текущей недели
+        if calendar.isDate(message.time, equalTo: now, toGranularity: .weekOfYear) {
+            // Если сообщение отправлено на этой неделе, возвращаем день недели и время
+            formatter.dateFormat = "EEEE, HH:mm"
+            return formatter.string(from: message.time)
+        }
+        
+        // Проверяем, является ли дата из текущего месяца
+        if calendar.isDate(message.time, equalTo: now, toGranularity: .month) {
+            // Если сообщение отправлено в этом месяце, возвращаем просто день и время
+            formatter.dateFormat = "MMM d',' HH:mm"
+            return formatter.string(from: message.time)
+        }
+        
+        // Проверяем, является ли дата из текущего года
+        if calendar.isDate(message.time, equalTo: now, toGranularity: .year) {
+            // Если сообщение отправлено в этом году, возвращаем месяц и день
+            formatter.dateFormat = "MMM d',' HH:mm"
+            return formatter.string(from: message.time)
+        } else {
+            // Если сообщение отправлено в другом году, возвращаем месяц и год
+            formatter.dateFormat = "MMM yyyy"
+            return formatter.string(from: message.time)
+        }
+    }
+}
+
+struct AudioMessageView: View {
+    @State private var isPlaying = false
+    @State private var audioPlayer: AVAudioPlayer?
+    @State var audioLevels: [Float] = []  // Уровни громкости для отображения
+    @State var isCurrent: Bool
+    let audioURL: URL  // Ссылка на аудиофайл
+    
+    private var coordinator: AudioPlayerCoordinator
+    
+    init(audioURL: URL, audioLevels: [Float], current: Bool) {
+        self.isCurrent = current
+        self.audioURL = audioURL
+        self.audioLevels = audioLevels
+        self.coordinator = AudioPlayerCoordinator()
+    }
+
+    var body: some View {
+        HStack {
+            Button(action: {
+                isPlaying ? pauseAudio() : playAudio()
+            }) {
+                Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                    .resizable()
+                    .frame(width: 40, height: 40)
+                    .foregroundColor(isCurrent ? .white : .blue)
+            }
+
+            AudioWaveformView(levels: audioLevels, isCurrent: isCurrent)
+                .frame(height: 40)
+                .padding()
+        }
+        .onAppear {
+            setupAudioPlayer()
+        }
+        .onDisappear {
+            stopAudio()
+        }
+    }
+
+    // Настраиваем аудиоплеер
+    private func setupAudioPlayer() {
+        // Асинхронно загружаем данные с помощью URLSession
+        let task = URLSession.shared.dataTask(with: audioURL) { data, response, error in
+            guard let data = data, error == nil else {
+                print("Error loading audio file: \(error?.localizedDescription ?? "Unknown error")")
+                return
+            }
+
+            // Выполняем дальнейшие действия на главном потоке
+            DispatchQueue.main.async {
+                do {
+                    self.audioPlayer = try AVAudioPlayer(data: data)
+                    self.audioPlayer?.isMeteringEnabled = true
+                    self.audioPlayer?.delegate = self.coordinator  // Устанавливаем делегат через координатор
+                    self.coordinator.onFinishPlaying = {
+                        self.isPlaying = false
+                    }
+                } catch {
+                    print("Error initializing audio player: \(error.localizedDescription)")
+                }
+            }
+        }
+        
+        task.resume()  // Начинаем загрузку данных
+    }
+
+    // Запуск воспроизведения аудио
+    private func playAudio() {
+        audioPlayer?.play()
+        isPlaying = true
+    }
+
+    // Пауза аудио
+    private func pauseAudio() {
+        audioPlayer?.pause()
+        isPlaying = false
+    }
+
+    // Остановка аудио при завершении
+    private func stopAudio() {
+        audioPlayer?.stop()
+        isPlaying = false
+    }
+}
+
+// Класс координатора для управления делегатом
+class AudioPlayerCoordinator: NSObject, AVAudioPlayerDelegate {
+    var onFinishPlaying: (() -> Void)?
+
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        // Когда аудиоплеер завершает воспроизведение
+        onFinishPlaying?()
     }
 }
 
@@ -640,12 +851,22 @@ struct BottomBarChatView: View {
     @Binding var text: String
     @FocusState.Binding var focusing: ChatFocus?
     var sendAction: () -> Void
-    
+
     @State private var showAttach = false
-    
+
     @Binding var selectedImages: [UIImage]
-    @State var showPhotoPicker = false
+    @Binding var selectedVideos: [URL]
+    @Binding var audioFileURL: URL?
+    @Binding var audioLevels: [Float]
     
+    @State private var isRecording = false
+    @State private var audioRecorder: AVAudioRecorder?
+    @State private var audioPlayer: AVAudioPlayer?
+    @State private var timer: Timer?
+    
+    @State var showPhotoPicker = false
+    @State var showVideoPicker = false
+
     var body: some View {
         VStack {
             if !selectedImages.isEmpty {
@@ -666,8 +887,9 @@ struct BottomBarChatView: View {
                                     Image(systemName: "xmark.circle.fill")
                                         .resizable()
                                         .scaledToFill()
-                                        .foregroundStyle(.gray)
                                         .frame(width: 24, height: 24)
+                                        .foregroundColor(.white)  // Цвет крестика
+                                        .background(Circle().fill(Color.gray))  // Серый фон для круга
                                 }
                             }
                         }
@@ -675,35 +897,115 @@ struct BottomBarChatView: View {
                 }
                 .scrollIndicators(.never)
             }
-            
-            HStack(spacing: 10) {
-                Button {
-                    withAnimation {
-                        showAttach = true
+
+            if !selectedVideos.isEmpty {
+                ScrollView(.horizontal) {
+                    HStack {
+                        ForEach(Array(selectedVideos.enumerated()), id: \.element) { index, videoURL in
+                            ZStack {
+                                VideoThumbnailView(videoURL: videoURL)  // Новый компонент для видео миниатюры
+                                    .frame(width: 80, height: 80)
+                                    .clipShape(RoundedRectangle(cornerRadius: 15))
+                                    .clipped()
+                                
+                                Button {
+                                    selectedVideos.remove(at: index)
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 24, height: 24)
+                                        .foregroundColor(.white)  // Цвет крестика
+                                        .background(Circle().fill(Color.gray))  // Серый фон для круга
+                                }
+                            }
+                        }
                     }
-                } label: {
-                    Image(systemName: "paperclip")
-                        .resizable()
-                        .frame(width: 23, height: 23)
+                }
+                .scrollIndicators(.never)
+            }
+
+            HStack(spacing: 10) {
+                if audioFileURL != nil {
+                    HStack {
+                        Button {
+                            withAnimation {
+                                stopPlaying()
+                                audioFileURL = nil
+                            }
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .resizable()
+                                .frame(width: 23, height: 23)
+                                .tint(.red)
+                        }
+                        
+                        Button {
+                            playRecording()
+                        } label: {
+                            Image(systemName: "play.circle.fill")
+                                .resizable()
+                                .frame(width: 23, height: 23)
+                        }
+                    }
+                } else if !isRecording {
+                    Button {
+                        withAnimation {
+                            showAttach = true
+                        }
+                    } label: {
+                        Image(systemName: "paperclip")
+                            .resizable()
+                            .frame(width: 23, height: 23)
+                    }
                 }
                 
-                TextField("Type", text: $text, prompt: Text("Type..."), axis: .vertical)
-                    .padding(5)
-                    .background(.gray.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .lineLimit(4)
-                    .submitLabel(.send)
-                    .focused($focusing, equals: ChatFocus.textField)
-                    .onSubmit {
-                        sendAction()
-                    }
+                if isRecording || audioFileURL != nil {
+                    AudioWaveformView(levels: audioLevels)
+                        .frame(height: 40)
+                        .padding()
+                } else {
+                    TextField("Type", text: $text, prompt: Text("Type..."), axis: .vertical)
+                        .padding(5)
+                        .background(.gray.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .lineLimit(4)
+                        .focused($focusing, equals: ChatFocus.textField)
+                }
                 
-                Button {
-                    sendAction()
-                } label: {
-                    Image(systemName: "paperplane")
+                if text.isEmpty && audioFileURL == nil {
+                    Image(systemName: "mic")
                         .resizable()
-                        .frame(width: 23, height: 23)
+                        .scaledToFit()
+                        .frame(height: 23)
+                        .foregroundStyle(.blue)
+                        .background(
+                            Circle()
+                                .stroke(isRecording ? Color.blue : Color.clear, lineWidth: isRecording ? 8 : 0)  // Обводка вокруг кнопки
+                                .scaleEffect(isRecording ? 1.2 : 1.0)
+                                .opacity(isRecording ? 1.0 : 0.0)
+                                .animation(.easeInOut(duration: 0.3), value: isRecording)
+                        )
+                        .gesture(
+                            DragGesture(minimumDistance: 0)
+                                .onChanged { _ in
+                                    if !isRecording {
+                                        startRecording()
+                                    }
+                                }
+                                .onEnded { _ in
+                                    stopRecording()
+                                }
+                        )
+                } else {
+                    Button {
+                        stopPlaying()
+                        sendAction()
+                    } label: {
+                        Image(systemName: "paperplane")
+                            .resizable()
+                            .frame(width: 23, height: 23)
+                    }
                 }
             }
         }
@@ -713,11 +1015,143 @@ struct BottomBarChatView: View {
                     showPhotoPicker = true
                 }
             }
+            Button("Video") {
+                withAnimation {
+                    showVideoPicker = true
+                }
+            }
         }
         .sheet(isPresented: $showPhotoPicker) {
             ImageChatPicker(selectedImages: $selectedImages)
                 .ignoresSafeArea()
         }
+        .sheet(isPresented: $showVideoPicker) {
+            VideoChatPicker(selectedVideos: $selectedVideos)
+                .ignoresSafeArea()
+        }
+    }
+    
+    private func startRecording() {
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setCategory(.playAndRecord, mode: .default)
+            try audioSession.setActive(true)
+            
+            let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let audioFilename = documentDirectory.appendingPathComponent("voiceMessage.m4a")
+            let settings = [
+                AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                AVSampleRateKey: 12000,
+                AVNumberOfChannelsKey: 1,
+                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+            ]
+            
+            audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
+            audioRecorder?.isMeteringEnabled = true  // Включаем измерение уровня громкости
+            audioRecorder?.prepareToRecord()
+            audioRecorder?.record()
+            
+            isRecording = true
+            audioLevels = []  // Очищаем данные перед новой записью
+            
+            // Запускаем таймер для регулярного обновления уровня громкости
+            timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
+                self.updateAudioLevels()
+            }
+        } catch {
+            print("Failed to start recording: \(error.localizedDescription)")
+        }
+    }
+    
+    private func stopRecording() {
+        audioRecorder?.stop()
+        isRecording = false
+        
+        if let recorder = audioRecorder {
+            audioFileURL = recorder.url
+        }
+        
+        // Останавливаем таймер
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    private func playRecording() {
+        guard let audioFileURL = audioFileURL else { return }
+        
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: audioFileURL)
+            audioPlayer?.play()
+        } catch {
+            print("Failed to play recording: \(error.localizedDescription)")
+        }
+    }
+    
+    private func stopPlaying() {
+        guard audioFileURL != nil else { return }
+        
+        audioPlayer?.stop()  // Останавливаем воспроизведение и сбрасываем на начало
+        audioPlayer?.currentTime = 0  // Сбрасываем текущее время воспроизведения на начало файла
+    }
+    
+    private func updateAudioLevels() {
+        guard let recorder = audioRecorder else { return }
+        
+        recorder.updateMeters()
+        let level = recorder.averagePower(forChannel: 0)
+        let normalizedLevel = normalizedAudioLevel(level: level)
+        audioLevels.append(normalizedLevel)
+        
+        // Ограничиваем размер массива до 100 элементов для оптимальной визуализации
+        if audioLevels.count > 100 {
+            audioLevels.removeFirst()
+        }
+    }
+    
+    private func normalizedAudioLevel(level: Float) -> Float {
+        let minLevel: Float = -80
+        let range = 80
+        let outRange: Float = 1.0
+        
+        if level < minLevel {
+            return 0.0
+        } else {
+            return (outRange * (level + abs(minLevel))) / Float(range)
+        }
+    }
+}
+
+struct AudioWaveformView: View {
+    var levels: [Float]
+    var isCurrent = false
+
+    var body: some View {
+        GeometryReader { geometry in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .center, spacing: 2) {
+                    ForEach(levels, id: \.self) { level in
+                        BarView(value: CGFloat(level), maxHeight: geometry.size.height, isCurrent: isCurrent)
+                    }
+                }
+                .frame(width: max(CGFloat(levels.count) * 5, geometry.size.width), height: geometry.size.height)
+                .animation(.linear(duration: 0.1), value: levels)  // Анимация для плавного движения
+            }
+            .onAppear {
+                print("levels \(levels)")
+            }
+        }
+    }
+}
+
+struct BarView: View {
+    var value: CGFloat
+    var maxHeight: CGFloat
+    var isCurrent: Bool
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 2)
+            .fill(isCurrent ? Color.white : Color.blue)
+            .frame(width: 3, height: maxHeight * value)
     }
 }
 

@@ -22,6 +22,9 @@
 		861A73DF2C8847A6001EA709 /* EmojiGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861A73DE2C8847A6001EA709 /* EmojiGroup.swift */; };
 		862813032BEF878B003FA32E /* OneSignalExtension in Frameworks */ = {isa = PBXBuildFile; productRef = 862813022BEF878B003FA32E /* OneSignalExtension */; };
 		862813052BEF878B003FA32E /* OneSignalFramework in Frameworks */ = {isa = PBXBuildFile; productRef = 862813042BEF878B003FA32E /* OneSignalFramework */; };
+		864982052C9F5E0A001E081B /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 864982042C9F5E0A001E081B /* MainView.swift */; };
+		8649820A2C9F6044001E081B /* UsersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 864982092C9F6044001E081B /* UsersViewModel.swift */; };
+		8649820C2C9F60A7001E081B /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8649820B2C9F60A7001E081B /* UserModel.swift */; };
 		8656D5832C023E8300396B45 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8656D5822C023E8300396B45 /* GoogleService-Info.plist */; };
 		865ADB222BFE16EF009CDA90 /* RtcBasic in Frameworks */ = {isa = PBXBuildFile; productRef = 865ADB212BFE16EF009CDA90 /* RtcBasic */; };
 		865ADB242BFE16EF009CDA90 /* VideoCodecDec in Frameworks */ = {isa = PBXBuildFile; productRef = 865ADB232BFE16EF009CDA90 /* VideoCodecDec */; };
@@ -116,6 +119,11 @@
 		86C96D372C19CDDC0058600C /* VideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C96D362C19CDDC0058600C /* VideoView.swift */; };
 		86C96D392C19D3600058600C /* CoursesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C96D382C19D3600058600C /* CoursesViewModel.swift */; };
 		86C96D3B2C19D3780058600C /* Course.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C96D3A2C19D3780058600C /* Course.swift */; };
+		86EA10B92C8C97710005D366 /* VideoChatPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86EA10B82C8C97710005D366 /* VideoChatPicker.swift */; };
+		86EA10BB2C8C99270005D366 /* VideoThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86EA10BA2C8C99270005D366 /* VideoThumbnailView.swift */; };
+		86EA10BD2C8CA30A0005D366 /* VideoPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86EA10BC2C8CA30A0005D366 /* VideoPlayerView.swift */; };
+		86EA10BF2C8CA32F0005D366 /* VideoOpenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86EA10BE2C8CA32F0005D366 /* VideoOpenView.swift */; };
+		86EA10C12C8CA34D0005D366 /* FlexibleVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86EA10C02C8CA34D0005D366 /* FlexibleVideoView.swift */; };
 		86F025542C005997008BE8B4 /* Avatar2View.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86F025532C005997008BE8B4 /* Avatar2View.swift */; };
 		86F239BE2C6E1E1800F359E4 /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 86F239BD2C6E1E1800F359E4 /* FirebaseFirestoreSwift */; };
 		86F9F4CE2C176BCF00C6DC28 /* ChangeThemeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86F9F4CD2C176BCF00C6DC28 /* ChangeThemeView.swift */; };
@@ -157,6 +165,9 @@
 		861092512C0DB83200062EBE /* PrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyView.swift; sourceTree = "<group>"; };
 		861092532C0DB86B00062EBE /* BlockedUsersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedUsersView.swift; sourceTree = "<group>"; };
 		861A73DE2C8847A6001EA709 /* EmojiGroup.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EmojiGroup.swift; sourceTree = "<group>"; };
+		864982042C9F5E0A001E081B /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		864982092C9F6044001E081B /* UsersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsersViewModel.swift; sourceTree = "<group>"; };
+		8649820B2C9F60A7001E081B /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		8656D5822C023E8300396B45 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		865ADB272BFE1815009CDA90 /* CallManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallManager.swift; sourceTree = "<group>"; };
 		865ADB292BFE1AC1009CDA90 /* AgoraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgoraManager.swift; sourceTree = "<group>"; };
@@ -244,6 +255,11 @@
 		86C96D362C19CDDC0058600C /* VideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoView.swift; sourceTree = "<group>"; };
 		86C96D382C19D3600058600C /* CoursesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoursesViewModel.swift; sourceTree = "<group>"; };
 		86C96D3A2C19D3780058600C /* Course.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Course.swift; sourceTree = "<group>"; };
+		86EA10B82C8C97710005D366 /* VideoChatPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoChatPicker.swift; sourceTree = "<group>"; };
+		86EA10BA2C8C99270005D366 /* VideoThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoThumbnailView.swift; sourceTree = "<group>"; };
+		86EA10BC2C8CA30A0005D366 /* VideoPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayerView.swift; sourceTree = "<group>"; };
+		86EA10BE2C8CA32F0005D366 /* VideoOpenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoOpenView.swift; sourceTree = "<group>"; };
+		86EA10C02C8CA34D0005D366 /* FlexibleVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlexibleVideoView.swift; sourceTree = "<group>"; };
 		86F025532C005997008BE8B4 /* Avatar2View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Avatar2View.swift; sourceTree = "<group>"; };
 		86F9F4CD2C176BCF00C6DC28 /* ChangeThemeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeThemeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -284,6 +300,53 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		864982022C9F5D91001E081B /* new */ = {
+			isa = PBXGroup;
+			children = (
+				864982082C9F6030001E081B /* ViewModel */,
+				864982072C9F602B001E081B /* Model */,
+				864982062C9F6026001E081B /* View */,
+				864982042C9F5E0A001E081B /* MainView.swift */,
+			);
+			path = new;
+			sourceTree = "<group>";
+		};
+		864982032C9F5D9A001E081B /* old */ = {
+			isa = PBXGroup;
+			children = (
+				86A9ABFA2BEEBF0300F4C7FE /* ContentView.swift */,
+				866286622BEECA6500102FA0 /* ringtone.wav */,
+				866286A92BEECB8400102FA0 /* View */,
+				866286762BEECB8400102FA0 /* Helpers */,
+				8662866F2BEECB8400102FA0 /* Model */,
+				866286812BEECB8400102FA0 /* Object */,
+			);
+			path = old;
+			sourceTree = "<group>";
+		};
+		864982062C9F6026001E081B /* View */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		864982072C9F602B001E081B /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				8649820B2C9F60A7001E081B /* UserModel.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		864982082C9F6030001E081B /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				864982092C9F6044001E081B /* UsersViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
 		865ADB2B2BFE297D009CDA90 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -371,6 +434,11 @@
 				86C086A72C7F549600719941 /* ImageChatPicker.swift */,
 				86A1CFE62C80615600B4F432 /* ImageOpenView.swift */,
 				86A1CFE82C80618000B4F432 /* FlexibleGridView.swift */,
+				86EA10B82C8C97710005D366 /* VideoChatPicker.swift */,
+				86EA10BA2C8C99270005D366 /* VideoThumbnailView.swift */,
+				86EA10BC2C8CA30A0005D366 /* VideoPlayerView.swift */,
+				86EA10BE2C8CA32F0005D366 /* VideoOpenView.swift */,
+				86EA10C02C8CA34D0005D366 /* FlexibleVideoView.swift */,
 			);
 			path = Element;
 			sourceTree = "<group>";
@@ -445,18 +513,14 @@
 		86A9ABF72BEEBF0300F4C7FE /* Skillify */ = {
 			isa = PBXGroup;
 			children = (
-				866286A92BEECB8400102FA0 /* View */,
-				866286762BEECB8400102FA0 /* Helpers */,
-				8662866F2BEECB8400102FA0 /* Model */,
-				866286812BEECB8400102FA0 /* Object */,
+				864982032C9F5D9A001E081B /* old */,
+				864982022C9F5D91001E081B /* new */,
 				866286612BEEC61200102FA0 /* Skillify.entitlements */,
 				86A9AC182BEEC26000F4C7FE /* Info.plist */,
 				86A9ABF82BEEBF0300F4C7FE /* SkillifyApp.swift */,
-				86A9ABFA2BEEBF0300F4C7FE /* ContentView.swift */,
 				86A9ABFC2BEEBF0300F4C7FE /* Assets.xcassets */,
 				866286642BEECA7500102FA0 /* Launch Screen.storyboard */,
 				8656D5822C023E8300396B45 /* GoogleService-Info.plist */,
-				866286622BEECA6500102FA0 /* ringtone.wav */,
 				86A9ABFE2BEEBF0300F4C7FE /* Preview Content */,
 			);
 			path = Skillify;
@@ -652,6 +716,7 @@
 				866286AE2BEECB8400102FA0 /* SearchViewModel.swift in Sources */,
 				867257B72C7F6ADD004841F2 /* Media.swift in Sources */,
 				866286C02BEECB8400102FA0 /* User.swift in Sources */,
+				86EA10BB2C8C99270005D366 /* VideoThumbnailView.swift in Sources */,
 				866286DE2BEECB8400102FA0 /* PhoneRegisterView.swift in Sources */,
 				866286B52BEECB8400102FA0 /* ImagePicker.swift in Sources */,
 				866286E02BEECB8400102FA0 /* ProfileView.swift in Sources */,
@@ -663,13 +728,16 @@
 				861092462C0CF16200062EBE /* CustomizeProfileView.swift in Sources */,
 				866286E12BEECB8400102FA0 /* ProView.swift in Sources */,
 				86F025542C005997008BE8B4 /* Avatar2View.swift in Sources */,
+				864982052C9F5E0A001E081B /* MainView.swift in Sources */,
 				86AAE95D2C19664B005F9267 /* VideoScrollsView.swift in Sources */,
 				86A9ABFB2BEEBF0300F4C7FE /* ContentView.swift in Sources */,
 				866286BA2BEECB8400102FA0 /* ChipModel.swift in Sources */,
 				86A1CFE72C80615600B4F432 /* ImageOpenView.swift in Sources */,
 				866286E62BEECB8400102FA0 /* SubscribersView.swift in Sources */,
 				86F9F4CE2C176BCF00C6DC28 /* ChangeThemeView.swift in Sources */,
+				86EA10BF2C8CA32F0005D366 /* VideoOpenView.swift in Sources */,
 				866286C92BEECB8400102FA0 /* SafariView.swift in Sources */,
+				8649820A2C9F6044001E081B /* UsersViewModel.swift in Sources */,
 				861092522C0DB83200062EBE /* PrivacyView.swift in Sources */,
 				8610924C2C0DA93B00062EBE /* EmojiCoverView.swift in Sources */,
 				866286C42BEECB8400102FA0 /* ChipContainerView.swift in Sources */,
@@ -685,6 +753,7 @@
 				866286DA2BEECB8400102FA0 /* LoginView.swift in Sources */,
 				866286B72BEECB8400102FA0 /* VideoViewController.swift in Sources */,
 				866286CB2BEECB8400102FA0 /* SearchElementView.swift in Sources */,
+				8649820C2C9F60A7001E081B /* UserModel.swift in Sources */,
 				86C96D372C19CDDC0058600C /* VideoView.swift in Sources */,
 				866286DD2BEECB8400102FA0 /* PhoneCallView.swift in Sources */,
 				866286AB2BEECB8400102FA0 /* FavoritesViewModel.swift in Sources */,
@@ -694,6 +763,7 @@
 				866286B92BEECB8400102FA0 /* Message.swift in Sources */,
 				866286D52BEECB8400102FA0 /* EmailRegistrationView.swift in Sources */,
 				866286DC2BEECB8400102FA0 /* NotificationsView.swift in Sources */,
+				86EA10BD2C8CA30A0005D366 /* VideoPlayerView.swift in Sources */,
 				866286D92BEECB8400102FA0 /* LearningSkillsView.swift in Sources */,
 				866286D72BEECB8400102FA0 /* FeedMainView.swift in Sources */,
 				8610924A2C0D9E2400062EBE /* CoverChooserView.swift in Sources */,
@@ -705,6 +775,7 @@
 				868164E02C5D6093004A67B0 /* ChatViewModel.swift in Sources */,
 				86AAE9612C19669C005F9267 /* Video.swift in Sources */,
 				866286D22BEECB8400102FA0 /* ChatsView.swift in Sources */,
+				86EA10B92C8C97710005D366 /* VideoChatPicker.swift in Sources */,
 				861092502C0DB81300062EBE /* DevicesView.swift in Sources */,
 				866286E72BEECB8400102FA0 /* UsersSearchView.swift in Sources */,
 				866286D32BEECB8400102FA0 /* DiscoverView.swift in Sources */,
@@ -719,6 +790,7 @@
 				866286CE2BEECB8400102FA0 /* VideoCallView.swift in Sources */,
 				866286B32BEECB8400102FA0 /* DeepLinkManager.swift in Sources */,
 				866286B62BEECB8400102FA0 /* UserHelper.swift in Sources */,
+				86EA10C12C8CA34D0005D366 /* FlexibleVideoView.swift in Sources */,
 				866286C32BEECB8400102FA0 /* CarouselMainView.swift in Sources */,
 				866286DF2BEECB8400102FA0 /* Pro2View.swift in Sources */,
 				868164DA2C5D4F03004A67B0 /* Member.swift in Sources */,
@@ -926,7 +998,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Skillify/Skillify.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 54;
+				CURRENT_PROJECT_VERSION = 56;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"Skillify/Preview Content\"";
 				DEVELOPMENT_TEAM = GWXUDX4MQT;
@@ -936,7 +1008,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Skillify;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_NSCameraUsageDescription = "For making video calls";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "For audio calls usage";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "For audio calls and voice messages usage";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "The application requires access to a photo library to save images.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -949,7 +1021,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.4;
+				MARKETING_VERSION = 1.5.6;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -971,7 +1043,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Skillify/Skillify.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 54;
+				CURRENT_PROJECT_VERSION = 56;
 				DEVELOPMENT_ASSET_PATHS = "\"Skillify/Preview Content\"";
 				DEVELOPMENT_TEAM = GWXUDX4MQT;
 				ENABLE_PREVIEWS = YES;
@@ -980,7 +1052,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Skillify;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_NSCameraUsageDescription = "For making video calls";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "For audio calls usage";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "For audio calls and voice messages usage";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "The application requires access to a photo library to save images.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -993,7 +1065,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.4;
+				MARKETING_VERSION = 1.5.6;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
 				PRODUCT_NAME = "$(TARGET_NAME)";

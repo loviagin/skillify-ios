@@ -88,7 +88,7 @@ struct FeedMainView: View {
                                 }
                             }
                             
-                            TipView(TipNewVersion151())
+                            TipView(TipNewVersion156())
                                 .padding(.trailing, 10)
                             
                             Text("Search by:")
@@ -490,16 +490,17 @@ extension Array {
     FeedMainView(extraSkillsList: [])
         .environmentObject(AuthViewModel.mock)
         .environmentObject(ChatViewModel.mock)
+        .environmentObject(CallManager.mock)
 }
 
 
-struct TipNewVersion151: Tip {
+struct TipNewVersion156: Tip {
     var title: Text {
-        Text("New version 1.5.1")
+        Text("New version 1.5.6")
     }
     
     var message: Text? {
-        Text("🚀 Change the chat color right from the top right.\n🚀 Open images in the chat and download them to the gallery.\n🚀 New emojies view - set and unset up to 3 on each message.\n🚀 Now if you remove the last message in a chat this chat will be deleting immediately")
+        Text("🚀 Audio messages have been added to chats.\n🚀 Now you can close photos and videos with a swipe down in chats.")
     }
     
     var image: Image? {

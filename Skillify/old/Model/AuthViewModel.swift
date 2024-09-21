@@ -433,8 +433,8 @@ class AuthViewModel: ObservableObject {
     }
     
     func offlineMode() {
-        let db = Firestore.firestore()
-        if let id = currentUser?.id {
+        if let id = Auth.auth().currentUser?.uid {
+            let db = Firestore.firestore()
             let userRef = db.collection("users").document(id)
             
             userRef.updateData([
@@ -448,10 +448,10 @@ class AuthViewModel: ObservableObject {
             }
         }
     }
-    
+
     func onlineMode() {
-        let db = Firestore.firestore()
-        if let id = currentUser?.id {
+        if let id = Auth.auth().currentUser?.uid {
+            let db = Firestore.firestore()
             let userRef = db.collection("users").document(id)
             
             userRef.updateData([
@@ -476,6 +476,42 @@ class AuthViewModel: ObservableObject {
             clearUserDefaults()
         } catch let signOutError as NSError {
             print("Error signing out: %@", signOutError)
+        }
+    }
+    
+    func blockUser(userId: String) {
+        guard let uid = currentUser?.id else { return }
+        
+        let db = Firestore.firestore()
+        let userRef = db.collection("users").document(uid)
+        
+        userRef.updateData([
+            "blockedUsers": FieldValue.arrayUnion([userId])
+        ]) { error in
+            if let error = error {
+                print("Error updating user: \(error)")
+            } else {
+                print("User successfully updated")
+                self.currentUser?.blockedUsers.append(userId)
+            }
+        }
+    }
+    
+    func unblockUser(userId: String) {
+        guard let uid = currentUser?.id else { return }
+        
+        let db = Firestore.firestore()
+        let userRef = db.collection("users").document(uid)
+        
+        userRef.updateData([
+            "blockedUsers": FieldValue.arrayRemove([userId])
+        ]) { error in
+            if let error = error {
+                print("Error updating user: \(error)")
+            } else {
+                print("User successfully updated")
+                self.currentUser?.blockedUsers.removeAll(where: { $0 == userId })
+            }
         }
     }
     

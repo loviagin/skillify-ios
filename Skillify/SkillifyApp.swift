@@ -164,8 +164,6 @@ struct SkillifyApp: App {
                 .environmentObject(chatViewModel)
                 .environmentObject(delegate.callManager)
                 .task {
-//                    try? Tips.resetDatastore()
-
                     try? Tips.configure([
                         .displayFrequency(.immediate)
                     ])
@@ -184,8 +182,4 @@ struct SkillifyApp: App {
             }
         }
     }
-}
-
-struct MessageUser: Identifiable, Hashable {
-    var id: String
 }

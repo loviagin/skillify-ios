@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import FirebaseFirestore
 import Kingfisher
+import TipKit
 
 struct ProfileView: View {
     @Environment(\.dismiss) private var dismiss
@@ -419,27 +420,21 @@ struct ProfileView: View {
                                     
                                     //MARK: - блокирование пользователя
                                     if let blockedUsers = authViewModel.currentUser?.blockedUsers, blockedUsers.contains(user.id) {
-                                        // Если пользователь заблокирован
-                                        if let index = blockedUsers.firstIndex(of: user.id) {
-                                            Button("Unblock user", action: {
-                                                authViewModel.currentUser?.blockedUsers.remove(at: index)
-                                                syncDelFire(blockedUserID: user.id)
-                                                // Здесь может потребоваться дополнительная логика для обновления состояния в authViewModel
-                                            })
+                                        Button("Unblock user", systemImage: "person") {
+                                            authViewModel.unblockUser(userId: user.id)
                                         }
                                     } else {
                                         // Если пользователь не заблокирован
-                                        Button("Block user", action: {
-                                            authViewModel.currentUser?.blockedUsers.append(user.id)
-                                            syncAddFire(blockedUserID: user.id)
-                                            // Здесь также может потребоваться дополнительная логика для обновления состояния
+                                        Button("Block user", systemImage: "person.slash") {
+                                            authViewModel.blockUser(userId: user.id)
                                             dismiss()
-                                        })
+                                        }
                                     }
                                 }
                             } label: {
                                 Image(systemName: "ellipsis.circle")
                             }
+                            .popoverTip(TipShareProfileView())
                         }
                     }
                     .sheet(item: $selectedMenuItem) { item in
@@ -476,37 +471,51 @@ struct ProfileView: View {
     }
     
     // MARK: - блокируем пользователя
-    func syncAddFire (blockedUserID: String) {
-        guard let uid = authViewModel.currentUser?.id else { return }
-        let db = Firestore.firestore()
-        let userRef = db.collection("users").document(uid)
-        
-        userRef.updateData([
-            "blockedUsers": FieldValue.arrayUnion([blockedUserID])
-        ]) { error in
-            if let error = error {
-                print("Error updating user: \(error)")
-            } else {
-                print("User successfully updated")
-            }
-        }
+//    func syncAddFire (blockedUserID: String) {
+//        guard let uid = authViewModel.currentUser?.id else { return }
+//        let db = Firestore.firestore()
+//        let userRef = db.collection("users").document(uid)
+//        
+//        userRef.updateData([
+//            "blockedUsers": FieldValue.arrayUnion([blockedUserID])
+//        ]) { error in
+//            if let error = error {
+//                print("Error updating user: \(error)")
+//            } else {
+//                print("User successfully updated")
+//            }
+//        }
+//    }
+//    
+//    //MARK: - разблокируем пользователя
+//    func syncDelFire (blockedUserID: String) {
+//        guard let uid = authViewModel.currentUser?.id else { return }
+//        let db = Firestore.firestore()
+//        let userRef = db.collection("users").document(uid)
+//        
+//        userRef.updateData([
+//            "blockedUsers": FieldValue.arrayRemove([blockedUserID])
+//        ]) { error in
+//            if let error = error {
+//                print("Error updating user: \(error)")
+//            } else {
+//                print("User successfully updated")
+//            }
+//        }
+//    }
+}
+
+struct TipShareProfileView: Tip {
+    var title: Text {
+        Text("Didn't find the right buttons?")
     }
     
-    //MARK: - разблокируем пользователя
-    func syncDelFire (blockedUserID: String) {
-        guard let uid = authViewModel.currentUser?.id else { return }
-        let db = Firestore.firestore()
-        let userRef = db.collection("users").document(uid)
-        
-        userRef.updateData([
-            "blockedUsers": FieldValue.arrayRemove([blockedUserID])
-        ]) { error in
-            if let error = error {
-                print("Error updating user: \(error)")
-            } else {
-                print("User successfully updated")
-            }
-        }
+    var message: Text? {
+        Text("Click here to share/add to favorites/block")
+    }
+    
+    var image: Image? {
+        Image(systemName: "lightbulb.max")
     }
 }
 

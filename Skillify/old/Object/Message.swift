@@ -17,9 +17,11 @@ struct Message: Codable, Identifiable, Hashable {
     var time: Date = Date()
     var reply: String? = nil
     var emoji: [String]? = nil
-    var info: [String]? = nil
+    var info: [Float]? = nil
     var tags: [String]? = nil
     var blocked: String? = nil
+    
+    var forward: String? = nil
 }
 
 enum MessageType: String, Codable {
@@ -28,4 +30,5 @@ enum MessageType: String, Codable {
     case video = "video"
     case call = "call"
     case file = "file"
+    case audio = "audio"
 }
