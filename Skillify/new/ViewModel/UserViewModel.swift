@@ -7,7 +7,8 @@
 
 import Foundation
 
-@ObservedObject
-class UsersViewModel {
-    var user: UserModel
+class UserViewModel: ObservableObject {
+//    @Published var user: UserModel
+    
+    
 }

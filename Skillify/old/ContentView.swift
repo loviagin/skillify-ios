@@ -77,3 +77,8 @@ struct ContentView: View {
         .environmentObject(ChatViewModel.mock)
         .environmentObject(CallManager.mock)
 }
+
+
+struct MessageUser: Identifiable, Hashable {
+    var id: String = UUID().uuidString
+}

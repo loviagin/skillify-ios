@@ -8,8 +8,23 @@
 import SwiftUI
 
 struct MainView: View {
+    @StateObject private var viewModel = LoginViewModel()
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Group {
+            switch viewModel.status {
+            case .loggedIn:
+                HomeView()
+                    .transition(.slide)
+            case .loggedOut:
+                WelcomeScreenView()
+                    .transition(.move(edge: .bottom))
+            case .blocked:
+                UserBlockView()
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut, value: viewModel.status)
     }
 }
 
