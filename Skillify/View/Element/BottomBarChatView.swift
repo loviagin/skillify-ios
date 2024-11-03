@@ -146,7 +146,7 @@ struct BottomBarChatView: View {
                                 .opacity(isRecording ? 1.0 : 0.0)
                                 .animation(.easeInOut(duration: 0.3), value: isRecording)
                         )
-                        .gesture(
+                        .simultaneousGesture(
                             DragGesture(minimumDistance: 0)
                                 .onChanged { _ in
                                     if !isRecording {

@@ -22,7 +22,7 @@ struct VideoOpenView: View {
                 VideoPlayerView(videoURL: URL(string: media[selectedVideoIndex])!)
                     .ignoresSafeArea()
                     .offset(y: offset)  // Смещаем видео при свайпе
-                    .gesture(
+                    .simultaneousGesture(
                         DragGesture()
                             .onChanged { gesture in
                                 // Смещаем видео вниз во время свайпа

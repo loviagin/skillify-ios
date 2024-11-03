@@ -54,7 +54,7 @@ struct MessagesView: View {
                     }
                 }
                 .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    DispatchQueue.main.async {
                         if let lastItem = messages.last {
                             withAnimation {
                                 proxy.scrollTo(lastItem.id, anchor: .bottom)
@@ -63,7 +63,7 @@ struct MessagesView: View {
                     }
                 }
                 .onChange(of: messages) { _, _ in
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    DispatchQueue.main.async {
                         if let lastItem = messages.last {
                             withAnimation {
                                 proxy.scrollTo(lastItem.id, anchor: .bottom)
@@ -677,7 +677,7 @@ struct NewChatItemView: View {
         .contentShape(Rectangle())
         .padding(.vertical, 5)
         .offset(x: offset)
-        .gesture(
+        .simultaneousGesture(
             DragGesture()
                 .onChanged { gesture in
                     if gesture.translation.width < -30 {

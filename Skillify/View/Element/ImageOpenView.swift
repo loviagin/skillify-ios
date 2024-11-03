@@ -59,7 +59,7 @@ struct ImageOpenView: View {
                                         }
                                     }
                                 )
-                                .gesture(magnificationGesture.simultaneously(with: dragGesture))  // Поддержка зума и перетаскивания изображения
+                                .simultaneousGesture(magnificationGesture.simultaneously(with: dragGesture))  // Поддержка зума и перетаскивания изображения
                                 .onTapGesture(count: 2) {
                                     withAnimation {
                                         if scale == 1.0 {
