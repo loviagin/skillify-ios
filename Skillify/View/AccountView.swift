@@ -66,7 +66,6 @@ struct TabsMainView: View {
                 .toolbar(.visible, for: .tabBar)
                 .tag(TabType.account)
         }
-//        .tabViewStyle(DefaultTabViewStyle())
         .background(Color.gray)
         .navigationDestination(isPresented: $showSelfSkill) {
             SelfSkillsView(authViewModel: viewModel, isRegistration: true)
@@ -75,10 +74,6 @@ struct TabsMainView: View {
             LearningSkillsView(authViewModel: viewModel, isRegistration: true)
         }
         .onAppear {
-//            let tabBarAppearance = UITabBarAppearance()
-//            tabBarAppearance.configureWithDefaultBackground()
-//            UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
-            
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 if viewModel.currentUser?.selfSkills.isEmpty ?? false {
                     showSelfSkill = true

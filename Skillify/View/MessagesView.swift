@@ -17,7 +17,7 @@ struct MessagesView: View {
 
     @StateObject private var viewModel = MessagesViewModel()
     
-    @State var chatId = ""
+    @State var chatId = "" // empty if chat is new
     @State var userId = ""
     
     @State private var messages: [Message] = []
@@ -35,22 +35,28 @@ struct MessagesView: View {
     @State var audioLevels: [Float] = []
     
     @FocusState var focusing: ChatFocus?
-
+    
     var body: some View {
         VStack(spacing: 0) {
             ScrollViewReader { proxy in
                 ScrollView {
-                    ForEach($messages, id: \.id) { item in
-                        NewChatItemView(
-                            message: item,
-                            chatId: chatId,
-                            isCurrent: isCurrentUser(item: item.wrappedValue),
-                            replyMessage: $replyMessage,
-                            editMessage: $editMessage
-                        )
-                        .environmentObject(viewModel)
-                        .id(item.wrappedValue.id)
-                        .padding(.horizontal)
+                    if messages.isEmpty && !chatId.isEmpty {
+                        ProgressView()
+                    } else {
+                        LazyVStack {
+                            ForEach($messages, id: \.id) { item in
+                                NewChatItemView(
+                                    message: item,
+                                    chatId: chatId,
+                                    isCurrent: isCurrentUser(item: item.wrappedValue),
+                                    replyMessage: $replyMessage,
+                                    editMessage: $editMessage
+                                )
+                                .environmentObject(viewModel)
+                                .id(item.wrappedValue.id)
+                                .padding(.horizontal)
+                            }
+                        }
                     }
                 }
                 .onAppear {

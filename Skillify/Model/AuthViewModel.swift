@@ -400,21 +400,32 @@ class AuthViewModel: ObservableObject {
             .first(where: { $0.isKeyWindow })?.rootViewController
     }
     
-    func loadUser () async {
+    func loadUser() async {
         DispatchQueue.main.async {
             self.isLoading = true
         }
         
         if let uid = Auth.auth().currentUser?.uid, !uid.isEmpty {
             OneSignal.login(uid)
-            guard let snapshot = try? await Firestore.firestore().collection("users").document(uid).getDocument() else { return }
-            self.currentUser = try? snapshot.data(as: User.self)
+            guard let snapshot = try? await Firestore.firestore().collection("users").document(uid).getDocument() else {
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                }
+                return
+            }
+            
+            if let user = try? snapshot.data(as: User.self) {
+                DispatchQueue.main.async {
+                    self.currentUser = user
+                }
+            }
+            
             onlineMode()
             checkPro()
             addUserListener(userId: uid)
             fetchAllUsers()
         } else {
-            print("empty uid or user isn't log in")
+            print("empty uid or user isn't logged in")
         }
         
         DispatchQueue.main.async {

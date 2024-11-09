@@ -69,10 +69,6 @@ struct ChatsView: View {
                 }
             }
             .listStyle(.plain)
-            .navigationDestination(item: $showChat) { chat in
-                MessagesView(chatId: chat.id)
-                    .toolbar(.hidden, for: .tabBar)
-            }
             .onAppear {
                 self.chats = viewModel.chats.filter({ $0.type == .personal })
                 self.activeUsers = viewModel.activeUsers
@@ -86,6 +82,10 @@ struct ChatsView: View {
             .refreshable {
                 viewModel.refresh()
             }
+        }
+        .navigationDestination(item: $showChat) { chat in
+            MessagesView(chatId: chat.id)
+                .toolbar(.hidden, for: .tabBar)
         }
     }
 }

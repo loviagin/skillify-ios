@@ -19,6 +19,8 @@ struct Avatar2View: View {
             if UserHelper.avatars.contains(avatarUrl.split(separator: ":").first.map(String.init) ?? "") {
                 Image(avatarUrl.split(separator: ":").first.map(String.init) ?? "")
                     .resizable()
+                    .antialiased(false)
+                    .interpolation(.low)
                     .aspectRatio(contentMode: .fill)
                     .foregroundColor(.gray)
                     .padding(.top, 10)
@@ -28,6 +30,8 @@ struct Avatar2View: View {
             } else if let url = URL(string: avatarUrl) {
                 KFImage(url)
                     .resizable()
+                    .downsampling(size: CGSize(width: 60, height: 60))
+                    .cacheOriginalImage()
                     .placeholder {
                         Image("avatar1")
                             .resizable()
@@ -43,6 +47,8 @@ struct Avatar2View: View {
             } else {
                 Image(systemName: "person.crop.circle.fill")
                     .resizable()
+                    .interpolation(.low)
+                    .antialiased(false)
                     .aspectRatio(contentMode: .fill)
                     .foregroundColor(.gray)
                     .background(.white)

@@ -52,7 +52,6 @@ struct DiscoverView: View {
                     }
                     
                     HStack {
-//                        Spacer()
                         Text("Popular skills ")
                             .padding()
                         Spacer()
@@ -134,7 +133,6 @@ struct DiscoverView: View {
                     
                     VStack(alignment: .leading, spacing: 10) {
                         Text("All users")
-//                            .padding()
 
                         ForEach(viewModel.users) { user in
                             UserCardView(user: user,
@@ -144,17 +142,20 @@ struct DiscoverView: View {
                     }
                     .padding()
                 }
-                .onAppear {
-                    viewModel.currentUser = authViewModel.currentUser
-                    viewModel.loadUsers()
-                    Firestore.firestore().collection("admin").document("messages").getDocument { doc, error in
-                        if error != nil {
-                            print("error while load admin")
-                        } else {
-                            self.pictures = doc?.get("posts") as? [String] ?? []
-                        }
+            }
+            .onAppear {
+                viewModel.currentUser = authViewModel.currentUser
+                viewModel.loadUsers()
+                Firestore.firestore().collection("admin").document("messages").getDocument { doc, error in
+                    if error != nil {
+                        print("error while load admin")
+                    } else {
+                        self.pictures = doc?.get("posts") as? [String] ?? []
                     }
                 }
+            }
+            .onDisappear {
+                timer.upstream.connect().cancel()
             }
         }
     }
@@ -165,7 +166,6 @@ struct UserCardView: View {
     @ObservedObject var activeSkillManager: ActiveSkillManager
     var user: User
     let id: String
-//    @State var showProfile = false
     
     init(user: User, authViewModel: AuthViewModel, activeSkillManager: ActiveSkillManager, id: String) {
         self.user = user
@@ -178,7 +178,7 @@ struct UserCardView: View {
     }
     
     var body: some View {
-        NavigationLink(destination: ProfileView(/*showProfile: $showProfile, */user: user)) {
+        NavigationLink(destination: ProfileView(user: user)) {
             HStack {
                 Avatar2View(avatarUrl: user.urlAvatar, size: 70, maxHeight: 70, maxWidth: 70)
                 VStack(alignment: .leading) {
@@ -278,7 +278,6 @@ struct PopoverContentView: View {
                 .foregroundColor(.primary)
                 .cornerRadius(10)
                 .shadow(radius: 5)
-            //                .offset(y: -50)
             Triangle()
                 .fill(.background)
                 .frame(width: 20, height: 10)
@@ -303,6 +302,7 @@ struct Triangle: Shape {
     }
 }
 
-//#Preview {
-//    DiscoverView()
-//}
+#Preview {
+    DiscoverView()
+        .environmentObject(AuthViewModel.mock)
+}
