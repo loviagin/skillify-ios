@@ -168,7 +168,7 @@ struct OtherMethodsToSignInView: View {
         .cornerRadius(25)
         .padding()
         .navigationDestination(isPresented: $isUserAuthenticated) {
-            AccountView()
+            MainView()
         }
         .onAppear {
             signInWithAppleManager.authViewModel = authViewModel

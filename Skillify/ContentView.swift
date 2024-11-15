@@ -21,7 +21,7 @@ struct ContentView: View {
                 if authViewModel.isLoading {
                     ProgressView()
                 } else if Auth.auth().currentUser != nil {
-                    AccountView()
+                    MainView()
                 } else {
                     AuthView()
                 }

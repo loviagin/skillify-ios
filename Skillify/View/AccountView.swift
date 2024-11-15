@@ -8,79 +8,154 @@
 
 import SwiftUI
 import FirebaseFirestore
+import Kingfisher
 
 struct AccountView: View {
-    @EnvironmentObject private var authViewModel: AuthViewModel
-        
+    @EnvironmentObject var authViewModel: AuthViewModel
+    
+    @State private var showSafari = false
+    @Binding var blocked: Int   
+    @State var isOnline: Bool = true
+    
+    private var avatarURL: String? {
+        authViewModel.currentUser?.urlAvatar
+    }
+    
+    private var avatarBase: String {
+        avatarURL?.split(separator: ":").first.map(String.init) ?? ""
+    }
+    
+    private var avatarColor: Color {
+        Color.fromRGBAString(avatarURL?.split(separator: ":").last.map(String.init) ?? "") ?? .blue.opacity(0.4)
+    }
+    
+    private var displayName: String {
+        "\(authViewModel.currentUser?.first_name ?? "First") \(authViewModel.currentUser?.last_name ?? "Last Name")"
+    }
+    
+    private var nickname: String {
+        "@\(authViewModel.currentUser?.nickname ?? "nickname")"
+    }   
+            
     var body: some View {
-        if authViewModel.isLoading {
-            ProgressView()
-        } else if authViewModel.currentUser?.nickname == "" {
-            EditProfileView()
-        } else if authViewModel.currentUser?.blocked ?? 0 > 3 || authViewModel.currentUser?.block != nil {
-            BlockedView(text: authViewModel.currentUser?.block)
-        } else {
-            TabsMainView()
+        NavigationView {
+            ZStack {
+                List {
+                    Section {
+                        NavigationLink(destination: EditProfileView().toolbar(.hidden, for: .tabBar)) {
+                            HStack {
+                                if UserHelper.avatars.contains(authViewModel.currentUser?.urlAvatar.split(separator: ":").first.map(String.init) ?? "") {
+                                    Image(authViewModel.currentUser!.urlAvatar.split(separator: ":").first.map(String.init) ?? "")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .padding(.top, 10)
+                                        .frame(width: 80, height: 80)
+                                        .background(Color.fromRGBAString(authViewModel.currentUser?.urlAvatar.split(separator: ":").last.map(String.init) ?? "") ?? .blue.opacity(0.4))
+                                        .padding(.vertical, 10)
+                                        .clipShape(Circle())
+                                } else if let urlString = authViewModel.currentUser?.urlAvatar, let url = URL(string: urlString) {
+                                    AsyncImage(url: url) { image in
+                                        image
+                                            .resizable()
+                                            .clipShape(Circle())
+                                    } placeholder: {
+                                        Image("user")
+                                            .resizable()
+                                    }
+                                    .frame(width: 80, height: 80)
+                                    .padding(.vertical, 10)
+                                } else {
+                                    Image("user")
+                                        .resizable()
+                                        .frame(width: 80, height: 80)
+                                        .padding(.vertical, 10)
+                                }
+                                VStack(alignment: .leading) {
+                                    Text("\(authViewModel.currentUser?.first_name ?? "First") \(authViewModel.currentUser?.last_name ?? "Last Name")")
+                                        .font(.title2)
+                                    Text("@\(authViewModel.currentUser?.nickname ?? "nickname")")
+                                        .font(.title3)
+                                        .foregroundColor(.gray)
+                                }.padding()
+                                Spacer()
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        if let currentUser = authViewModel.currentUser {
+                            LinkSettingView(nameIcon: "eye",
+                                            name: "View profile",
+                                            action: AnyView(ProfileView(user: currentUser)))
+                        }
+                        Toggle(isOn: $isOnline) {
+                            Text("Status online \(UserHelper.isUserPro(authViewModel.currentUser?.pro) ? "" : "(only for pro)")")
+                        }
+                        .disabled(!UserHelper.isUserPro(authViewModel.currentUser?.pro))
+                        .onChange(of: isOnline) { _, _ in
+                            if isOnline {
+                                authViewModel.onlineMode()
+                            } else {
+                                authViewModel.offlineMode()
+                            }
+                        }
+                    }
+                    Section(header: Text("Configure your account")) {
+                        NavigationLink(destination: ProView()) {
+                            HStack {
+                                Image(systemName: "bolt.fill")
+                                    .foregroundColor(.brandBlue)
+                                    .padding(.trailing, 10)
+                                    .padding(.vertical, 10)
+                                Text("Skillify Pro")
+                                    .foregroundStyle(.brandBlue)
+                                Spacer()
+                            }
+                        }
+                        LinkSettingView(nameIcon: "books.vertical", name: "My Skills", action: AnyView(SelfSkillsView(authViewModel: authViewModel)))
+                        LinkSettingView(nameIcon: "book", name: "Learning Skills", action: AnyView(LearningSkillsView(authViewModel: authViewModel)))
+                    }
+                    
+                    Section(header: Text("Settings")) {
+                        LinkSettingView(nameIcon: "hand.raised.circle", name: "Privacy & Security", action: AnyView(PrivacyView()))
+                        LinkSettingView(nameIcon: "iphone.smartbatterycase.gen2", name: "My devices", action: AnyView(DevicesView()))
+                    }
+                    
+                    Section(header: Text("About us")) {
+                        PointSettingView(nameIcon: "link",
+                                         name: "Follow us on Instagram",
+                                         action: {
+                            openInstagramProfile(username: "_skillify")
+                        })
+                        PointSettingView(nameIcon: "globe", name: "Check our website", action: {
+                            showSafari = true
+                        })
+                        .sheet(isPresented: $showSafari) {
+                            SafariView(url:
+                                        URL(string: "https://skillify.space/")!)
+                        }
+                    }
+                    Section {
+                        LinkSettingView(nameIcon: "gearshape", name: "Other settings", action: AnyView(SettingsView()))
+                        PointSettingView(nameIcon: "rectangle.portrait.and.arrow.right",
+                                         name: "Log out",
+                                         action: {
+                            authViewModel.signOut()
+                        })
+                        .foregroundColor(.red)
+                    }
+                }
+            } // zStack
         }
     }
-}
-
-struct TabsMainView: View {
-    @EnvironmentObject private var viewModel: AuthViewModel
-    @EnvironmentObject private var chatViewModel: ChatViewModel
-
-    @State var blocked: Int = 0
     
-    @State var showSelfSkill = false
-    @State var showLearningSkill = false
-    
-    var body: some View {
-        TabView(selection: $viewModel.selectedTab) {
-            FeedMainView(extraSkillsList: [])
-                .tabItem {
-                    Label("Main", systemImage: "house")
-                        .environment(\.symbolVariants, viewModel.selectedTab == .home ? .fill : .none)
-                }
-                .tag(TabType.home)
-            
-            ChatsView()
-                .tabItem {
-                    Label("Chats", systemImage: "bubble.left.and.bubble.right")
-                        .environment(\.symbolVariants, viewModel.selectedTab == .chats ? .fill : .none)
-                }
-                .tag(TabType.chats)
-                .badge(chatViewModel.countUnread())
-            
-            DiscoverView()
-                .tabItem {
-                    Label("Discover", systemImage: "magnifyingglass")
-                        .environment(\.symbolVariants, viewModel.selectedTab == .discovery ? .fill : .none)
-                }
-                .tag(TabType.discovery)
-            
-            MainAccountView(blocked: $blocked)
-                .tabItem {
-                    Label("Account", systemImage: "person")
-                        .environment(\.symbolVariants, viewModel.selectedTab == .account ? .fill : .none)
-                }
-                .toolbar(.visible, for: .tabBar)
-                .tag(TabType.account)
-        }
-        .background(Color.gray)
-        .navigationDestination(isPresented: $showSelfSkill) {
-            SelfSkillsView(authViewModel: viewModel, isRegistration: true)
-        }
-        .navigationDestination(isPresented: $showLearningSkill) {
-            LearningSkillsView(authViewModel: viewModel, isRegistration: true)
-        }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                if viewModel.currentUser?.selfSkills.isEmpty ?? false {
-                    showSelfSkill = true
-                } else if viewModel.currentUser?.learningSkills.isEmpty ?? false {
-                    showLearningSkill = true
-                }
-            }
+    func openInstagramProfile(username: String) {
+        let appURL = URL(string: "instagram://user?username=\(username)")!
+        let webURL = URL(string: "https://www.instagram.com/\(username)/")!
+        
+        if UIApplication.shared.canOpenURL(appURL) {
+            UIApplication.shared.open(appURL, options: [:], completionHandler: nil)
+        } else {
+            UIApplication.shared.open(webURL, options: [:], completionHandler: nil)
         }
     }
 }
@@ -127,188 +202,8 @@ struct LinkSettingView: View {
     }
 }
 
-struct MainAccountView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
-    
-    @State private var showSafari = false
-    @Binding var blocked: Int   
-    @State var isOnline: Bool = true
-    
-//    @State var showProfile = false
-        
-    var body: some View {
-        NavigationView {
-            ZStack {
-                List {
-                    Section {
-                        NavigationLink(destination: EditProfileView().toolbar(.hidden, for: .tabBar)) {
-                            HStack {
-                                if UserHelper.avatars.contains(authViewModel.currentUser?.urlAvatar.split(separator: ":").first.map(String.init) ?? "") {
-                                    Image(authViewModel.currentUser!.urlAvatar.split(separator: ":").first.map(String.init) ?? "")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .padding(.top, 10)
-                                        .frame(width: 80, height: 80)
-                                        .background(Color.fromRGBAString(authViewModel.currentUser?.urlAvatar.split(separator: ":").last.map(String.init) ?? "") ?? .blue.opacity(0.4))
-                                        .padding(.vertical, 10)
-                                        .clipShape(Circle())
-                                } else if let urlString = authViewModel.currentUser?.urlAvatar, let url = URL(string: urlString) {
-                                    AsyncImage(url: url) { image in
-                                        image
-                                            .resizable()
-                                            .clipShape(Circle())
-                                    } placeholder: {
-                                        Image("user") // Ваш плейсхолдер
-                                            .resizable()
-                                    }
-                                    .frame(width: 80, height: 80)
-                                    .padding(.vertical, 10)
-                                } else {
-                                    Image("user") // Тот же плейсхолдер, если URL не существует
-                                        .resizable()
-                                        .frame(width: 80, height: 80)
-                                        .padding(.vertical, 10)
-                                }
-                                VStack(alignment: .leading) {
-                                    Text("\(authViewModel.currentUser?.first_name ?? "First") \(authViewModel.currentUser?.last_name ?? "Last Name")")
-                                        .font(.title2)
-                                    Text("@\(authViewModel.currentUser?.nickname ?? "nickname")")
-                                        .font(.title3)
-                                        .foregroundColor(.gray)
-                                }.padding()
-                                Spacer()
-                            }
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        if let currentUser = authViewModel.currentUser {
-                            LinkSettingView(nameIcon: "eye",
-                                            name: "View profile",
-                                            action: AnyView(ProfileView(/*showProfile: $showProfile, */user: currentUser)))
-                        }
-                        Toggle(isOn: $isOnline) {
-                            Text("Status online \(UserHelper.isUserPro(authViewModel.currentUser?.pro) ? "" : "(only for pro)")")
-                        }
-                        .disabled(!UserHelper.isUserPro(authViewModel.currentUser?.pro))
-                        .onChange(of: isOnline) { _, _ in
-                            if isOnline {
-                                authViewModel.onlineMode()
-                            } else {
-                                authViewModel.offlineMode()
-                            }
-                        }
-                        
-                        //                    LinkSettingView(nameIcon: "paperplane.fill",
-                        //                                    name: "Share your profile",
-                        //                                    action: AnyView(ShareProfileView()))
-                        //                }
-                    }
-                    Section(header: Text("Configure your account")) {
-                        NavigationLink(destination: ProView()) {
-                            HStack {
-                                Image(systemName: "bolt.fill")
-                                    .foregroundColor(.brandBlue)
-                                    .padding(.trailing, 10)
-                                    .padding(.vertical, 10)
-                                Text("Skillify Pro")
-                                    .foregroundStyle(.brandBlue)
-                                Spacer()
-                            }
-                        }
-                        LinkSettingView(nameIcon: "books.vertical", name: "My Skills", action: AnyView(SelfSkillsView(authViewModel: authViewModel)))
-                        LinkSettingView(nameIcon: "book", name: "Learning Skills", action: AnyView(LearningSkillsView(authViewModel: authViewModel)))
-                    }
-                    
-                    //                    if let user = authViewModel.currentUser, UserHelper.isUserPro(user.pro) {
-                    Section(header: Text("Settings")) {
-                        LinkSettingView(nameIcon: "hand.raised.circle", name: "Privacy & Security", action: AnyView(PrivacyView()))
-                        LinkSettingView(nameIcon: "iphone.smartbatterycase.gen2", name: "My devices", action: AnyView(DevicesView()))
-                    }
-                    //                    }
-                    
-                    Section(header: Text("About us")) {
-                        //                VStack {
-                        PointSettingView(nameIcon: "link",
-                                         name: "Follow us on Instagram",
-                                         action: {
-                            openInstagramProfile(username: "_skillify")
-                        })
-                        //                    Divider()
-                        PointSettingView(nameIcon: "globe", name: "Check our website", action: {
-                            showSafari = true
-                        })
-                        .sheet(isPresented: $showSafari) {
-                            SafariView(url:
-                                        URL(string: "https://skillify.space/")!)
-                        }
-//                        Link(destination: URL(string: "skillify:profile/id123555545")!) {
-//                                    Text("Открыть профиль")
-//                                        .padding()
-//                                        .foregroundColor(.white)
-//                                        .background(Color.blue)
-//                                        .cornerRadius(5)
-//                                }
-                    }
-                    Section {
-                        LinkSettingView(nameIcon: "gearshape", name: "Other settings", action: AnyView(SettingsView()))
-                        //                    Divider()
-                        PointSettingView(nameIcon: "rectangle.portrait.and.arrow.right",
-                                         name: "Log out",
-                                         action: {
-                            //                        print("clicked out")
-                            authViewModel.signOut()
-                        })
-                        .foregroundColor(.red)
-                    }
-                }
-//                if showA1 {
-//                    // Ваше вью подсказки, которое может быть простым как TutorialOverlayView
-//                    AOverlayView()
-//                        .transition(.opacity)
-//                        .onTapGesture {
-//                            withAnimation {
-//                                UserDefaults.standard.set(true, forKey: "a1")
-//                                showA1 = false
-//                            }
-//                        }
-//                }
-            } // zStack
-//            .onAppear {
-//                UserDefaults.standard.set(true, forKey: "hi1")
-//            }
-        }
-    }
-    
-    func openInstagramProfile(username: String) {
-        let appURL = URL(string: "instagram://user?username=\(username)")!
-        let webURL = URL(string: "https://www.instagram.com/\(username)/")!
-        
-        if UIApplication.shared.canOpenURL(appURL) {
-            UIApplication.shared.open(appURL, options: [:], completionHandler: nil)
-        } else {
-            UIApplication.shared.open(webURL, options: [:], completionHandler: nil)
-        }
-    }
-}
-
-//struct AOverlayView: View {
-//    var body: some View {
-//        Image("a1")
-//            .resizable()
-//            .scaledToFill()
-//            .opacity(0.9)
-//            .ignoresSafeArea()
-//            Text("You can set self and learning skills in these two sections for the best experience in people search")
-//                .foregroundColor(.white)
-//                .padding()
-//                .background(Color.black.opacity(0.7))
-//                .cornerRadius(10)
-//                .padding(.bottom, 140)
-//    }
-//}
-
 #Preview {
-    AccountView()
+    AccountView(blocked: .constant(0))
         .environmentObject(AuthViewModel.mock)
         .environmentObject(ChatViewModel.mock)
         .environmentObject(CallManager.mock)

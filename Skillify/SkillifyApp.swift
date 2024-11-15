@@ -17,6 +17,7 @@ import AgoraRtcKit
 import FirebaseFirestore
 import RevenueCat
 import TipKit
+//import GoogleMobileAds
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     
@@ -45,6 +46,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         Purchases.logLevel = .info
         Purchases.configure(withAPIKey: "appl_XIhpKOSZPgtexHzjEZAwzgGYrMk")
+        
+//        GADMobileAds.sharedInstance().start(completionHandler: nil)
         
         return true
     }

@@ -16,10 +16,15 @@ class ChatViewModel: ObservableObject {
     @Published var unreadChats: [String: Int] = [:]
     
     private var listenerChat: ListenerRegistration?
+    private var authStateListener: AuthStateDidChangeListenerHandle?
     
     init() {
-        if let uid = Auth.auth().currentUser?.uid {
-            fetchChats(for: uid)
+        authStateListener = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+            if let uid = user?.uid {
+                self?.fetchChats(for: uid)
+            } else {
+                self?.detachListener()
+            }
         }
     }
     
