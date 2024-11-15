@@ -40,6 +40,8 @@ struct Avatar2View: View {
                             .clipShape(Circle())
                             .clipped()
                     }
+                    .cacheMemoryOnly()
+                    .loadDiskFileSynchronously()
                     .scaledToFill()
                     .frame(width: size, height: size)
                     .clipShape(Circle())

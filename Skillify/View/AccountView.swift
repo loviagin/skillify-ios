@@ -35,7 +35,7 @@ struct AccountView: View {
     
     private var nickname: String {
         "@\(authViewModel.currentUser?.nickname ?? "nickname")"
-    }   
+    }
             
     var body: some View {
         NavigationView {
@@ -43,45 +43,8 @@ struct AccountView: View {
                 List {
                     Section {
                         NavigationLink(destination: EditProfileView().toolbar(.hidden, for: .tabBar)) {
-                            HStack {
-                                if UserHelper.avatars.contains(authViewModel.currentUser?.urlAvatar.split(separator: ":").first.map(String.init) ?? "") {
-                                    Image(authViewModel.currentUser!.urlAvatar.split(separator: ":").first.map(String.init) ?? "")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        .padding(.top, 10)
-                                        .frame(width: 80, height: 80)
-                                        .background(Color.fromRGBAString(authViewModel.currentUser?.urlAvatar.split(separator: ":").last.map(String.init) ?? "") ?? .blue.opacity(0.4))
-                                        .padding(.vertical, 10)
-                                        .clipShape(Circle())
-                                } else if let urlString = authViewModel.currentUser?.urlAvatar, let url = URL(string: urlString) {
-                                    AsyncImage(url: url) { image in
-                                        image
-                                            .resizable()
-                                            .clipShape(Circle())
-                                    } placeholder: {
-                                        Image("user")
-                                            .resizable()
-                                    }
-                                    .frame(width: 80, height: 80)
-                                    .padding(.vertical, 10)
-                                } else {
-                                    Image("user")
-                                        .resizable()
-                                        .frame(width: 80, height: 80)
-                                        .padding(.vertical, 10)
-                                }
-                                VStack(alignment: .leading) {
-                                    Text("\(authViewModel.currentUser?.first_name ?? "First") \(authViewModel.currentUser?.last_name ?? "Last Name")")
-                                        .font(.title2)
-                                    Text("@\(authViewModel.currentUser?.nickname ?? "nickname")")
-                                        .font(.title3)
-                                        .foregroundColor(.gray)
-                                }.padding()
-                                Spacer()
-                            }
+                            profileHeader
                         }
-                        .buttonStyle(PlainButtonStyle())
-                        
                         if let currentUser = authViewModel.currentUser {
                             LinkSettingView(nameIcon: "eye",
                                             name: "View profile",
@@ -92,13 +55,16 @@ struct AccountView: View {
                         }
                         .disabled(!UserHelper.isUserPro(authViewModel.currentUser?.pro))
                         .onChange(of: isOnline) { _, _ in
-                            if isOnline {
-                                authViewModel.onlineMode()
-                            } else {
-                                authViewModel.offlineMode()
+                            Task {
+                                if isOnline {
+                                    await authViewModel.onlineMode()
+                                } else {
+                                    await authViewModel.offlineMode()
+                                }
                             }
                         }
                     }
+                    
                     Section(header: Text("Configure your account")) {
                         NavigationLink(destination: ProView()) {
                             HStack {
@@ -147,6 +113,47 @@ struct AccountView: View {
             } // zStack
         }
     }
+    
+    var profileHeader: some View {
+            HStack {
+                if UserHelper.avatars.contains(avatarBase) {
+                    Image(avatarBase)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .padding(.top, 10)
+                        .frame(width: 80, height: 80)
+                        .background(avatarColor)
+                        .clipShape(Circle())
+                        .padding(.vertical, 10)
+                } else if let urlString = avatarURL, let url = URL(string: urlString) {
+                    KFImage(url)
+                            .resizable()
+                            .placeholder {
+                                Image("user")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 80, height: 80)
+                                    .clipShape(Circle())
+                            }
+                            .clipShape(Circle())
+                            .frame(width: 80, height: 80)
+                            .padding(.vertical, 10)
+                } else {
+                    Image("user")
+                        .resizable()
+                        .frame(width: 80, height: 80)
+                        .padding(.vertical, 10)
+                }
+                VStack(alignment: .leading) {
+                    Text(displayName)
+                        .font(.title2)
+                    Text(nickname)
+                        .font(.title3)
+                        .foregroundColor(.gray)
+                }.padding()
+                Spacer()
+            }
+        }
     
     func openInstagramProfile(username: String) {
         let appURL = URL(string: "instagram://user?username=\(username)")!

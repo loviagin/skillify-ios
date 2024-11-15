@@ -28,12 +28,10 @@ struct ChatsView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack {
-                            ForEach(activeUsers) { user in
-                                NavigationLink(destination: MessagesView(userId: user.id)) {
-                                    ActiveUserView(u: user)
-                                        .foregroundColor(.primary)
-                                }
+                        ForEach(activeUsers) { user in
+                            NavigationLink(destination: MessagesView(userId: user.id)) {
+                                ActiveUserView(u: user)
+                                    .foregroundColor(.primary)
                             }
                         }
                     }
@@ -47,24 +45,26 @@ struct ChatsView: View {
                 if chats.isEmpty {
                     ContentUnavailableView("No chats", systemImage: "bubble.middle.top")
                 } else {
-                    ForEach($chats, id: \.id) { chat in
-                        ChatView(chat: chat)
-                            .onTapGesture {
-                                withAnimation {
-                                    showChat = chat.wrappedValue
-                                }
-                            }
-                            .contextMenu(ContextMenu(menuItems: {
-                                Menu {
-                                    Button(role: .destructive) {
-                                        viewModel.deleteChat(chatId: chat.id)
-                                    } label: {
-                                        Text("Confirm deleting")
+                    LazyVStack {
+                        ForEach($chats, id: \.id) { chat in
+                            ChatView(chat: chat)
+                                .onTapGesture {
+                                    withAnimation {
+                                        showChat = chat.wrappedValue
                                     }
-                                } label: {
-                                    Label("Delete chat", systemImage: "trash")
                                 }
-                            }))
+                                .contextMenu(ContextMenu(menuItems: {
+                                    Menu {
+                                        Button(role: .destructive) {
+                                            viewModel.deleteChat(chatId: chat.id)
+                                        } label: {
+                                            Text("Confirm deleting")
+                                        }
+                                    } label: {
+                                        Label("Delete chat", systemImage: "trash")
+                                    }
+                                }))
+                        }
                     }
                 }
             }
@@ -82,10 +82,10 @@ struct ChatsView: View {
             .refreshable {
                 viewModel.refresh()
             }
-        }
-        .navigationDestination(item: $showChat) { chat in
-            MessagesView(chatId: chat.id)
-                .toolbar(.hidden, for: .tabBar)
+            .navigationDestination(item: $showChat) { chat in
+                MessagesView(chatId: chat.id)
+                    .toolbar(.hidden, for: .tabBar)
+            }
         }
     }
 }
@@ -117,6 +117,8 @@ struct ActiveUserView: View {
                                     .clipShape(Circle())
                                     .clipped()
                             }
+                            .cacheMemoryOnly()
+                            .loadDiskFileSynchronously()
                             .scaledToFill()
                             .frame(width: 60, height: 60)
                             .clipShape(Circle())

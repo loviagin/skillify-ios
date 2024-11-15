@@ -8,6 +8,7 @@
 import SwiftUI
 import Firebase
 import FirebaseStorage
+import Kingfisher
 
 struct EditProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
@@ -57,16 +58,18 @@ struct EditProfileView: View {
                                     .background(colorAvatar)
                                     .clipShape(Circle())
                             } else if let urlString = authViewModel.currentUser?.urlAvatar, let url = URL(string: urlString) {
-                                AsyncImage(url: url) { image in
-                                    image
+                                KFImage(url)
                                         .resizable()
-                                        .clipShape(Circle())
-                                } placeholder: {
-                                    Image("user") // Ваш плейсхолдер
-                                        .resizable()
-                                }
-                                .frame(width: 80, height: 80)
-                                .padding(.vertical, 10)
+                                        .placeholder {
+                                            Image("user") // Плейсхолдер, отображаемый при загрузке
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 80, height: 80)
+                                                .clipShape(Circle())
+                                        }
+                                        .clipShape(Circle()) // Делаем изображение круглым
+                                        .frame(width: 80, height: 80)
+                                        .padding(.vertical, 10)
                             } else {
                                 Image("user") // Тот же плейсхолдер, если URL не существует
                                     .resizable()
@@ -76,9 +79,6 @@ struct EditProfileView: View {
                         }
                         VStack(alignment: .leading) {
                             Text("Avatar image *")
-                            //                            Button {
-                            //                                isImagePickerPresented = true
-                            //                            } label: {
                             Text("Choose your avatar")
                                 .frame(width: 150, height: 20)
                                 .padding(.horizontal, 5)
@@ -102,7 +102,6 @@ struct EditProfileView: View {
                                     StandardAvatarView(isImageUploaded: $isAvatarUploaded, colorAvatar: $colorAvatar)
                                         .presentationDetents([.height(600), .large])
                                 }
-                            // }
                         }
                         .padding(.leading, 20)
                         if UserHelper.isUserPro(authViewModel.currentUser?.pro) {

@@ -103,6 +103,7 @@
 		868BBAE72CE7D4DB0080A0A3 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868BBAE62CE7D4DB0080A0A3 /* MainView.swift */; };
 		868BBAE92CE7D53B0080A0A3 /* TabsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868BBAE82CE7D53B0080A0A3 /* TabsView.swift */; };
 		868BBAEB2CE7D7610080A0A3 /* ActiveSkillManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868BBAEA2CE7D7610080A0A3 /* ActiveSkillManager.swift */; };
+		868BBAED2CE7DF9F0080A0A3 /* EmptyDiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868BBAEC2CE7DF9F0080A0A3 /* EmptyDiscoverView.swift */; };
 		86A1CFE72C80615600B4F432 /* ImageOpenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A1CFE62C80615600B4F432 /* ImageOpenView.swift */; };
 		86A1CFE92C80618000B4F432 /* FlexibleGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A1CFE82C80618000B4F432 /* FlexibleGridView.swift */; };
 		86A9ABF92BEEBF0300F4C7FE /* SkillifyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A9ABF82BEEBF0300F4C7FE /* SkillifyApp.swift */; };
@@ -259,6 +260,7 @@
 		868BBAE62CE7D4DB0080A0A3 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		868BBAE82CE7D53B0080A0A3 /* TabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabsView.swift; sourceTree = "<group>"; };
 		868BBAEA2CE7D7610080A0A3 /* ActiveSkillManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveSkillManager.swift; sourceTree = "<group>"; };
+		868BBAEC2CE7DF9F0080A0A3 /* EmptyDiscoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyDiscoverView.swift; sourceTree = "<group>"; };
 		86A1CFE62C80615600B4F432 /* ImageOpenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageOpenView.swift; sourceTree = "<group>"; };
 		86A1CFE82C80618000B4F432 /* FlexibleGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlexibleGridView.swift; sourceTree = "<group>"; };
 		86A9ABF52BEEBF0300F4C7FE /* Skillify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Skillify.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -473,6 +475,7 @@
 				868BBAE42CE7D4940080A0A3 /* EmptyChatsView.swift */,
 				868BBAE62CE7D4DB0080A0A3 /* MainView.swift */,
 				868BBAE82CE7D53B0080A0A3 /* TabsView.swift */,
+				868BBAEC2CE7DF9F0080A0A3 /* EmptyDiscoverView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -722,6 +725,7 @@
 				866286B02BEECB8400102FA0 /* SubscribersViewModel.swift in Sources */,
 				861092482C0CFC6E00062EBE /* StandardAvatarView.swift in Sources */,
 				866286C52BEECB8400102FA0 /* ChipView.swift in Sources */,
+				868BBAED2CE7DF9F0080A0A3 /* EmptyDiscoverView.swift in Sources */,
 				866286CD2BEECB8400102FA0 /* SkillView.swift in Sources */,
 				860A90B42CC285940085B991 /* NotificationsViewModel.swift in Sources */,
 				866286AE2BEECB8400102FA0 /* SearchViewModel.swift in Sources */,

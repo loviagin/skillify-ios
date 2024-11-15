@@ -18,7 +18,6 @@ import RevenueCat
 
 class AuthViewModel: ObservableObject {
     
-//    @Published var userSession: FirebaseAuth.User?
     @Published var currentUser: User?
     @Published var errorMessage: String?
     @Published var isLoading = true
@@ -30,7 +29,6 @@ class AuthViewModel: ObservableObject {
     private let db: Firestore
     
     init() {
-//        self.userSession = Auth.auth().currentUser
         self.db = Firestore.firestore()
         Task {
             await loadUser()
@@ -43,7 +41,6 @@ class AuthViewModel: ObservableObject {
         }
         do {
             let result = try await Auth.auth().createUser(withEmail: email, password: pass)
-//            self.userSession = result.user
             let user = User(id: result.user.uid, first_name: "", last_name: "", email: email, nickname: "", phone: "", birthday: Date())
             let encodedUser = try Firestore.Encoder().encode(user)
             try await Firestore.firestore().collection("users").document(user.id).setData(encodedUser)
@@ -61,14 +58,12 @@ class AuthViewModel: ObservableObject {
             let authResult = try await Auth.auth().signIn(withEmail: email, password: pass)
             OneSignal.login(authResult.user.uid)
             DispatchQueue.main.async { [weak self] in
-//                self?.userSession = authResult.user
                 Task {
                     await self?.loadUser()
                 }
                 completion(nil)
             }
         } catch {
-            // Ошибка также должна быть обработана на главном потоке, если она влияет на UI.
             DispatchQueue.main.async {
                 print("Ошибка входа: \(error.localizedDescription)")
                 completion(error.localizedDescription)
@@ -105,7 +100,6 @@ class AuthViewModel: ObservableObject {
                 Auth.auth().signIn(with: credential) { [weak self] result, error in
                     DispatchQueue.main.async {
                         if let user = result?.user {
-//                            self?.userSession = user
                             OneSignal.login(user.uid)
                             
                             var firstName: String = ""
@@ -233,40 +227,6 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-//    func updateMessageFirebase(isAdd: Bool = true, str: String, newChat: Chat, cUid: String, lastDataText: String? = "") {
-//        let db = Firestore.firestore()
-//        let userRef = db.collection("messages").document(cUid)
-//        
-//        do {
-//            // Сериализация объекта Chat в словарь
-//            let chatData = try JSONEncoder().encode(newChat)
-//            guard let chatDictionary = try JSONSerialization.jsonObject(with: chatData, options: []) as? [String: Any] else {
-//                print("Ошибка при сериализации объекта Chat")
-//                return
-//            }
-//            var placeholder = "🌄 attachment"
-//            if let lastDataText, !lastDataText.isEmpty {
-//                placeholder = lastDataText
-//            }
-//            
-//            print("tap 33")
-//            userRef.updateData([
-//                str: isAdd ? FieldValue.arrayUnion([chatDictionary]) : FieldValue.arrayRemove([chatDictionary]),
-//                "last": LastData(userId: newChat.cUid, status: "u", text: newChat.text ?? placeholder) as? [String: Any],
-//                "date": newChat.date ?? Date()
-//            ]) { error in
-//                if let error = error {
-//                    print("Error updating user: \(error)")
-//                } else {
-//                    print("Chat successfully updated")
-//                }
-//            }
-//            print("end of tap 33")
-//        } catch {
-//            print("Error serializing chat object: \(error)")
-//        }
-//    }
-    
     func updateDataFirebase(isAdd: Bool = true, str: String, newData: Favorite) {
         let db = Firestore.firestore()
         let userRef = db.collection("users").document(currentUser!.id)
@@ -346,7 +306,6 @@ class AuthViewModel: ObservableObject {
                 } else {
                     DispatchQueue.main.async {
                         if let user = authResult?.user {
-//                            self?.userSession = user
                             OneSignal.login(user.uid)
                             Task {
                                 [weak self] in // Capture self as a weak reference
@@ -377,7 +336,6 @@ class AuthViewModel: ObservableObject {
                 let newUser = User(id: uid, first_name: firstName, last_name: lastName, email: email, nickname: "", phone: phone, birthday: Date())
                 DispatchQueue.main.async {
                     self.currentUser = newUser
-//                    print("\(self.currentUser!.first_name) + \(Date().timeIntervalSince1970)")
                 }
                 let encodedUser = try Firestore.Encoder().encode(newUser)
                 try await userRef.setData(encodedUser)
@@ -420,7 +378,9 @@ class AuthViewModel: ObservableObject {
                 }
             }
             
-            onlineMode()
+            Task {
+                await onlineMode()
+            }
             checkPro()
             addUserListener(userId: uid)
             fetchAllUsers()
@@ -443,38 +403,36 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    func offlineMode() {
-        if let id = Auth.auth().currentUser?.uid {
-            let db = Firestore.firestore()
-            let userRef = db.collection("users").document(id)
-            
-            userRef.updateData([
+    func offlineMode() async {
+        guard let id = Auth.auth().currentUser?.uid else { return }
+        
+        let db = Firestore.firestore()
+        let userRef = db.collection("users").document(id)
+        
+        do {
+            try await userRef.updateData([
                 "online": false
-            ]) { error in
-                if let error = error {
-                    print("Error updating user: \(error)")
-                } else {
-                    print("User successfully updated")
-                }
-            }
+            ])
+            print("User successfully updated")
+        } catch {
+            print("Error updating user: \(error)")
         }
     }
 
-    func onlineMode() {
-        if let id = Auth.auth().currentUser?.uid {
-            let db = Firestore.firestore()
-            let userRef = db.collection("users").document(id)
-            
-            userRef.updateData([
+    func onlineMode() async {
+        guard let id = Auth.auth().currentUser?.uid else { return }
+        
+        let db = Firestore.firestore()
+        let userRef = db.collection("users").document(id)
+        
+        do {
+            try await userRef.updateData([
                 "online": true,
                 "lastData": ["ios", UserHelper.getStringDate(), UserHelper.getAppVersion()]
-            ]) { error in
-                if let error = error {
-                    print("Error updating user: \(error)")
-                } else {
-                    print("User successfully updated")
-                }
-            }
+            ])
+            print("User successfully updated")
+        } catch {
+            print("Error updating user: \(error)")
         }
     }
     
@@ -770,7 +728,6 @@ extension AuthViewModel {
     static var mock: AuthViewModel {
         let viewModel = AuthViewModel()
         viewModel.currentUser = User(id: "Support", first_name: "Elia", last_name: "Loviagin", email: "ilia@loviagin.com", nickname: "nick", phone: "+70909998876", birthday: Date())
-//        viewModel.currentUser?.pro = Calendar.current.date(byAdding: .month, value: 1, to: Date())?.timeIntervalSince1970 ?? 0
         viewModel.currentUser?.proData = ["user", "cover:3"]
         viewModel.currentUser?.urlAvatar = "avatar2"
         viewModel.currentUser?.devices = ["f3498hervuhivuheiqidcjeq", "owivje9qfh9r8euqw9e"]

@@ -32,6 +32,8 @@ struct ImageOpenView: View {
                                 .placeholder {
                                     ProgressView()
                                 }
+                                .cacheMemoryOnly()
+                                .loadDiskFileSynchronously()
                                 .aspectRatio(contentMode: .fill)
                                 .frame(maxHeight: .infinity - 40)
                                 .scaleEffect(scale)

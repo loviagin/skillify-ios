@@ -64,8 +64,8 @@ struct FeedMainView: View {
                                 }
                             }
                             
-                            ScrollView(.horizontal, showsIndicators: false){
-                                HStack {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                LazyHStack {
                                     SelfStoryImageView()
                                         .onTapGesture {
                                             if let user = authViewModel.currentUser {
@@ -272,6 +272,8 @@ struct SelfStoryImageView: View {
                                     .clipShape(Circle())
                                     .clipped()
                             }
+                            .cacheMemoryOnly()
+                            .loadDiskFileSynchronously()
                             .scaledToFill()
                             .frame(width: 70, height: 70)
                             .clipShape(Circle())
@@ -359,6 +361,8 @@ struct StoryImageView: View {
                                     .clipShape(Circle())
                                     .clipped()
                             }
+                            .cacheMemoryOnly()
+                            .loadDiskFileSynchronously()
                             .scaledToFill()
                             .frame(width: 70, height: 70)
                             .clipShape(Circle())

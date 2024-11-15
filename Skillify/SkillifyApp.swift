@@ -174,11 +174,13 @@ struct SkillifyApp: App {
         .onChange(of: scenePhase) { _, newScenePhase in
             switch newScenePhase {
             case .background:
-                print("App is in background")
-                authViewModel.offlineMode()
+                Task {
+                    await authViewModel.offlineMode()
+                }
             case .active:
-                print("App is active")
-                authViewModel.onlineMode()
+                Task {
+                    await authViewModel.onlineMode()
+                }
             default:
                 break
             }

@@ -28,6 +28,8 @@ struct FlexibleGridView: View {
                 } label: {
                     KFImage(URL(string: media[0]))
                         .resizable()
+                        .cacheMemoryOnly()
+                        .loadDiskFileSynchronously()
                         .scaledToFill()
                         .frame(width: size.width, height: size.height)
                         .clipped()
@@ -43,6 +45,8 @@ struct FlexibleGridView: View {
                         } label: {
                             KFImage(URL(string: urlString))
                                 .resizable()
+                                .cacheMemoryOnly()
+                                .loadDiskFileSynchronously()
                                 .scaledToFill()
                                 .frame(width: (size.width - spacing) / 2, height: (size.height - spacing))
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -59,6 +63,8 @@ struct FlexibleGridView: View {
                     } label: {
                         KFImage(URL(string: media[0]))
                             .resizable()
+                            .cacheMemoryOnly()
+                            .loadDiskFileSynchronously()
                             .scaledToFill()
                             .frame(width: size.width, height: size.height * 2 / 3)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -72,6 +78,8 @@ struct FlexibleGridView: View {
                         } label: {
                             KFImage(URL(string: media[1]))
                                 .resizable()
+                                .cacheMemoryOnly()
+                                .loadDiskFileSynchronously()
                                 .scaledToFill()
                                 .frame(width: (size.width - spacing) / 2, height: (size.height / 3))
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -84,6 +92,8 @@ struct FlexibleGridView: View {
                         } label: {
                             KFImage(URL(string: media[2]))
                                 .resizable()
+                                .cacheMemoryOnly()
+                                .loadDiskFileSynchronously()
                                 .scaledToFill()
                                 .frame(width: (size.width - spacing) / 2, height: (size.height / 3))
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -103,6 +113,8 @@ struct FlexibleGridView: View {
                         } label: {
                             KFImage(URL(string: urlString))
                                 .resizable()
+                                .cacheMemoryOnly()
+                                .loadDiskFileSynchronously()
                                 .scaledToFill()
                                 .frame(width: (size.width - spacing) / 2, height: (size.height - spacing) / 2)
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -119,6 +131,8 @@ struct FlexibleGridView: View {
                     } label: {
                         KFImage(URL(string: media[0]))
                             .resizable()
+                            .cacheMemoryOnly()
+                            .loadDiskFileSynchronously()
                             .scaledToFill()
                             .frame(width: size.width, height: size.height / 2)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -135,6 +149,8 @@ struct FlexibleGridView: View {
                             } label: {
                                 KFImage(URL(string: urlString))
                                     .resizable()
+                                    .cacheMemoryOnly()
+                                    .loadDiskFileSynchronously()
                                     .scaledToFill()
                                     .frame(width: (size.width - spacing) / 2, height: (size.height / 4))
                                     .clipShape(RoundedRectangle(cornerRadius: 10))
