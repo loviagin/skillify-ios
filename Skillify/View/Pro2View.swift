@@ -16,6 +16,7 @@ struct Pro2View: View {
     
     @State private var price = "$34.99"
     @State private var selectedOption: Package?
+    @State private var type: ProOption = .year
     @State private var showProAlert = false
     @State private var promocode = ""
     
@@ -95,6 +96,7 @@ struct Pro2View: View {
                                 withAnimation {
                                     price = pkg.storeProduct.localizedPriceString
                                     selectedOption = pkg
+                                    type = .year
                                 }
                             }
                         } else {
@@ -130,6 +132,7 @@ struct Pro2View: View {
                                 withAnimation {
                                     price = pkg.storeProduct.localizedPriceString
                                     selectedOption = pkg
+                                    type = .month
                                 }
                             }
                         }
@@ -245,13 +248,13 @@ struct Pro2View: View {
                     .foregroundStyle(.white)
                     .font(.caption)
                 Button {
-                    if let c = UserDefaults.standard.string(forKey: "country") , c == "russia" {
+                    if let c = UserDefaults.standard.string(forKey: "country"), c == "russia" {
                         showProAlert = true
                     } else {
                         if currentOffering != nil {
                             Purchases.shared.purchase(package: (selectedOption ?? currentOffering?.availablePackages.last!)!) { trans, custInfo, error, uCanceled  in
                                 if custInfo?.entitlements.all["pro"]?.isActive == true {
-//                                    authViewModel.setPro(selectedOption)
+                                    authViewModel.setPro(type)
                                     dismiss()
                                 }
                             }
@@ -327,9 +330,6 @@ struct Pro2View: View {
                     .padding(.horizontal)
 
             }
-            //            if let offer = currentOffering?.availablePackages {
-            
-            //            }
             Spacer()
         }
         .padding(10)
@@ -352,13 +352,6 @@ struct Pro2View: View {
         }
         .background(Image("rectangle"))
         .ignoresSafeArea()
-        //        .onAppear {
-        //            Purchases.shared.getOfferings { (offerings, error) in
-        //                if let offerings {
-        //                    currentOffering = offerings.current
-        //                }
-        //            }
-        //        }
     }
 }
 

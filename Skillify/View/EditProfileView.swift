@@ -104,7 +104,7 @@ struct EditProfileView: View {
                                 }
                         }
                         .padding(.leading, 20)
-                        if UserHelper.isUserPro(authViewModel.currentUser?.pro) {
+                        if UserHelper.isUserPro(authViewModel.currentUser?.proDate) {
                             Spacer()
                             
                             NavigationLink(destination: CustomizeProfileView()) {

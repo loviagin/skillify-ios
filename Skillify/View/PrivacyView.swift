@@ -83,9 +83,9 @@ struct PrivacyView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Toggle("System notifications", systemImage: "app.badge.fill", isOn: $notificationSystem)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .disabled(!UserHelper.isUserPro(viewModel.currentUser?.pro))
+                        .disabled(!UserHelper.isUserPro(viewModel.currentUser?.proDate))
                         .onTapGesture {
-                            if !UserHelper.isUserPro(viewModel.currentUser?.pro) {
+                            if !UserHelper.isUserPro(viewModel.currentUser?.proDate) {
                                 showProSheet = true
                             }
                         }

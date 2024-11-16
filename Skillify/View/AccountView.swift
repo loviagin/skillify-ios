@@ -37,7 +37,7 @@ struct AccountView: View {
     }
             
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 List {
                     Section {
@@ -50,9 +50,9 @@ struct AccountView: View {
                                             action: AnyView(ProfileView(user: currentUser)))
                         }
                         Toggle(isOn: $isOnline) {
-                            Text("Status online \(UserHelper.isUserPro(authViewModel.currentUser?.pro) ? "" : "(only for pro)")")
+                            Text("Status online \(UserHelper.isUserPro(authViewModel.currentUser?.proDate) ? "" : "(only for pro)")")
                         }
-                        .disabled(!UserHelper.isUserPro(authViewModel.currentUser?.pro))
+                        .disabled(!UserHelper.isUserPro(authViewModel.currentUser?.proDate))
                         .onChange(of: isOnline) { _, _ in
                             Task {
                                 if isOnline {
@@ -65,7 +65,7 @@ struct AccountView: View {
                     }
                     
                     Section(header: Text("Configure your account")) {
-                        NavigationLink(destination: ProView()) {
+                        NavigationLink(destination: ProView().toolbar(.hidden, for: .tabBar)) {
                             HStack {
                                 Image(systemName: "bolt.fill")
                                     .foregroundColor(.brandBlue)

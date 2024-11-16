@@ -22,7 +22,7 @@ struct ProView: View {
                         .scaledToFit()
                         .frame(width: 180)
                         .padding(.top, 60)
-                    Text(UserHelper.isUserPro(viewModel.currentUser?.pro) ? "You're already pro" : "Unlock Your Potential with Skillify Pro")
+                    Text(UserHelper.isUserPro(viewModel.currentUser?.proDate) ? "You're already pro" : "Unlock Your Potential with Skillify Pro")
                         .foregroundColor(.white)
                         .fontWeight(.bold)
                         .font(.title2)
@@ -102,7 +102,7 @@ struct ProView: View {
                 
                 Divider()
                 
-                if !UserHelper.isUserPro(viewModel.currentUser?.pro) {
+                if !UserHelper.isUserPro(viewModel.currentUser?.proDate) {
                     Button {
                         withAnimation {
                             showPro2 = true
@@ -127,21 +127,13 @@ struct ProView: View {
                 } else {
                     VStack {
                         Text("Your subsription ends on")
-                        Text("\(formattedDate(from: viewModel.currentUser?.pro ?? 0))")
+                        Text("\(viewModel.currentUser?.proDate?.formatted(date: .complete, time: .omitted) ?? ""))")
                         
                         Text("To cancel your subscription, please go to the App Store -> Subscriptions")
                             .font(.caption2)
                             .multilineTextAlignment(.center)
                             .padding([.top, .leading, .trailing])
                     }
-                    
-//                    Button {
-//                        viewModel.cancelPro()
-//                        dismiss()
-//                    } label: {
-//                        Text("Cancel subscription")
-//                            .padding()
-//                    }
                 }
                 
                 Spacer()
@@ -149,6 +141,7 @@ struct ProView: View {
             .ignoresSafeArea()
             .navigationDestination(isPresented: $showPro2) {
                 Pro2View()
+                    .toolbar(.hidden, for: .tabBar)
             }
         }
     }

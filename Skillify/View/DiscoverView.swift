@@ -8,6 +8,8 @@
 import SwiftUI
 import Combine
 import FirebaseFirestore
+import GoogleMobileAds
+import UIKit
 
 struct DiscoverView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
@@ -93,6 +95,19 @@ struct DiscoverView: View {
                         }
                         Spacer()
                     }
+                    if let user = authViewModel.currentUser, !UserHelper.isUserPro(user.proDate) {
+                        GeometryReader { geometry in
+                            let adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(geometry.size.width)
+                            
+                            VStack {
+                                Spacer()
+                                BannerView(adSize)
+                                    .frame(height: adSize.size.height)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.bottom, 20)
+                    }
                     
                     if !pictures.isEmpty {
                         GeometryReader { geometry in
@@ -159,6 +174,28 @@ struct DiscoverView: View {
                 timer.upstream.connect().cancel()
             }
         }
+    }
+}
+
+struct BannerView: UIViewRepresentable {
+    let adSize: GADAdSize
+    
+    init(_ adSize: GADAdSize) {
+        self.adSize = adSize
+    }
+    
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        view.addSubview(context.coordinator.bannerView)
+        return view
+    }
+    
+    func updateUIView(_ uiView: UIView, context: Context) {
+        context.coordinator.bannerView.adSize = adSize
+    }
+    
+    func makeCoordinator() -> BannerCoordinator {
+        return BannerCoordinator(self, adId: "ca-app-pub-7767067923336598/8459315269")
     }
 }
 

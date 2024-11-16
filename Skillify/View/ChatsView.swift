@@ -158,7 +158,7 @@ struct ActiveUserView: View {
                         .resizable()
                         .scaledToFill()
                         .frame(width: 15, height: 15)
-                } else if UserHelper.isUserPro(u.pro), let data = u.proData, let status = data.first(where: { $0.hasPrefix("status:") }) {
+                } else if UserHelper.isUserPro(u.proDate), let data = u.proData, let status = data.first(where: { $0.hasPrefix("status:") }) {
                     Image(systemName: String(status.split(separator: ":").last ?? Substring(status)))
                         .resizable()
                         .scaledToFill()

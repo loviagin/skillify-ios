@@ -171,7 +171,7 @@ class AuthViewModel: ObservableObject {
             if let error = error {
                 print("Error updating user: \(error)")
             } else {
-                print("User successfully updated")
+                print("User successfully updated 1")
             }
         }
     }
@@ -190,7 +190,7 @@ class AuthViewModel: ObservableObject {
                     try? queryDocumentSnapshot.data(as: User.self)
                 }
                 
-                self?.users = allUsers.filter({$0.id != self!.currentUser!.id && UserHelper.isUserPro($0.pro) && !self!.currentUser!.blockedUsers.contains($0.id)})
+                self?.users = allUsers.filter({$0.id != self!.currentUser!.id && UserHelper.isUserPro($0.proDate) && !self!.currentUser!.blockedUsers.contains($0.id)})
             }
     }
     
@@ -204,7 +204,7 @@ class AuthViewModel: ObservableObject {
             if let error = error {
                 print("Error updating user: \(error)")
             } else {
-                print("User successfully updated")
+                print("User successfully updated 2")
             }
         }
     }
@@ -219,7 +219,7 @@ class AuthViewModel: ObservableObject {
             if let error = error {
                 print("Error updating user: \(error)")
             } else {
-                print("User successfully updated")
+                print("User successfully updated 3")
             }
         }
     }
@@ -696,34 +696,40 @@ class AuthViewModel: ObservableObject {
     }
     
     func setPro(_ option: ProOption) {
+        print("setPro")
         if let user = currentUser {
-            let time = Calendar.current.date(byAdding: .month, value: option == .month ? 1 : 12, to: Date())?.timeIntervalSince1970 ?? Date().timeIntervalSince1970
-            updateUsersIntFirebase(str: "pro", newStr: time, cUid: user.id)
-            let db = Firestore.firestore()
-            let data = ["cover:1", "emoji:sparkles", "status:star.fill"]
+            let time = Calendar.current.date(byAdding: .month, value: option == .month ? 1 : 12, to: Date()) ?? Date()
             
-            if let data = user.proData, !data.isEmpty {
-                print("user was pro")
-            } else {
-                db.collection("users").document(user.id)
-                    .updateData(["proData": FieldValue.arrayUnion(data)])
+            var data: [String] {
+                if let data = user.proData, !data.isEmpty {
+                    return data
+                } else {
+                    let data = ["cover:1", "emoji:sparkles", "status:star.fill"]
+                    currentUser!.proData = data
+                    return data
+                }
             }
             
-            currentUser!.proData = data
-            currentUser!.pro = time
+            Firestore.firestore().collection("users").document(user.id).updateData([
+                "proDate": Timestamp(date: time),
+                "proData": data
+            ])
+
+            currentUser!.proDate = time
         }
     }
-    
+
     func cancelPro() {
         print("cance;ed")
         if let user = currentUser {
-            let time = Date().timeIntervalSince1970
-            updateUsersIntFirebase(str: "pro", newStr: time, cUid: user.id)
+            let time = Date()
+            Firestore.firestore().collection("users").document(user.id).updateData([
+                "proDate": Timestamp(date: time)
+            ])
             
-            currentUser!.pro = time
+            currentUser!.proDate = time
         }
     }
-    
 }
 
 

@@ -21,7 +21,6 @@ struct User: Identifiable, Codable, Hashable {
     var online: Bool? = true
     var sex: String = "-"
     var birthday: Date = Date()
-    var pro: Double? = 0
     var proDate: Date? = nil
     var registered: Date? = Date()
     

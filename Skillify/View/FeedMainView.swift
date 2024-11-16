@@ -11,6 +11,7 @@ import FirebaseAuth
 import StoreKit
 import Kingfisher
 import TipKit
+import GoogleMobileAds
 
 struct FeedMainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
@@ -19,7 +20,7 @@ struct FeedMainView: View {
     
     @State private var showSelfSkill = false
     @State private var showLearningSkill = false
-
+    
     @State private var selectedValue: SearchType = .learningsSkills
     @State var searchViewModel = SearchViewModel(chipArray: [])
     
@@ -31,100 +32,114 @@ struct FeedMainView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack {
-                VStack {
-                    HeaderMainView()
-                        .padding(.vertical, 5)
-                    
-                    if let message = systemMessage {
-                        HStack {
-                            Text(message)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color("warningColor").opacity(0.5))
-                                .cornerRadius(15)
-                                .padding(.horizontal)
-                        }
-                        .onTapGesture {
-                            systemMessage = nil
-                        }
+            VStack {
+                HeaderMainView()
+                    .padding(.vertical, 5)
+                
+                if let message = systemMessage {
+                    HStack {
+                        Text(message)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color("warningColor").opacity(0.5))
+                            .cornerRadius(15)
+                            .padding(.horizontal)
                     }
-                    
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(alignment: .leading) {
-                            HStack {
-                                Text("Top Users")
-                                    .font(.headline)
-                                    .bold()
-                                
-                                Spacer()
-                                
-                                Button("View all") {
-                                    
-                                }
-                            }
+                    .onTapGesture {
+                        systemMessage = nil
+                    }
+                }
+                
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Text("Top Users")
+                                .font(.headline)
+                                .bold()
                             
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                LazyHStack {
-                                    SelfStoryImageView()
-                                        .onTapGesture {
-                                            if let user = authViewModel.currentUser {
-                                                if !UserHelper.isUserPro(user.pro) {
-                                                    proViewShow = true
-                                                } else {
-                                                    profileViewShow = true
-                                                }
+                            Spacer()
+                            
+                            Button("View all") {
+                                
+                            }
+                        }
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            LazyHStack {
+                                SelfStoryImageView()
+                                    .onTapGesture {
+                                        if let user = authViewModel.currentUser {
+                                            if !UserHelper.isUserPro(user.proDate) {
+                                                proViewShow = true
+                                            } else {
+                                                profileViewShow = true
                                             }
                                         }
-                                    
-                                    if !authViewModel.users.isEmpty {
-                                        ForEach(authViewModel.users) { user in
-                                            NavigationLink(destination: ProfileView(user: user)) {
-                                                StoryImageView(u: user).foregroundColor(.brandBlue)
-                                            }
+                                    }
+                                
+                                if !authViewModel.users.isEmpty {
+                                    ForEach(authViewModel.users) { user in
+                                        NavigationLink(destination: ProfileView(user: user)) {
+                                            StoryImageView(u: user).foregroundColor(.brandBlue)
                                         }
                                     }
                                 }
                             }
-                            .sheet(isPresented: $proViewShow){
-                                ProView()
-                            }
-                            .sheet(isPresented: $profileViewShow) {
-                                NavigationStack {
-                                    ProfileView(user: authViewModel.currentUser!)
-                                        .toolbar(.hidden, for: .navigationBar)
-                                }
-                            }
-                            
-                            TipView(TipNewVersion156())
-                                .padding(.trailing, 10)
-                            
-                            Picker("Выберите элемент", selection: $selectedValue) {
-                                ForEach(SearchType.allCases, id: \.self) { option in
-                                    Text(option.rawValue).tag(option)
-                                }
-                            }
-                            .pickerStyle(SegmentedPickerStyle())
-                            .background(.blue.opacity(0.2))
-                            .cornerRadius(8)
-                            
-                            // Conditional content based on selectedValue
-                            ChipContainerView(viewModel: viewModel, searchViewModel: searchViewModel)
-                            
-                            if let auth = authViewModel.currentUser {
-                                UserSearchView(viewModel: searchViewModel, id: auth.id)
+                        }
+                        .sheet(isPresented: $proViewShow){
+                            ProView()
+                        }
+                        .sheet(isPresented: $profileViewShow) {
+                            NavigationStack {
+                                ProfileView(user: authViewModel.currentUser!)
+                                    .toolbar(.hidden, for: .navigationBar)
                             }
                         }
-                        .padding(.horizontal)
-                        .padding(.top, 5)
-                        .cornerRadius(15)
+                        
+                        TipView(TipNewVersion156())
+                            .padding(.trailing, 10)
+                        
+                        Picker("Выберите элемент", selection: $selectedValue) {
+                            ForEach(SearchType.allCases, id: \.self) { option in
+                                Text(option.rawValue).tag(option)
+                            }
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .background(.blue.opacity(0.2))
+                        .cornerRadius(8)
+                        
+                        // Conditional content based on selectedValue
+                        ChipContainerView(viewModel: viewModel, searchViewModel: searchViewModel)
+                        
+                        if let auth = authViewModel.currentUser {
+                            UserSearchView(viewModel: searchViewModel, id: auth.id)
+                        }
+                        
+                        if let user = authViewModel.currentUser, !UserHelper.isUserPro(user.proDate) {
+                            GeometryReader { geometry in
+                                let adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(geometry.size.width)
+                                
+                                VStack {
+                                    Spacer()
+                                    BannerView(adSize)
+                                        .frame(height: adSize.size.height)
+                                }
+                            }
+                            .padding(.horizontal)
+                            .padding(.bottom, 55)
+                        }
                     }
-                    .refreshable {
+                    .padding(.horizontal)
+                    .padding(.top, 5)
+                } // scrollView
+                .refreshable {
+                    Task {
+                        await authViewModel.loadUser()
                         authViewModel.fetchAllUsers()
                         updateSearch()
                     }
                 }
-            } // ZStack
+            }
             .onAppear {
                 self.searchViewModel.authViewModel = authViewModel
                 self.searchViewModel.chipArray = viewModel.chipArray
@@ -221,7 +236,7 @@ struct HeaderMainView: View {
             }
             
             HStack {
-                if let user = authViewModel.currentUser, UserHelper.isUserPro(user.pro) {
+                if let user = authViewModel.currentUser, UserHelper.isUserPro(user.proDate) {
                     Image("logoPro")
                         .resizable()
                         .scaledToFit()
@@ -316,7 +331,7 @@ struct SelfStoryImageView: View {
                             LinearGradient(colors: [.blue, .red], startPoint: .topLeading, endPoint: .bottomTrailing)
                         )
                         .overlay(Circle().stroke(Color.main, lineWidth: 2))
-//                        .offset(x: -2, y: -2)
+                    //                        .offset(x: -2, y: -2)
                     
                 } else if let online = authViewModel.currentUser?.online, online == true {
                     Circle()
@@ -331,7 +346,7 @@ struct SelfStoryImageView: View {
                     Text("\(u.first_name.count > 8 ? u.first_name.prefix(8) + "..." : u.first_name)")
                         .font(.callout)
                         .fontWeight(.bold)
-
+                    
                     if let data = u.tags, data.contains("verified") {
                         Image("verify")
                             .resizable()
@@ -342,7 +357,7 @@ struct SelfStoryImageView: View {
                             .resizable()
                             .scaledToFill()
                             .frame(width: 15, height: 15)
-                    } else if UserHelper.isUserPro(u.pro), let data = u.proData, let status = data.first(where: { $0.hasPrefix("status:") }) {
+                    } else if UserHelper.isUserPro(u.proDate), let data = u.proData, let status = data.first(where: { $0.hasPrefix("status:") }) {
                         Image(systemName: String(status.split(separator: ":").last ?? Substring(status)))
                             .resizable()
                             .scaledToFill()
@@ -412,7 +427,7 @@ struct StoryImageView: View {
             HStack(spacing: 3) {
                 Text("\(u.first_name.count > 8 ? u.first_name.prefix(8) + "..." : u.first_name)")
                     .font(.callout)
-
+                
                 if let data = u.tags, data.contains("verified") {
                     Image("verify")
                         .resizable()
@@ -423,7 +438,7 @@ struct StoryImageView: View {
                         .resizable()
                         .scaledToFill()
                         .frame(width: 15, height: 15)
-                } else if UserHelper.isUserPro(u.pro), let data = u.proData, let status = data.first(where: { $0.hasPrefix("status:") }) {
+                } else if UserHelper.isUserPro(u.proDate), let data = u.proData, let status = data.first(where: { $0.hasPrefix("status:") }) {
                     Image(systemName: String(status.split(separator: ":").last ?? Substring(status)))
                         .resizable()
                         .scaledToFill()
@@ -439,7 +454,7 @@ struct UserSearchView: View {
     @ObservedObject var viewModel: SearchViewModel
     let id: String
     @State var showProfile = false
-
+    
     var body: some View {
         ScrollView {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())]) {
