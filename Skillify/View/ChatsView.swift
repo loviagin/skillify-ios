@@ -45,7 +45,7 @@ struct ChatsView: View {
                 if chats.isEmpty {
                     ContentUnavailableView("No chats", systemImage: "bubble.middle.top")
                 } else {
-                    LazyVStack {
+                    LazyVStack(spacing: 15) {
                         ForEach($chats, id: \.id) { chat in
                             ChatView(chat: chat)
                                 .onTapGesture {

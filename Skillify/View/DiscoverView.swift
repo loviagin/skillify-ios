@@ -1,9 +1,10 @@
-////
-////  DiscoverView.swift
-////  Skillify App
-////
-////  Created by Ilia Loviagin on 19.12.2023.
-////
+//
+//  DiscoverView.swift
+//  Skillify App
+//
+//  Created by Ilia Loviagin on 19.12.2023.
+//
+
 import SwiftUI
 import Combine
 import FirebaseFirestore
@@ -13,9 +14,9 @@ struct DiscoverView: View {
     @StateObject var viewModel = UsersViewModel()
     @StateObject var activeSkillManager = ActiveSkillManager()
     
-//    private let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
-//    @State private var selectedPicture = 0
-//    @State private var pictures: [String] = []
+    private let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+    @State private var selectedPicture = 0
+    @State private var pictures: [String] = []
     
     var body: some View {
         NavigationStack {
@@ -93,43 +94,43 @@ struct DiscoverView: View {
                         Spacer()
                     }
                     
-//                    if !pictures.isEmpty {
-//                        GeometryReader { geometry in
-//                            TabView(selection: $selectedPicture) {
-//                                ForEach(pictures.indices, id: \.self) { index in
-//                                    AsyncImage(url: URL(string: pictures[index])) { phase in
-//                                        if let image = phase.image {
-//                                            image
-//                                                .resizable()
-//                                                .scaledToFit() // Используем scaledToFit для предотвращения обрезки
-//                                                .frame(width: geometry.size.width - 40, height: geometry.size.height)
-//                                                .clipShape(RoundedRectangle(cornerRadius: 20)) // Добавляем закругление углов
-//                                                .padding(.horizontal, 20) // Добавляем горизонтальные отступы
-//                                        } else if phase.error != nil {
-//                                            Color.red // Или любой другой индикатор ошибки
-//                                                .frame(width: geometry.size.width - 40, height: geometry.size.height)
-//                                                .clipShape(RoundedRectangle(cornerRadius: 20)) // Добавляем закругление углов
-//                                                .padding(.horizontal, 20) // Добавляем горизонтальные отступы
-//                                        } else {
-//                                            Color.gray // Или любой другой индикатор загрузки
-//                                                .frame(width: geometry.size.width - 40, height: geometry.size.height)
-//                                                .clipShape(RoundedRectangle(cornerRadius: 20)) // Добавляем закругление углов
-//                                                .padding(.horizontal, 20) // Добавляем горизонтальные отступы
-//                                        }
-//                                    }
-//                                    .tag(index)
-//                                }
-//                            }
-//                            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always)) // Включаем индикаторы точек
-//                            .frame(height: geometry.size.height)
-//                            .onReceive(timer) { _ in
-//                                withAnimation {
-//                                    selectedPicture = (selectedPicture + 1) % pictures.count // Переключаем на следующий слайд
-//                                }
-//                            }
-//                        }
-//                        .frame(height: 120) // Увеличиваем высоту для лучшего отображения
-//                    }
+                    if !pictures.isEmpty {
+                        GeometryReader { geometry in
+                            TabView(selection: $selectedPicture) {
+                                ForEach(pictures.indices, id: \.self) { index in
+                                    AsyncImage(url: URL(string: pictures[index])) { phase in
+                                        if let image = phase.image {
+                                            image
+                                                .resizable()
+                                                .scaledToFit() // Используем scaledToFit для предотвращения обрезки
+                                                .frame(width: geometry.size.width - 40, height: geometry.size.height)
+                                                .clipShape(RoundedRectangle(cornerRadius: 20)) // Добавляем закругление углов
+                                                .padding(.horizontal, 20) // Добавляем горизонтальные отступы
+                                        } else if phase.error != nil {
+                                            Color.red // Или любой другой индикатор ошибки
+                                                .frame(width: geometry.size.width - 40, height: geometry.size.height)
+                                                .clipShape(RoundedRectangle(cornerRadius: 20)) // Добавляем закругление углов
+                                                .padding(.horizontal, 20) // Добавляем горизонтальные отступы
+                                        } else {
+                                            Color.gray // Или любой другой индикатор загрузки
+                                                .frame(width: geometry.size.width - 40, height: geometry.size.height)
+                                                .clipShape(RoundedRectangle(cornerRadius: 20)) // Добавляем закругление углов
+                                                .padding(.horizontal, 20) // Добавляем горизонтальные отступы
+                                        }
+                                    }
+                                    .tag(index)
+                                }
+                            }
+                            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always)) // Включаем индикаторы точек
+                            .frame(height: geometry.size.height)
+                            .onReceive(timer) { _ in
+                                withAnimation {
+                                    selectedPicture = (selectedPicture + 1) % pictures.count // Переключаем на следующий слайд
+                                }
+                            }
+                        }
+                        .frame(height: 120) // Увеличиваем высоту для лучшего отображения
+                    }
                     
                     LazyVStack(alignment: .leading, spacing: 10) {
                         Text("All users")
@@ -146,17 +147,17 @@ struct DiscoverView: View {
             .onAppear {
                 viewModel.currentUser = authViewModel.currentUser
                 viewModel.loadUsers()
-//                Firestore.firestore().collection("admin").document("messages").getDocument { doc, error in
-//                    if error != nil {
-//                        print("error while load admin")
-//                    } else {
-//                        self.pictures = doc?.get("posts") as? [String] ?? []
-//                    }
-//                }
+                Firestore.firestore().collection("admin").document("messages").getDocument { doc, error in
+                    if error != nil {
+                        print("error while load admin")
+                    } else {
+                        self.pictures = doc?.get("posts") as? [String] ?? []
+                    }
+                }
             }
-//            .onDisappear {
-//                timer.upstream.connect().cancel()
-//            }
+            .onDisappear {
+                timer.upstream.connect().cancel()
+            }
         }
     }
 }
@@ -164,6 +165,7 @@ struct DiscoverView: View {
 struct UserCardView: View {
     @StateObject var viewModel: SkillsViewModel
     @ObservedObject var activeSkillManager: ActiveSkillManager
+    @EnvironmentObject var authViewModel: AuthViewModel
     var user: User
     let id: String
     
@@ -173,7 +175,7 @@ struct UserCardView: View {
         self.id = id
         
         // Использование временной переменной для инициализации viewModel
-        let tempViewModel = SkillsViewModel(authViewModel: authViewModel)
+        let tempViewModel = SkillsViewModel()
         self._viewModel = StateObject(wrappedValue: tempViewModel)
     }
     
@@ -228,6 +230,9 @@ struct UserCardView: View {
             .background(.background)
             .cornerRadius(15)
             .shadow(color: .gray, radius: 5)
+        }
+        .onAppear {
+            self.viewModel.setAuthViewModel(authViewModel)
         }
     }
 }

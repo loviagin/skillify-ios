@@ -14,7 +14,6 @@ struct User: Identifiable, Codable, Hashable {
     var bio: String = ""
     var email: String = ""
     var language: String = "en"
-    var blocked: Int? = 0
     var block: String? = nil
     var nickname: String = ""
     var phone: String = ""

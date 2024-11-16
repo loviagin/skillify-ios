@@ -7,26 +7,26 @@
 
 import SwiftUI
 import FirebaseFirestore
+import FirebaseAuth
 import StoreKit
 import Kingfisher
 import TipKit
 
 struct FeedMainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @StateObject var viewModel = ChipsViewModel()
+    @StateObject private var viewModel = ChipsViewModel()
+    @StateObject private var userViewModel = UserViewModel()
+    
+    @State private var showSelfSkill = false
+    @State private var showLearningSkill = false
 
-    @State var showProfileView: Bool = false
     @State private var selectedValue: SearchType = .learningsSkills
-    @State private var isEditSettings = false
     @State var searchViewModel = SearchViewModel(chipArray: [])
     
-    @State var extraSkillsList: [String]
     @State private var selectedSkill: String = "Graphic Design"
-    @State var isFavorite: Bool = false
     @State var proViewShow = false
     @State var profileViewShow = false
     
-    @State var profileUser: User?
     @State private var systemMessage: String? = nil
     
     var body: some View {
@@ -128,7 +128,6 @@ struct FeedMainView: View {
             .onAppear {
                 self.searchViewModel.authViewModel = authViewModel
                 self.searchViewModel.chipArray = viewModel.chipArray
-                self.extraSkillsList = searchViewModel.skills.map { $0.name }
                 updateSearch()
                 Firestore.firestore().collection("admin").document("system").getDocument { (document, error) in
                     if let document = document, document.exists {
@@ -141,38 +140,60 @@ struct FeedMainView: View {
             .onChange(of: selectedValue) { _, _ in
                 updateSearch()
             }
+            .onOpenURL(perform: handleURL)
+            .navigationDestination(item: $userViewModel.profileUser) { user in
+                ProfileView(user: user)
+            }
+            .navigationDestination(isPresented: $showSelfSkill) {
+                SelfSkillsView(isRegistration: true)
+            }
+            .navigationDestination(isPresented: $showLearningSkill) {
+                LearningSkillsView(isRegistration: true)
+            }
         }
-        .navigationDestination(isPresented: $showProfileView) {
-            ProfileView(user: profileUser ?? User())
-                .toolbar(.hidden, for: .tabBar)
+    }
+    
+    private func handleURL(_ url: URL) {
+        // Проверка, что пользователь залогинен
+        guard Auth.auth().currentUser != nil else { return }
+        
+        if url.scheme == "skillify" {
+            let pathComponents = url.pathComponents
+            
+            if pathComponents.contains("m") {
+                // Открытие конкретного чата
+                if let chatId = pathComponents.last {
+                    authViewModel.selectedTab = .chats
+                    userViewModel.loadUser(byId: chatId) // Загружает данные для профиля
+                }
+            } else if url.absoluteString.contains("@") {
+                // Открытие профиля пользователя по нику
+                let nickname = url.absoluteString.components(separatedBy: "@").last ?? ""
+                userViewModel.loadUser(byNickname: nickname)
+            }
         }
     }
     
     func updateSearch(){
-        if isEditSettings {
-            searchViewModel.isLearning = selectedValue == .learningsSkills ? true : false
-            searchViewModel.fetchUsers()
-        } else {
-            if !authViewModel.isLoading {
-                DispatchQueue.main.async {
-                    if selectedValue == .learningsSkills {
-                        if let skills = authViewModel.currentUser?.learningSkills {
-                            if !skills.isEmpty {
-                                viewModel.updateChips(with: skills)
-                            } else {
-                                viewModel.resetChipArray()
-                            }
-                            searchViewModel.switchSearchType(learning: true, skills: viewModel.chipArray)
+        if authViewModel.userState == UserState.loggedIn {
+            DispatchQueue.main.async {
+                if selectedValue == .learningsSkills {
+                    if let skills = authViewModel.currentUser?.learningSkills {
+                        if !skills.isEmpty {
+                            viewModel.updateChips(with: skills)
+                        } else {
+                            viewModel.resetChipArray()
                         }
-                    } else {
-                        if let skills = authViewModel.currentUser?.selfSkills {
-                            if !skills.isEmpty {
-                                viewModel.updateChips(with: skills)
-                            } else {
-                                viewModel.resetChipArray()
-                            }
-                            searchViewModel.switchSearchType(learning: false, skills: viewModel.chipArray)
+                        searchViewModel.switchSearchType(learning: true, skills: viewModel.chipArray)
+                    }
+                } else {
+                    if let skills = authViewModel.currentUser?.selfSkills {
+                        if !skills.isEmpty {
+                            viewModel.updateChips(with: skills)
+                        } else {
+                            viewModel.resetChipArray()
                         }
+                        searchViewModel.switchSearchType(learning: false, skills: viewModel.chipArray)
                     }
                 }
             }
@@ -442,7 +463,7 @@ extension Array {
 }
 
 #Preview {
-    FeedMainView(extraSkillsList: [])
+    FeedMainView()
         .environmentObject(AuthViewModel.mock)
         .environmentObject(ChatViewModel.mock)
         .environmentObject(CallManager.mock)

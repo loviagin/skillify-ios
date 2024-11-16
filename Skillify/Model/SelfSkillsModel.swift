@@ -13,10 +13,9 @@ class SkillsViewModel: ObservableObject {
     
     @Published var skills: [Skill]
     @Published var searchText = ""
-    var authViewModel: AuthViewModel
+    private var authViewModel: AuthViewModel?
     
-    init(authViewModel: AuthViewModel, skills: [Skill] = []) {
-        self.authViewModel = authViewModel
+    init(skills: [Skill] = []) {
         self.skills = [
             Skill(name: "Graphic Design", iconName: "paintbrush.pointed"),
             Skill(name: "Photography", iconName: "camera"),
@@ -107,6 +106,10 @@ class SkillsViewModel: ObservableObject {
         ]
     }
     
+    func setAuthViewModel(_ authViewModel: AuthViewModel) {
+        self.authViewModel = authViewModel
+    }
+    
     var filteredSkills: [Skill] {
         if searchText.isEmpty {
             return skills
@@ -125,8 +128,9 @@ class SkillsViewModel: ObservableObject {
             if skills[index].level != nil {
                 skills[index].isSelected = false // Снимаем выбор
                 skills[index].level = nil
-                authViewModel.currentUser!.selfSkills.remove(at: (authViewModel.currentUser?.selfSkills.firstIndex(where: { $0.name == skill.name }))!)
-                authViewModel.syncWithFirebase()
+                authViewModel?.currentUser?.selfSkills.remove(at: (authViewModel?.currentUser?.selfSkills.firstIndex(where: { $0.name == skill.name }))!)
+                authViewModel?.syncWithFirebase()
+                print("skill selected")
             } else if skills.filter({ $0.level != nil }).count < maxSkillsAllowed {
                 skills.indices.forEach { skills[$0].isSelected = false }
                 skills[index].isSelected.toggle() // Выбираем навык
@@ -150,7 +154,9 @@ class SkillsViewModel: ObservableObject {
         alertController.addAction(cancelAction)
         
         // Получите доступ к текущему UIViewController (например, через navigationController или tabBarController)
-        if let currentViewController = UIApplication.shared.keyWindow?.rootViewController {
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = scene.windows.first,
+           let currentViewController = window.rootViewController {
             // Отобразите UIAlertController
             currentViewController.present(alertController, animated: true, completion: nil)
         }

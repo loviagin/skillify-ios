@@ -14,7 +14,6 @@ struct AccountView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     
     @State private var showSafari = false
-    @Binding var blocked: Int   
     @State var isOnline: Bool = true
     
     private var avatarURL: String? {
@@ -77,8 +76,8 @@ struct AccountView: View {
                                 Spacer()
                             }
                         }
-                        LinkSettingView(nameIcon: "books.vertical", name: "My Skills", action: AnyView(SelfSkillsView(authViewModel: authViewModel)))
-                        LinkSettingView(nameIcon: "book", name: "Learning Skills", action: AnyView(LearningSkillsView(authViewModel: authViewModel)))
+                        LinkSettingView(nameIcon: "books.vertical", name: "My Skills", action: AnyView(SelfSkillsView()))
+                        LinkSettingView(nameIcon: "book", name: "Learning Skills", action: AnyView(LearningSkillsView()))
                     }
                     
                     Section(header: Text("Settings")) {
@@ -210,7 +209,7 @@ struct LinkSettingView: View {
 }
 
 #Preview {
-    AccountView(blocked: .constant(0))
+    AccountView()
         .environmentObject(AuthViewModel.mock)
         .environmentObject(ChatViewModel.mock)
         .environmentObject(CallManager.mock)

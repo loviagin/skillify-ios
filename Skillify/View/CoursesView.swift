@@ -84,7 +84,6 @@ struct CoursesView: View {
                 }
                 show = nil
             }
-            .navigationDestination(isPresented: .constant(show != nil), destination: { VideoScrollsView(currentVideo: show ?? "") } )
         }
     }
     

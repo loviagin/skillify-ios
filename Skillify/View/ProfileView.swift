@@ -264,9 +264,8 @@ struct ProfileView: View {
                                 
                                 //MARK: - CALLS
                                 if UserHelper.isMessagesBlocked(viewModel: authViewModel, user: user) == nil
-                                    && !(user.lastData?.contains(where: { $0 == "android" }) ?? false) // проверка что не андроид (тк на анроид еще нет звонков)
-                                    && (user.blocked ?? 0 < 3) {
-                                    // Кнопка "Позвонить"
+                                    && !(user.lastData?.contains(where: { $0 == "android" }) ?? false)
+                                    && (user.block == nil) {
                                     if callManager.callId == nil {
                                         Button {
                                             if authViewModel.currentUser?.subscriptions.contains(user.id) == true &&
@@ -338,7 +337,9 @@ struct ProfileView: View {
                                 .font(.headline)
                                 .padding(.top)
                             if user.selfSkills.count > 0 {
-                                let viewModel = SkillsViewModel(authViewModel: authViewModel)
+                                let viewModel = SkillsViewModel()
+//                                viewModel.setAuthViewModel(authViewModel)
+                                
                                 ForEach(user.selfSkills, id: \.self) { skill in
                                     VStack {
                                         excView(skill: skill, viewModel: viewModel, user: user)
@@ -369,7 +370,9 @@ struct ProfileView: View {
                                 .font(.headline)
                                 .padding(.top)
                             if user.learningSkills.count > 0 {
-                                let viewModel = LearningSkillsViewModel(authViewModel: authViewModel)
+                                let viewModel = LearningSkillsViewModel()
+//                                viewModel.setAuthViewModel(authViewModel)
+                                
                                 ForEach(user.learningSkills, id: \.self) { skill in
                                     VStack {
                                         exc2View(skill: skill, viewModel: viewModel, user: user/*, isVisible: isVisible*/)
@@ -383,7 +386,6 @@ struct ProfileView: View {
                                             let index = authViewModel.currentUser?.learningSkills.firstIndex(where: { $0.name == skill.name })
                                             authViewModel.currentUser?.learningSkills[index ?? 0].isSelected.toggle()
                                         }
-                                        //                                print(index)
                                     }
                                 }
                             } else {
@@ -485,9 +487,7 @@ struct ProfileView: View {
     }
     
     func isUserBlocked(user: User) -> Bool {
-        if let blocked = user.blocked, blocked > 3 {
-            return true
-        } else if let _ = user.block {
+        if let _ = user.block {
             return true
         }
         

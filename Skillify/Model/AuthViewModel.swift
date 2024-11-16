@@ -17,19 +17,15 @@ import OneSignalFramework
 import RevenueCat
 
 class AuthViewModel: ObservableObject {
-    
+    @Published var userState: UserState = .loading
     @Published var currentUser: User?
     @Published var errorMessage: String?
-    @Published var isLoading = true
     @Published var users = [User]()
     
     @Published var destination: String? = nil
     @Published var selectedTab: TabType = .home
-
-    private let db: Firestore
     
     init() {
-        self.db = Firestore.firestore()
         Task {
             await loadUser()
         }
@@ -182,7 +178,8 @@ class AuthViewModel: ObservableObject {
     
     func fetchAllUsers() {
         guard let _ = self.currentUser else { return }
-        db.collection("users")
+        
+        Firestore.firestore().collection("users")
             .getDocuments { [weak self] (querySnapshot, error) in
                 guard let documents = querySnapshot?.documents else {
                     print("No documents: \(error?.localizedDescription ?? "Unknown error")")
@@ -271,7 +268,6 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    
     func signInWithPhone(phoneNumber: String) {
         PhoneAuthProvider.provider()
             .verifyPhoneNumber(phoneNumber, uiDelegate: nil) { [weak self] verificationID, error in
@@ -324,7 +320,7 @@ class AuthViewModel: ObservableObject {
     
     func registerUserAndLoadProfile(uid: String, email: String, firstName: String, lastName: String, phone: String) async {
         DispatchQueue.main.async {
-            self.isLoading = true
+            self.userState = .loading
         }
         let userRef = Firestore.firestore().collection("users").document(uid)
         do {
@@ -346,7 +342,7 @@ class AuthViewModel: ObservableObject {
             print("Error in registerUserAndLoadProfile: \(error)")
         }
         DispatchQueue.main.async {
-            self.isLoading = false
+            self.userState = .loggedIn
         }
     }
     
@@ -359,37 +355,54 @@ class AuthViewModel: ObservableObject {
     }
     
     func loadUser() async {
-        DispatchQueue.main.async {
-            self.isLoading = true
+        // Установка состояния в .loading на основном потоке
+        await MainActor.run {
+            self.userState = .loading
+        }
+
+        guard let uid = Auth.auth().currentUser?.uid, !uid.isEmpty else {
+            await MainActor.run {
+                self.userState = .loggedOut
+            }
+            return
         }
         
-        if let uid = Auth.auth().currentUser?.uid, !uid.isEmpty {
-            OneSignal.login(uid)
-            guard let snapshot = try? await Firestore.firestore().collection("users").document(uid).getDocument() else {
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                }
-                return
-            }
+        OneSignal.login(uid)
+
+        do {
+            let snapshot = try await Firestore.firestore().collection("users").document(uid).getDocument()
             
-            if let user = try? snapshot.data(as: User.self) {
-                DispatchQueue.main.async {
-                    self.currentUser = user
+            if let currentUser = try? snapshot.data(as: User.self) {
+                // Обновляем currentUser и userState на основном потоке
+                await MainActor.run {
+                    self.currentUser = currentUser
+                    if currentUser.nickname.isEmpty {
+                        self.userState = .profileEditRequired
+                    } else if currentUser.block != nil {
+                        self.userState = .blocked(reason: currentUser.block)
+                    } else {
+                        self.userState = .loggedIn
+                    }
+                }
+
+                // Дополнительные асинхронные задачи
+                Task {
+                    await onlineMode()
+                    checkPro()
+//                    addUserListener(userId: uid)
+                    fetchAllUsers()
+                }
+            } else {
+                // Если документ не найден или не удалось загрузить данные пользователя
+                await MainActor.run {
+                    self.userState = .loggedOut
                 }
             }
-            
-            Task {
-                await onlineMode()
+        } catch {
+            // В случае ошибки установки состояния в .loggedOut
+            await MainActor.run {
+                self.userState = .loggedOut
             }
-            checkPro()
-            addUserListener(userId: uid)
-            fetchAllUsers()
-        } else {
-            print("empty uid or user isn't logged in")
-        }
-        
-        DispatchQueue.main.async {
-            self.isLoading = false
         }
     }
     
@@ -443,6 +456,7 @@ class AuthViewModel: ObservableObject {
             try firebaseAuth.signOut()
             OneSignal.logout()
             clearUserDefaults()
+            userState = .loggedOut
             self.currentUser = nil
         } catch let signOutError as NSError {
             print("Error signing out: %@", signOutError)
@@ -492,95 +506,93 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    func addUserListener(userId: String) {
-        let db = Firestore.firestore()
-        let docRef = db.collection("users").document(userId)
-        
-        docRef.addSnapshotListener { documentSnapshot, error in
-            guard let document = documentSnapshot else {
-                print("Error fetching document: \(error!)")
-                return
-            }
-            guard let data = document.data() else {
-                print("Document data was empty.")
-                return
-            }
-            self.updateUserModel(with: data)
-        }
-    }
-    
-    func updateUserModel(with data: [String: Any]) {
-        print("updated")
-        if let newName = data["first_name"] as? String, newName != currentUser?.first_name {
-            currentUser?.first_name = newName
-        }
-        if let newName = data["last_name"] as? String, newName != currentUser?.last_name {
-            currentUser?.last_name = newName
-        }
-        if let newName = data["bio"] as? String, newName != currentUser?.bio {
-            currentUser?.bio = newName
-        }
-        if let newName = data["language"] as? String, newName != currentUser?.language {
-            currentUser?.language = newName
-        }
-        if let newName = data["blocked"] as? Int, newName != currentUser?.blocked {
-            currentUser?.blocked = newName
-        }
-        if let newName = data["block"] as? String?, newName != currentUser?.block {
-            currentUser?.block = newName
-        }
-        if let newName = data["nickname"] as? String, newName != currentUser?.nickname {
-            currentUser?.nickname = newName
-        }
-        if let newName = data["urlAvatar"] as? String, newName != currentUser?.urlAvatar {
-            currentUser?.urlAvatar = newName
-        }
-        if let newName = data["sex"] as? String, newName != currentUser?.sex {
-            currentUser?.sex = newName
-        }
-        if let newName = data["online"] as? Bool, newName != currentUser?.online {
-            currentUser?.online = newName
-        }
-        if let newName = data["birthday"] as? Date, newName != currentUser?.birthday {
-            currentUser?.birthday = newName
-        }
-        if let newName = data["pro"] as? Double, newName != currentUser?.pro {
-            currentUser?.pro = newName
-        }
-        if let newName = data["calls"] as? [[String: String]], newName != currentUser?.calls {
-            currentUser?.calls = newName
-        }
-        if let newName = data["learningSkills"] as? [Skill], newName != currentUser?.learningSkills {
-            currentUser?.learningSkills = newName
-        }
-        if let newName = data["favorites"] as? [Favorite], newName != currentUser?.favorites {
-            currentUser?.favorites = newName
-        }
-        if let newName = data["selfSkills"] as? [Skill], newName != currentUser?.selfSkills {
-            currentUser?.selfSkills = newName
-        }
-        if let newName = data["blockedUsers"] as? [String], newName != currentUser?.blockedUsers {
-            currentUser?.blockedUsers = newName
-        }
-        if let newName = data["proData"] as? [String], newName != currentUser?.proData {
-            currentUser?.proData = newName
-        }
-        if let newName = data["privacyData"] as? [String], newName != currentUser?.privacyData {
-            currentUser?.privacyData = newName
-        }
-        if let newName = data["tags"] as? [String], newName != currentUser?.tags {
-            currentUser?.tags = newName
-        }
-        if let newName = data["notifications"] as? [String], newName != currentUser?.notifications {
-            currentUser?.notifications = newName
-        }
-        if let newName = data["subscribers"] as? [String], newName != currentUser?.subscribers {
-            currentUser?.subscribers = newName
-        }
-        if let newName = data["subscriptions"] as? [String], newName != currentUser?.subscriptions {
-            currentUser?.subscriptions = newName
-        }
-    }
+//    func addUserListener(userId: String) {
+//        let db = Firestore.firestore()
+//        let docRef = db.collection("users").document(userId)
+//        
+//        docRef.addSnapshotListener { documentSnapshot, error in
+//            guard let document = documentSnapshot else {
+//                print("Error fetching document: \(error!)")
+//                return
+//            }
+//            guard let data = document.data() else {
+//                print("Document data was empty.")
+//                return
+//            }
+//            self.updateUserModel(with: data)
+//        }
+//    }
+//    
+//    func updateUserModel(with data: [String: Any]) {
+//        guard (Auth.auth().currentUser != nil) else { return }
+//        
+//        if let newName = data["first_name"] as? String, newName != currentUser?.first_name {
+//            currentUser?.first_name = newName
+//        }
+//        if let newName = data["last_name"] as? String, newName != currentUser?.last_name {
+//            currentUser?.last_name = newName
+//        }
+//        if let newName = data["bio"] as? String, newName != currentUser?.bio {
+//            currentUser?.bio = newName
+//        }
+//        if let newName = data["language"] as? String, newName != currentUser?.language {
+//            currentUser?.language = newName
+//        }
+//        if let newName = data["block"] as? String?, newName != currentUser?.block {
+//            currentUser?.block = newName
+//        }
+//        if let newName = data["nickname"] as? String, newName != currentUser?.nickname {
+//            currentUser?.nickname = newName
+//        }
+//        if let newName = data["urlAvatar"] as? String, newName != currentUser?.urlAvatar {
+//            currentUser?.urlAvatar = newName
+//        }
+//        if let newName = data["sex"] as? String, newName != currentUser?.sex {
+//            currentUser?.sex = newName
+//        }
+//        if let newName = data["online"] as? Bool, newName != currentUser?.online {
+//            currentUser?.online = newName
+//        }
+//        if let newName = data["birthday"] as? Date, newName != currentUser?.birthday {
+//            currentUser?.birthday = newName
+//        }
+//        if let newName = data["pro"] as? Double, newName != currentUser?.pro {
+//            currentUser?.pro = newName
+//        }
+//        if let newName = data["calls"] as? [[String: String]], newName != currentUser?.calls {
+//            currentUser?.calls = newName
+//        }
+//        if let newName = data["learningSkills"] as? [Skill], newName != currentUser?.learningSkills {
+//            currentUser?.learningSkills = newName
+//        }
+//        if let newName = data["favorites"] as? [Favorite], newName != currentUser?.favorites {
+//            currentUser?.favorites = newName
+//        }
+//        if let newName = data["selfSkills"] as? [Skill], newName != currentUser?.selfSkills {
+//            currentUser?.selfSkills = newName
+//        }
+//        if let newName = data["blockedUsers"] as? [String], newName != currentUser?.blockedUsers {
+//            currentUser?.blockedUsers = newName
+//        }
+//        if let newName = data["proData"] as? [String], newName != currentUser?.proData {
+//            currentUser?.proData = newName
+//        }
+//        if let newName = data["privacyData"] as? [String], newName != currentUser?.privacyData {
+//            currentUser?.privacyData = newName
+//        }
+//        if let newName = data["tags"] as? [String], newName != currentUser?.tags {
+//            currentUser?.tags = newName
+//        }
+//        if let newName = data["notifications"] as? [String], newName != currentUser?.notifications {
+//            currentUser?.notifications = newName
+//        }
+//        if let newName = data["subscribers"] as? [String], newName != currentUser?.subscribers {
+//            currentUser?.subscribers = newName
+//        }
+//        if let newName = data["subscriptions"] as? [String], newName != currentUser?.subscriptions {
+//            currentUser?.subscriptions = newName
+//        }
+//    }
     
     // тут все правильно реализовано. privacy - это массив privacyData у пользователя
     func sendNotification(header: String = "Skillify", playerId: String, messageText: String, targetText: String = "", type: NotificationType = .system, privacy: [String]? = nil, completion: () -> Void = {}) async {
@@ -736,5 +748,5 @@ extension AuthViewModel {
 }
 
 enum TabType {
-    case home, chats, discovery, account
+    case home, chats, account, discovery
 }

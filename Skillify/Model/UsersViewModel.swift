@@ -43,7 +43,7 @@ class UsersViewModel: ObservableObject {
                     !user.first_name.isEmpty && 
                     !user.nickname.isEmpty &&
                     !user.urlAvatar.isEmpty &&
-                    user.blocked ?? 0 < 3 &&
+                    user.block == nil &&
                     !(currentUser?.blockedUsers.contains(user.id) ?? false)
                 }
             }
@@ -62,7 +62,7 @@ class UsersViewModel: ObservableObject {
                 }
                 
                 self?.users = allUsers.filter { user in
-                    !user.first_name.isEmpty && user.blocked ?? 0 < 3
+                    !user.first_name.isEmpty && user.block == nil
                 }
             }
     }

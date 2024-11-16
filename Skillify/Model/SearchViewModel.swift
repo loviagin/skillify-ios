@@ -114,21 +114,6 @@ class SearchViewModel: ObservableObject {
         self.fetchUsers()
     }
     
-    func getUser() -> User {
-//        let decoder = JSONDecoder()
-//        if let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-//            let pathWithFilename = documentDirectory.appendingPathComponent("User.json")
-//            do {
-//                let data = try Data(contentsOf: pathWithFilename)
-//                let user = try decoder.decode(User.self, from: data)
-//                return user
-//            } catch {
-//                print("Ошибка при загрузке User: \(error)")
-//            }
-//        }
-        return User()
-    }
-    
     func toggleChipSelection(at index: Int) {
         chipArray[index].isSelected.toggle()
         fetchUsers()
@@ -155,7 +140,7 @@ class SearchViewModel: ObservableObject {
                             isBlocked = false
                         }
                         
-                        return (!u.first_name.isEmpty && u.blocked ?? 0 < 3 && (!u.selfSkills.isEmpty || !u.learningSkills.isEmpty) && isBlocked) ? u : nil
+                        return (!u.first_name.isEmpty && u.block == nil && (!u.selfSkills.isEmpty || !u.learningSkills.isEmpty) && isBlocked) ? u : nil
                     }
                     return nil
                 }
@@ -167,7 +152,7 @@ class SearchViewModel: ObservableObject {
                     if let u = user {
                         var hasMatchingSkill: Bool
                         
-                        if u.blocked ?? 0 > 3 {
+                        if u.block != nil {
                             return nil
                         }
                         

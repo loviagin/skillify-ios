@@ -8,23 +8,17 @@
 import SwiftUI
 
 struct LearningSkillsView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject private var authViewModel: AuthViewModel
     @Environment(\.dismiss) private var dismiss
     
-    @StateObject var viewModel: LearningSkillsViewModel
+    @State private var viewModel = LearningSkillsViewModel()
     @State private var showToast = false
     @State private var showError: Bool = false
-    @State private var isRegistration = true
-    
-    init(authViewModel: AuthViewModel, isRegistration: Bool = false) {
-        self.isRegistration = isRegistration
-
-        _viewModel = StateObject(wrappedValue: LearningSkillsViewModel(authViewModel: authViewModel))
-    }
-    
+    @State var isRegistration = true
+   
     var body: some View {
-        VStack{
-            VStack(alignment: .leading){
+        VStack {
+            VStack(alignment: .leading) {
                 Image("logo")
                     .resizable()
                     .scaledToFit()
@@ -98,7 +92,7 @@ struct LearningSkillsView: View {
                                 }
                             }
                             .pickerStyle(SegmentedPickerStyle())
-                            .onChange(of: viewModel.filteredSkills[index].level) { newValue in
+                            .onChange(of: viewModel.filteredSkills[index].level) { _, newValue in
                                 if let newLevel = newValue {
                                     if newLevel != "" {
                                         let updatedSkill = Skill(name: viewModel.filteredSkills[index].name, level: newLevel)
@@ -144,10 +138,13 @@ struct LearningSkillsView: View {
                 }
             })
         }
+        .onAppear {
+            self.viewModel.setAuthViewModel(authViewModel)
+        }
     }
 }
 
 #Preview {
-    SelfSkillsView(authViewModel: AuthViewModel.mock)
+    LearningSkillsView()
         .environmentObject(AuthViewModel.mock)
 }

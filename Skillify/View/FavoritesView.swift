@@ -26,7 +26,7 @@ struct FavoritesView: View {
             }
             .pickerStyle(SegmentedPickerStyle())
             .padding(.horizontal)
-            .onChange(of: selection) { _ in
+            .onChange(of: selection) { _, _ in
                 favoritesViewModel.selection = selection
                 Task {
                     await favoritesViewModel.work()
