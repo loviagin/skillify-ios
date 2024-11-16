@@ -184,6 +184,7 @@ struct FeedMainView: View {
             } else if url.absoluteString.contains("@") {
                 // Открытие профиля пользователя по нику
                 let nickname = url.absoluteString.components(separatedBy: "@").last ?? ""
+                authViewModel.selectedTab = .home
                 userViewModel.loadUser(byNickname: nickname)
             }
         }

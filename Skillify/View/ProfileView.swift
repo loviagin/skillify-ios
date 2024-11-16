@@ -191,9 +191,9 @@ struct ProfileView: View {
                         HStack(spacing: 15) {
                             //MARK: - Кнопка "Сообщение"
                             if (UserHelper.isMessagesBlocked(viewModel: authViewModel, user: user) == nil) { // проверка что пользователя не блокнули
-                                Button {
+                               Button {
                                     withAnimation {
-                                        authViewModel.selectedTab = .chats
+//                                        authViewModel.selectedTab = .chats
                                         userId = NewChatUser(userId: user.id)
                                     }
                                 } label: {

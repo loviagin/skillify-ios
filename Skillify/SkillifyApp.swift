@@ -48,9 +48,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         Purchases.configure(withAPIKey: "appl_XIhpKOSZPgtexHzjEZAwzgGYrMk")
         
         // Настройка тестового устройства
-        GADMobileAds.sharedInstance().requestConfiguration.testDeviceIdentifiers = [
-            "6aba2884a16b839276f5647143ccea74"
-        ]
+//        GADMobileAds.sharedInstance().requestConfiguration.testDeviceIdentifiers = [
+//            "6aba2884a16b839276f5647143ccea74"
+//        ]
         
         GADMobileAds.sharedInstance().start(completionHandler: nil)
         

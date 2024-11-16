@@ -288,6 +288,9 @@ struct MessagesView: View {
             ProfileView(user: user!)
         }
         .onDisappear {
+//            withAnimation {
+//                userViewModel.selectedTab = .chats
+//            }
             viewModel.detachListener()
         }
     }
