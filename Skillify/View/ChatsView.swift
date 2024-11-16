@@ -29,7 +29,7 @@ struct ChatsView: View {
                     
                     ScrollView(.horizontal, showsIndicators: false) {
                         ForEach(activeUsers) { user in
-                            NavigationLink(destination: MessagesView(userId: user.id)) {
+                            NavigationLink(destination: MessagesView(userId: user.id).toolbar(.hidden, for: .tabBar)) {
                                 ActiveUserView(u: user)
                                     .foregroundColor(.primary)
                             }

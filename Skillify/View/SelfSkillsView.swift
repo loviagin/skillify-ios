@@ -13,8 +13,8 @@ struct SelfSkillsView: View {
     
     @State private var viewModel = SkillsViewModel()
     @State private var showToast = false
-    @State private var showError: Bool = false
-    @State var isRegistration: Bool = false
+    @State private var showError = false
+    @State var isRegistration = false
     
     var body: some View {
         VStack {

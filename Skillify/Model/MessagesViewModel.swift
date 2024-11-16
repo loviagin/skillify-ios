@@ -278,7 +278,6 @@ class MessagesViewModel: ObservableObject {
                             print(error)
                         }
                     }
-//                    completion(.success(()))
                 }
             }
         } else {
@@ -532,7 +531,7 @@ class MessagesViewModel: ObservableObject {
             "ios_badgeCount": 1
         ] as [String : Any]
         
-        let notification = Notification(title: header, body: "New message: \(messageText)", type: .chat, url: targetText)
+        let notification = Notification(title: header, body: "New message: \(messageText)", userId: playerId, type: .chat, url: targetText)
         
         try? Firestore.firestore().collection("notifications").addDocument(from: notification) { error in
             if let error { print(error) }

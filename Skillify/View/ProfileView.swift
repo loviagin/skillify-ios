@@ -481,6 +481,7 @@ struct ProfileView: View {
                 }
                 .navigationDestination(item: $userId) { user in
                     MessagesView(userId: user.userId)
+                        .toolbar(.hidden, for: .tabBar)
                 }
             }
         }
@@ -493,40 +494,6 @@ struct ProfileView: View {
         
         return false
     }
-    
-    // MARK: - блокируем пользователя
-//    func syncAddFire (blockedUserID: String) {
-//        guard let uid = authViewModel.currentUser?.id else { return }
-//        let db = Firestore.firestore()
-//        let userRef = db.collection("users").document(uid)
-//        
-//        userRef.updateData([
-//            "blockedUsers": FieldValue.arrayUnion([blockedUserID])
-//        ]) { error in
-//            if let error = error {
-//                print("Error updating user: \(error)")
-//            } else {
-//                print("User successfully updated")
-//            }
-//        }
-//    }
-//    
-//    //MARK: - разблокируем пользователя
-//    func syncDelFire (blockedUserID: String) {
-//        guard let uid = authViewModel.currentUser?.id else { return }
-//        let db = Firestore.firestore()
-//        let userRef = db.collection("users").document(uid)
-//        
-//        userRef.updateData([
-//            "blockedUsers": FieldValue.arrayRemove([blockedUserID])
-//        ]) { error in
-//            if let error = error {
-//                print("Error updating user: \(error)")
-//            } else {
-//                print("User successfully updated")
-//            }
-//        }
-//    }
 }
 
 struct TipShareProfileView: Tip {
@@ -660,52 +627,6 @@ struct exc2View: View {
                                     .padding(.horizontal)
                 Text("Intermediate")
                     .foregroundColor(.gray)
-//                HStack {
-//                    Button {
-//                        
-//                    } label: {
-//                        Text("Edit")
-//                            .font(.caption)
-//                            .padding(.vertical, 5)
-//                            .padding(.horizontal, 8)
-//                            .background(.gray)
-//                            .foregroundColor(.white)
-//                            .cornerRadius(15)
-//                    }
-//                    Spacer()
-//                    Button {
-//                        isVisible.toggle()
-//                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-//                            isVisible = false
-//                        }
-//                    } label: {
-//                        HStack {
-//                            Text("Check your skill")
-//                                .font(.caption)
-//                        }
-//                        .padding(.vertical, 5)
-//                        .padding(.horizontal, 8)
-//                        .background(.blue)
-//                        .foregroundColor(.white)
-//                        .cornerRadius(15)
-//                    }
-//                    .overlay(alignment: .top, content: {
-//                        if isVisible {
-//                            Text("Availaible soon")
-//                                .padding(.vertical, 5)
-//                                .padding(.horizontal, 8)
-//                                .frame(width: 100, height: 40)
-//                                .background(.background)
-//                                .foregroundColor(.primary)
-//                                .cornerRadius(15)
-//                                .shadow(radius: 5)
-//                                .font(.caption)
-//                                .offset(y: -50)
-//                        }
-//                    })
-//                }
-//                .padding(.horizontal)
-//                .padding(.bottom, 10)
             }
         }
     }
@@ -773,52 +694,6 @@ struct excView: View {
                                     .padding(.horizontal)
                 Text("Intermediate")
                     .foregroundColor(.gray)
-//                HStack {
-//                    Button {
-//                        
-//                    } label: {
-//                        Text("Edit")
-//                            .font(.caption)
-//                            .padding(.vertical, 5)
-//                            .padding(.horizontal, 8)
-//                            .background(.gray)
-//                            .foregroundColor(.white)
-//                            .cornerRadius(15)
-//                    }
-//                    Spacer()
-//                    Button {
-//                        isVisible = true
-//                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-//                            isVisible = false
-//                        }
-//                    } label: {
-//                        HStack {
-//                            Text("Check your skill")
-//                                .font(.caption)
-//                        }
-//                        .padding(.vertical, 5)
-//                        .padding(.horizontal, 8)
-//                        .background(.blue)
-//                        .foregroundColor(.white)
-//                        .cornerRadius(15)
-//                    }
-//                    .overlay(alignment: .top, content: {
-//                        if isVisible {
-//                            Text("Availaible soon")
-//                                .font(.caption)
-//                                .padding(.vertical, 5)
-//                                .padding(.horizontal, 8)
-//                                .frame(width: 100, height: 40)
-//                                .foregroundColor(.primary)
-//                                .background(.background)
-//                                .cornerRadius(15)
-//                                .shadow(radius: 5)
-//                                .offset(y: -50)
-//                        }
-//                    })
-//                }
-//                .padding(.horizontal)
-//                .padding(.bottom, 10)
             }
         }
     }

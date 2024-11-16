@@ -26,6 +26,7 @@ struct TabsView: View {
                         .environment(\.symbolVariants, authViewModel.selectedTab == .chats ? .fill : .none)
                 }
                 .tag(TabType.chats)
+                .badge(chatViewModel.countUnread())
             
             DiscoverView()
                 .tabItem {

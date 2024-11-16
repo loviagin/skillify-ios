@@ -23,6 +23,7 @@ struct HeaderChatView: View {
             
             NavigationLink {
                 MessagesView(userId: "Support")
+                    .toolbar(.hidden, for: .tabBar)
             } label: {
                 ZStack(alignment: .topTrailing) {
                     Image(systemName: "questionmark.bubble")

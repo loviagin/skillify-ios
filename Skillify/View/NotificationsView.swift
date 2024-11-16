@@ -53,7 +53,7 @@ struct NotificationItemView: View {
         } label: {
             GroupBox {
                 HStack(alignment: .center, spacing: 20) {
-                    Avatar2View(avatarUrl: user.urlAvatar, size: 30, maxHeight: 30, maxWidth: 30)
+//                    Avatar2View(avatarUrl: user.urlAvatar, size: 30, maxHeight: 30, maxWidth: 30)
                     
                     VStack(alignment: .leading) {
                         Text(notification.title)
@@ -67,6 +67,7 @@ struct NotificationItemView: View {
         }
         .navigationDestination(item: $showChat) { message in
             MessagesView(userId: message.userId)
+                .toolbar(.hidden, for: .tabBar)
         }
         .navigationDestination(item: $showProfile) { user in
             ProfileView(user: user)

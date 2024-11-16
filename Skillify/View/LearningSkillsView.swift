@@ -14,7 +14,7 @@ struct LearningSkillsView: View {
     @State private var viewModel = LearningSkillsViewModel()
     @State private var showToast = false
     @State private var showError: Bool = false
-    @State var isRegistration = true
+    @State var isRegistration = false
    
     var body: some View {
         VStack {
