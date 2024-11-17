@@ -16,11 +16,9 @@ struct ContentView: View {
     var body: some View {
         Group {
             switch authViewModel.userState {
-            case .loading:
-                ProgressView()
             case .loggedOut:
                 AuthView()
-            case .loggedIn:
+            case .loading, .loggedIn:
                 TabsView()
             case .profileEditRequired:
                 EditProfileView()

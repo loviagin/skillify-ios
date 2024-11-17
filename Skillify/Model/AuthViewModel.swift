@@ -20,8 +20,7 @@ class AuthViewModel: ObservableObject {
     @Published var userState: UserState = .loading
     @Published var currentUser: User?
     @Published var errorMessage: String?
-    @Published var users = [User]()
-    
+    @Published var users: [User] = []
     @Published var destination: String? = nil
     @Published var selectedTab: TabType = .home
     
@@ -31,15 +30,19 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    func createUser(email: String, pass: String, completion: @escaping (String?) -> Void) async throws {
+    //MARK: - the finish line of creating user by EMAIL
+    func createUserByEmail(email: String, pass: String, completion: @escaping (String?) -> Void) async throws {
         if (email.isEmpty || pass.count < 6) {
             return
         }
         do {
             let result = try await Auth.auth().createUser(withEmail: email, password: pass)
             let user = User(id: result.user.uid, first_name: "", last_name: "", email: email, nickname: "", phone: "", birthday: Date())
+            let newPoint = GamePoint(name: "Welcome Talent", value: 10)
+            
             let encodedUser = try Firestore.Encoder().encode(user)
             try await Firestore.firestore().collection("users").document(user.id).setData(encodedUser)
+            try Firestore.firestore().collection("users").document(user.id).collection("points").addDocument(from: newPoint)
             
             await loadUser()
             completion(nil)
@@ -190,7 +193,7 @@ class AuthViewModel: ObservableObject {
                     try? queryDocumentSnapshot.data(as: User.self)
                 }
                 
-                self?.users = allUsers.filter({$0.id != self!.currentUser!.id && UserHelper.isUserPro($0.proDate) && !self!.currentUser!.blockedUsers.contains($0.id)})
+                self?.users = allUsers.filter({$0.id != self!.currentUser!.id && UserHelper.isUserPro($0.proDate) && !self!.currentUser!.blockedUsers.contains($0.id) && $0.block == nil})
             }
     }
     
@@ -318,24 +321,34 @@ class AuthViewModel: ObservableObject {
         }
     }
     
+    //MARK: - finish line of creating a new user by GOOGLE, APPLE, PHONE
     func registerUserAndLoadProfile(uid: String, email: String, firstName: String, lastName: String, phone: String) async {
         DispatchQueue.main.async {
             self.userState = .loading
         }
+        
         let userRef = Firestore.firestore().collection("users").document(uid)
+        
         do {
             let documentSnapshot = try await userRef.getDocument()
             
-            if documentSnapshot.data() != nil {} else {
+            if documentSnapshot.data() != nil {
+                print("user already exists")
+            } else {
                 print("create a document")
                 // Документ не существует, создаем новый документ.
                 let newUser = User(id: uid, first_name: firstName, last_name: lastName, email: email, nickname: "", phone: phone, birthday: Date())
+                let newPoint = GamePoint(name: "Welcome Talent", value: 10)
+                
                 DispatchQueue.main.async {
                     self.currentUser = newUser
                 }
+                
                 let encodedUser = try Firestore.Encoder().encode(newUser)
                 try await userRef.setData(encodedUser)
+                try userRef.collection("points").addDocument(from: newPoint)
             }
+            
             await loadUser() // Загрузка данных пользователя после регистрации или обнаружения существующего профиля.
         } catch {
             // Обработка возникших ошибок.
@@ -344,14 +357,6 @@ class AuthViewModel: ObservableObject {
         DispatchQueue.main.async {
             self.userState = .loggedIn
         }
-    }
-    
-    func getRootViewController() -> UIViewController? {
-        // Attempt to find the root view controller of the current key window
-        return UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap { $0.windows }
-            .first(where: { $0.isKeyWindow })?.rootViewController
     }
     
     func loadUser() async {
@@ -619,11 +624,6 @@ class AuthViewModel: ObservableObject {
                             avatarUrl: currentUser.urlAvatar.isEmpty ? defaultAvatarURL : currentUser.urlAvatar,
                             completion: completion)
                         
-                        let notification = Notification(title: messageText, userId: playerId, type: .user, url: targetText)
-                        
-                        try? Firestore.firestore().collection("notifications").addDocument(from: notification) { error in
-                            if let error { print(error) }
-                        }
                     }
                 case .message:
                     if let privacyData = privacy, !privacyData.contains(where: { $0 == "blockMessageNotification" }) {
@@ -634,12 +634,6 @@ class AuthViewModel: ObservableObject {
                             targetText: "skillify://m/\(targetText)",
                             avatarUrl: currentUser.urlAvatar.isEmpty ? defaultAvatarURL : currentUser.urlAvatar,
                             completion: completion)
-                        
-                        let notification = Notification(title: messageText, userId: playerId, type: .chat, url: targetText)
-                        
-                        try? Firestore.firestore().collection("notifications").addDocument(from: notification) { error in
-                            if let error { print(error) }
-                        }
                     }
                 case .system:
                     if let privacyData = privacy, !privacyData.contains(where: { $0 == "blockSystemNotification" }) {
@@ -730,29 +724,4 @@ class AuthViewModel: ObservableObject {
             currentUser!.proDate = time
         }
     }
-}
-
-
-enum NotificationType {
-    case subscription, message, system
-}
-
-enum ProOption {
-    case year
-    case month
-}
-
-extension AuthViewModel {
-    static var mock: AuthViewModel {
-        let viewModel = AuthViewModel()
-        viewModel.currentUser = User(id: "Support", first_name: "Elia", last_name: "Loviagin", email: "ilia@loviagin.com", nickname: "nick", phone: "+70909998876", birthday: Date())
-        viewModel.currentUser?.proData = ["user", "cover:3"]
-        viewModel.currentUser?.urlAvatar = "avatar2"
-        viewModel.currentUser?.devices = ["f3498hervuhivuheiqidcjeq", "owivje9qfh9r8euqw9e"]
-        return viewModel
-    }
-}
-
-enum TabType {
-    case home, chats, account, discovery
 }

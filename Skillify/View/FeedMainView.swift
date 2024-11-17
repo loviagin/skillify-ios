@@ -17,6 +17,7 @@ struct FeedMainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @StateObject private var viewModel = ChipsViewModel()
     @StateObject private var userViewModel = UserViewModel()
+    @AppStorage("pointIntroduced") var pointIntroduced = false
     
     @State private var showSelfSkill = false
     @State private var showLearningSkill = false
@@ -24,7 +25,6 @@ struct FeedMainView: View {
     @State private var selectedValue: SearchType = .learningsSkills
     @State var searchViewModel = SearchViewModel(chipArray: [])
     
-    @State private var selectedSkill: String = "Graphic Design"
     @State var proViewShow = false
     @State var profileViewShow = false
     
@@ -50,6 +50,11 @@ struct FeedMainView: View {
                     }
                 }
                 
+                if authViewModel.userState == .loading {
+                    ProgressView()
+                        .frame(width: 50, height: 50)
+                }
+                
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading) {
                         HStack {
@@ -58,10 +63,6 @@ struct FeedMainView: View {
                                 .bold()
                             
                             Spacer()
-                            
-                            Button("View all") {
-                                
-                            }
                         }
                         
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -96,8 +97,8 @@ struct FeedMainView: View {
                             }
                         }
                         
-                        TipView(TipNewVersion156())
-                            .padding(.trailing, 10)
+//                        TipView(TipNewVersion156())
+//                            .padding(.trailing, 10)
                         
                         Picker("Выберите элемент", selection: $selectedValue) {
                             ForEach(SearchType.allCases, id: \.self) { option in
@@ -151,6 +152,8 @@ struct FeedMainView: View {
                         print("error while loading admin doc: \(error?.localizedDescription ?? "No error description")")
                     }
                 }
+                
+//                firebaseAction()
             }
             .onChange(of: selectedValue) { _, _ in
                 updateSearch()
@@ -165,8 +168,49 @@ struct FeedMainView: View {
             .navigationDestination(isPresented: $showLearningSkill) {
                 LearningSkillsView(isRegistration: true)
             }
+            .fullScreenCover(isPresented: $pointIntroduced) {
+                MainOnboardingView()
+            }
+            .task {
+                if authViewModel.currentUser?.selfSkills.isEmpty ?? false {
+                    showSelfSkill = true
+                } else if authViewModel.currentUser?.learningSkills.isEmpty ?? false {
+                    showLearningSkill = true
+                } 
+            }
         }
     }
+    
+    //MARK: - firebase add/remove field(-s)
+//    func firebaseAction() {
+//        let db = Firestore.firestore()
+//        let usersCollection = db.collection("users")
+//        
+//        // Получаем все документы из коллекции `users`
+//        usersCollection.getDocuments { snapshot, error in
+//            if let error = error {
+//                print("Ошибка при получении документов: \(error.localizedDescription)")
+//                return
+//            }
+//            
+//            guard let documents = snapshot?.documents else {
+//                print("Нет документов в коллекции `users`.")
+//                return
+//            }
+//            
+//            for document in documents {
+//                document.reference.updateData([
+//                    "points": FieldValue.delete()
+//                ]) { error in
+//                    if let error = error {
+//                        print("Ошибка при удалении поля `blocked` из документа \(document.documentID): \(error.localizedDescription)")
+//                    } else {
+//                        print("Поле `blocked` успешно удалено из документа \(document.documentID).")
+//                    }
+//                }
+//            }
+//        }
+//    }
     
     private func handleURL(_ url: URL) {
         // Проверка, что пользователь залогинен
@@ -190,7 +234,7 @@ struct FeedMainView: View {
         }
     }
     
-    func updateSearch(){
+    func updateSearch() {
         if authViewModel.userState == UserState.loggedIn {
             DispatchQueue.main.async {
                 if selectedValue == .learningsSkills {
@@ -214,13 +258,6 @@ struct FeedMainView: View {
                 }
             }
         }
-    }
-    
-    enum SearchType: String, CaseIterable, Identifiable {
-        case learningsSkills = "Learning skills"
-        case selfSkills = "My skills"
-        
-        var id: Self { self }
     }
 }
 
@@ -270,12 +307,7 @@ struct HeaderMainView: View {
                 
                 Spacer()
                 
-                NavigationLink(destination: NotificationsView()) {
-                    Image(systemName: "bell")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20)
-                }
+//                PointScoreView()
             }
             
             Divider()
@@ -470,14 +502,6 @@ struct UserSearchView: View {
     }
 }
 
-extension Array {
-    func chunked(into size: Int) -> [[Element]] {
-        stride(from: 0, to: count, by: size).map {
-            Array(self[$0 ..< Swift.min($0 + size, count)])
-        }
-    }
-}
-
 #Preview {
     FeedMainView()
         .environmentObject(AuthViewModel.mock)
@@ -485,18 +509,17 @@ extension Array {
         .environmentObject(CallManager.mock)
 }
 
-
-struct TipNewVersion156: Tip {
-    var title: Text {
-        Text("New version 1.5.6")
-    }
-    
-    var message: Text? {
-        Text("🚀 Audio messages have been added to chats.\n🚀 Now you can close photos and videos with a swipe down in chats.")
-    }
-    
-    var image: Image? {
-        Image(systemName: "wand.and.stars")
-            .symbolRenderingMode(.palette)
-    }
-}
+//struct TipNewVersion156: Tip {
+//    var title: Text {
+//        Text("New version 1.5.6")
+//    }
+//    
+//    var message: Text? {
+//        Text("🚀 Audio messages have been added to chats.\n🚀 Now you can close photos and videos with a swipe down in chats.")
+//    }
+//    
+//    var image: Image? {
+//        Image(systemName: "wand.and.stars")
+//            .symbolRenderingMode(.palette)
+//    }
+//}

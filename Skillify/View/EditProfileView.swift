@@ -12,7 +12,7 @@ import Kingfisher
 
 struct EditProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @Environment(\.presentationMode) private var presentationMode
+    @Environment(\.dismiss) private var dismiss
     
     @State private var first_name = ""
     @State private var last_name = ""
@@ -174,11 +174,13 @@ struct EditProfileView: View {
                                   message: Text("Only letters, numbers, hyphens, and underscores are allowed in nicknames."),
                                   dismissButton: .default(Text("OK")))
                         }
+                    
                     if showNicknameUAlert {
                         Text("This nickname already in use")
                             .font(.caption)
                             .foregroundColor(.red)
                     }
+                    
                     DatePicker(
                         "Your birthday",
                         selection: $birthDate,
@@ -203,7 +205,9 @@ struct EditProfileView: View {
                     TextField("", text: $email)
                         .textFieldStyle(.roundedBorder)
                         .disabled(true)
+                    
                     Spacer()
+                    
                     Button {
                         checkAgeAndSave()
                     } label: {
@@ -235,7 +239,7 @@ struct EditProfileView: View {
                 .onDisappear {
                     checkAgeAndSave()
                 }
-                .onChange(of: selectedImage) { _ in
+                .onChange(of: selectedImage) { _, _ in
                     if let selectedImage {
                         print("analyze")
                         analyzeImage(image: selectedImage)
@@ -462,30 +466,28 @@ struct EditProfileView: View {
             isLoading = true
             UserDefaults.standard.setValue(first_name, forKey: "nameUser")
             authViewModel.isNicknameUnique(nickname) { isUnique in
-                if isUnique {
-                    DispatchQueue.main.async {
-                        showNicknameUAlert = false
-                    }
-                    uploadImage()
-                    presentationMode.wrappedValue.dismiss()
-                } else {
-                    DispatchQueue.main.async {
-                        showNicknameUAlert = true
+                withAnimation {
+                    if isUnique {
+                        DispatchQueue.main.async {
+                            showNicknameUAlert = false
+                        }
                         isLoading = false
+                        uploadImage()
+                        dismiss()
+                        if authViewModel.userState == .profileEditRequired {
+                            authViewModel.userState = .loggedIn
+                        }
+                    } else {
+                        DispatchQueue.main.async {
+                            showNicknameUAlert = true
+                            isLoading = false
+                        }
                     }
                 }
             }
         }
     }
 }
-
-extension Color {
-    static func fromRGBAString(_ rgbaString: String) -> Color? {
-        let components = rgbaString.split(separator: ",").compactMap { Double($0) }
-        return components.count == 4 ? Color(.sRGB, red: components[0], green: components[1], blue: components[2], opacity: components[3]) : nil
-    }
-}
-
 
 #Preview {
     EditProfileView()

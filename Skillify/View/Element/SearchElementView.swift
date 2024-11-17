@@ -17,7 +17,7 @@ struct SearchElementView: View {
                 .padding(.top)
                 .padding(.bottom, 5)
             
-            HStack {
+            HStack(spacing: 5) {
                 Text("\(user.first_name) \(user.last_name)")
                     .lineLimit(1)
                 
@@ -31,7 +31,9 @@ struct SearchElementView: View {
                         .resizable()
                         .scaledToFill()
                         .frame(width: 15, height: 15)
-                } else if let status = user.proData?.first(where: { $0.hasPrefix("status:") }) {
+                }
+                
+                if let status = user.proData?.first(where: { $0.hasPrefix("status:") }), UserHelper.isUserPro(user.proDate) {
                     Image(systemName: String(status.split(separator: ":").last ?? Substring(status)))
                         .resizable()
                         .scaledToFill()

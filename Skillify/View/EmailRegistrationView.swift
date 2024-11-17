@@ -53,7 +53,7 @@ struct EmailRegistrationView: View {
                         focused = nil
                         isLoading = true
                         Task {
-                            try await authViewModel.createUser(email: email, pass: password) { error in
+                            try await authViewModel.createUserByEmail(email: email, pass: password) { error in
                                 if let error {
                                     print(error)
                                 }
@@ -65,7 +65,7 @@ struct EmailRegistrationView: View {
                 Button {
                     isLoading = true
                     Task {
-                        try await authViewModel.createUser(email: email, pass: password) { error in
+                        try await authViewModel.createUserByEmail(email: email, pass: password) { error in
                             if let error {
                                 print(error)
                             }

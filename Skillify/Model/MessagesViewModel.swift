@@ -531,12 +531,6 @@ class MessagesViewModel: ObservableObject {
             "ios_badgeCount": 1
         ] as [String : Any]
         
-        let notification = Notification(title: header, body: "New message: \(messageText)", userId: playerId, type: .chat, url: targetText)
-        
-        try? Firestore.firestore().collection("notifications").addDocument(from: notification) { error in
-            if let error { print(error) }
-        }
-        
         let postData = try? JSONSerialization.data(withJSONObject: parameters, options: [])
         
         let request = NSMutableURLRequest(url: NSURL(string: "https://onesignal.com/api/v1/notifications")! as URL,
