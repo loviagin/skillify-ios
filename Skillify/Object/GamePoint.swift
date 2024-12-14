@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct GamePoint: Codable {
+struct GamePoint: Codable, Equatable {
     var name: String = ""
     var date: Date = Date()
     var value: Int = 0

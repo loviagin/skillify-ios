@@ -17,11 +17,7 @@ class UserHelper {
     static let emojies = ["sunglasses", "sparkles", "flame", "fireworks", "snowflake", "bolt", "paperplane", "link", "sun.min", "moon"]
     static let statuses = ["star.fill", "moon.stars", "ellipsis.message", "phone.badge.waveform.fill", "flame.fill", "bolt.fill", "laptopcomputer", "graduationcap.fill", "beach.umbrella.fill", "cup.and.saucer.fill"]
     static let theme = ["theme1", "theme2"]
-
-    static func isUserPro(_ date: Double?) -> Bool {
-        return date ?? 0 > Date().timeIntervalSince1970
-    }
-    
+ 
     static func isUserPro(_ date: Date?) -> Bool {
         return date ?? Date() > Date()
     }

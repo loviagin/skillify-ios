@@ -23,6 +23,7 @@
 		861A73DF2C8847A6001EA709 /* EmojiGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861A73DE2C8847A6001EA709 /* EmojiGroup.swift */; };
 		862813032BEF878B003FA32E /* OneSignalExtension in Frameworks */ = {isa = PBXBuildFile; productRef = 862813022BEF878B003FA32E /* OneSignalExtension */; };
 		862813052BEF878B003FA32E /* OneSignalFramework in Frameworks */ = {isa = PBXBuildFile; productRef = 862813042BEF878B003FA32E /* OneSignalFramework */; };
+		862BCB4D2CEA8C30003D2BBC /* PointsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 862BCB4C2CEA8C30003D2BBC /* PointsViewModel.swift */; };
 		862E0D2E2CC15EBB008DD73B /* ChipsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 862E0D2D2CC15EBB008DD73B /* ChipsViewModel.swift */; };
 		862E0D302CC16486008DD73B /* HeaderChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 862E0D2F2CC16486008DD73B /* HeaderChatView.swift */; };
 		8656D5832C023E8300396B45 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8656D5822C023E8300396B45 /* GoogleService-Info.plist */; };
@@ -145,6 +146,9 @@
 		86C96D392C19D3600058600C /* CoursesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C96D382C19D3600058600C /* CoursesViewModel.swift */; };
 		86C96D3B2C19D3780058600C /* Course.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C96D3A2C19D3780058600C /* Course.swift */; };
 		86E186622CA03D6A00780C9E /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 86E186612CA03D6A00780C9E /* FirebaseMessaging */; };
+		86E9B2A42CECF24A00F437B0 /* MarketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E9B2A32CECF24A00F437B0 /* MarketView.swift */; };
+		86E9B2A62CECF37700F437B0 /* HorizontalCourseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E9B2A52CECF37700F437B0 /* HorizontalCourseView.swift */; };
+		86E9B2A82CECF39C00F437B0 /* CourseItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E9B2A72CECF39C00F437B0 /* CourseItem.swift */; };
 		86EA10B92C8C97710005D366 /* VideoChatPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86EA10B82C8C97710005D366 /* VideoChatPicker.swift */; };
 		86EA10BB2C8C99270005D366 /* VideoThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86EA10BA2C8C99270005D366 /* VideoThumbnailView.swift */; };
 		86EA10BD2C8CA30A0005D366 /* VideoPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86EA10BC2C8CA30A0005D366 /* VideoPlayerView.swift */; };
@@ -192,6 +196,7 @@
 		861092512C0DB83200062EBE /* PrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyView.swift; sourceTree = "<group>"; };
 		861092532C0DB86B00062EBE /* BlockedUsersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockedUsersView.swift; sourceTree = "<group>"; };
 		861A73DE2C8847A6001EA709 /* EmojiGroup.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EmojiGroup.swift; sourceTree = "<group>"; };
+		862BCB4C2CEA8C30003D2BBC /* PointsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsViewModel.swift; sourceTree = "<group>"; };
 		862E0D2D2CC15EBB008DD73B /* ChipsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChipsViewModel.swift; sourceTree = "<group>"; };
 		862E0D2F2CC16486008DD73B /* HeaderChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderChatView.swift; sourceTree = "<group>"; };
 		8656D5822C023E8300396B45 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -305,6 +310,9 @@
 		86C96D362C19CDDC0058600C /* VideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoView.swift; sourceTree = "<group>"; };
 		86C96D382C19D3600058600C /* CoursesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoursesViewModel.swift; sourceTree = "<group>"; };
 		86C96D3A2C19D3780058600C /* Course.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Course.swift; sourceTree = "<group>"; };
+		86E9B2A32CECF24A00F437B0 /* MarketView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketView.swift; sourceTree = "<group>"; };
+		86E9B2A52CECF37700F437B0 /* HorizontalCourseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizontalCourseView.swift; sourceTree = "<group>"; };
+		86E9B2A72CECF39C00F437B0 /* CourseItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseItem.swift; sourceTree = "<group>"; };
 		86EA10B82C8C97710005D366 /* VideoChatPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoChatPicker.swift; sourceTree = "<group>"; };
 		86EA10BA2C8C99270005D366 /* VideoThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoThumbnailView.swift; sourceTree = "<group>"; };
 		86EA10BC2C8CA30A0005D366 /* VideoPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayerView.swift; sourceTree = "<group>"; };
@@ -376,6 +384,7 @@
 				86C96D382C19D3600058600C /* CoursesViewModel.swift */,
 				862E0D2D2CC15EBB008DD73B /* ChipsViewModel.swift */,
 				868BBAF02CE7F5010080A0A3 /* UserViewModel.swift */,
+				862BCB4C2CEA8C30003D2BBC /* PointsViewModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -416,6 +425,7 @@
 				868164DD2C5D554B004A67B0 /* LastData.swift */,
 				861A73DE2C8847A6001EA709 /* EmojiGroup.swift */,
 				866E49E22CE9EEBE00CD4B5F /* GamePoint.swift */,
+				86E9B2A72CECF39C00F437B0 /* CourseItem.swift */,
 			);
 			path = Object;
 			sourceTree = "<group>";
@@ -459,6 +469,7 @@
 				86AC33202CC19A8400BFAD72 /* AudioMessageView.swift */,
 				860A90B12CC282270085B991 /* IconElementView.swift */,
 				866E49EB2CE9F0C800CD4B5F /* PointScoreView.swift */,
+				86E9B2A52CECF37700F437B0 /* HorizontalCourseView.swift */,
 			);
 			path = Element;
 			sourceTree = "<group>";
@@ -497,6 +508,7 @@
 				861092512C0DB83200062EBE /* PrivacyView.swift */,
 				861092532C0DB86B00062EBE /* BlockedUsersView.swift */,
 				868BBAE82CE7D53B0080A0A3 /* TabsView.swift */,
+				86E9B2A32CECF24A00F437B0 /* MarketView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -774,7 +786,9 @@
 				866286D02BEECB8400102FA0 /* AuthView.swift in Sources */,
 				866E49E72CE9EFE200CD4B5F /* SearchTypeEnum.swift in Sources */,
 				866286CF2BEECB8400102FA0 /* AccountView.swift in Sources */,
+				86E9B2A42CECF24A00F437B0 /* MarketView.swift in Sources */,
 				866286B02BEECB8400102FA0 /* SubscribersViewModel.swift in Sources */,
+				86E9B2A82CECF39C00F437B0 /* CourseItem.swift in Sources */,
 				861092482C0CFC6E00062EBE /* StandardAvatarView.swift in Sources */,
 				866286C52BEECB8400102FA0 /* ChipView.swift in Sources */,
 				866286CD2BEECB8400102FA0 /* SkillView.swift in Sources */,
@@ -820,6 +834,7 @@
 				861A73DF2C8847A6001EA709 /* EmojiGroup.swift in Sources */,
 				866286DB2BEECB8400102FA0 /* MessagesView.swift in Sources */,
 				866286E42BEECB8400102FA0 /* SettingsView.swift in Sources */,
+				862BCB4D2CEA8C30003D2BBC /* PointsViewModel.swift in Sources */,
 				866286AC2BEECB8400102FA0 /* LearningSkillsModel.swift in Sources */,
 				865ADB2A2BFE1AC1009CDA90 /* AgoraManager.swift in Sources */,
 				86A9ABF92BEEBF0300F4C7FE /* SkillifyApp.swift in Sources */,
@@ -868,6 +883,7 @@
 				86AC33212CC19A8400BFAD72 /* AudioMessageView.swift in Sources */,
 				86AC33162CC19A0B00BFAD72 /* BarView.swift in Sources */,
 				866286E52BEECB8400102FA0 /* ShareProfileView.swift in Sources */,
+				86E9B2A62CECF37700F437B0 /* HorizontalCourseView.swift in Sources */,
 				866286CE2BEECB8400102FA0 /* VideoCallView.swift in Sources */,
 				862E0D302CC16486008DD73B /* HeaderChatView.swift in Sources */,
 				866286B32BEECB8400102FA0 /* DeepLinkManager.swift in Sources */,
@@ -1086,7 +1102,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Skillify/Skillify.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 64;
+				CURRENT_PROJECT_VERSION = 65;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"Skillify/Preview Content\"";
 				DEVELOPMENT_TEAM = GWXUDX4MQT;
@@ -1109,7 +1125,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6.4;
+				MARKETING_VERSION = 1.6.5;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1130,7 +1146,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Skillify/Skillify.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 64;
+				CURRENT_PROJECT_VERSION = 65;
 				DEVELOPMENT_ASSET_PATHS = "\"Skillify/Preview Content\"";
 				DEVELOPMENT_TEAM = GWXUDX4MQT;
 				ENABLE_PREVIEWS = YES;
@@ -1152,7 +1168,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6.4;
+				MARKETING_VERSION = 1.6.5;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
 				PRODUCT_NAME = "$(TARGET_NAME)";

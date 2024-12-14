@@ -8,5 +8,5 @@
 import Foundation
 
 enum TabType {
-    case home, chats, account, discovery
+    case home, chats, account, market
 }

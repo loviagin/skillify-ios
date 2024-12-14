@@ -17,13 +17,16 @@ struct FeedMainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @StateObject private var viewModel = ChipsViewModel()
     @StateObject private var userViewModel = UserViewModel()
+    @StateObject private var pointsViewModel = PointsViewModel()
     @AppStorage("pointIntroduced") var pointIntroduced = false
     
     @State private var showSelfSkill = false
     @State private var showLearningSkill = false
+    @State private var showNewDailyPoints = false
     
     @State private var selectedValue: SearchType = .learningsSkills
     @State var searchViewModel = SearchViewModel(chipArray: [])
+    @State var newCourses: [Course] = [Course(preview: "https://avatars.yandex.net/get-music-content/6201394/2e88bc3c.a.23429889-1/m1000x1000?webp=false", title: "Guitar Pro", description: "Get up your guitar and start playing!", rating: 4.8), Course(preview: "https://avatars.mds.yandex.net/i?id=b60e7cfd0b5e5dc7e1a5c8eda6e5e176_l-9138034-images-thumbs&n=13", title: "Piano Pro", description: "Get up your piano and start playing!", rating: 4.9)]
     
     @State var proViewShow = false
     @State var profileViewShow = false
@@ -34,6 +37,7 @@ struct FeedMainView: View {
         NavigationStack {
             VStack {
                 HeaderMainView()
+                    .environmentObject(pointsViewModel)
                     .padding(.vertical, 5)
                 
                 if let message = systemMessage {
@@ -50,7 +54,7 @@ struct FeedMainView: View {
                     }
                 }
                 
-                if authViewModel.userState == .loading {
+                if authViewModel.userState == .loading && authViewModel.currentUser == nil {
                     ProgressView()
                         .frame(width: 50, height: 50)
                 }
@@ -97,8 +101,36 @@ struct FeedMainView: View {
                             }
                         }
                         
-//                        TipView(TipNewVersion156())
-//                            .padding(.trailing, 10)
+                        //                        TipView(TipNewVersion156())
+                        //                            .padding(.trailing, 10)
+                        
+                        VStack {
+                            HStack {
+                                Text("New courses")
+                                    .font(.headline)
+                                    .bold()
+                                
+                                Spacer()
+                            }
+                            
+                            ForEach(newCourses) { course in
+                                HorizontalCourseView(course: course)
+                                Divider()
+                            }
+                        }
+                        .padding([.bottom, .top, .trailing])
+                        
+                        NavigationLink(
+                            destination: UsersSearchView()
+                        ) {
+                            Text("Search users, skills...")
+                                .padding()
+                                .frame(maxWidth: .infinity, maxHeight: 35, alignment: .leading)
+                                .background(.lGray)
+                                .foregroundColor(.gray)
+                                .cornerRadius(10)
+                                .padding(.bottom)
+                        }
                         
                         Picker("Выберите элемент", selection: $selectedValue) {
                             ForEach(SearchType.allCases, id: \.self) { option in
@@ -138,6 +170,7 @@ struct FeedMainView: View {
                         await authViewModel.loadUser()
                         authViewModel.fetchAllUsers()
                         updateSearch()
+                        pointsViewModel.reload()
                     }
                 }
             }
@@ -152,8 +185,14 @@ struct FeedMainView: View {
                         print("error while loading admin doc: \(error?.localizedDescription ?? "No error description")")
                     }
                 }
-                
+//                updateUserFields()
 //                firebaseAction()
+            }
+            .onChange(of: pointsViewModel.newDailyPoints) { _, newValue in
+                if newValue == true {
+                    self.showNewDailyPoints = true
+                    pointsViewModel.newDailyPoints = false
+                }
             }
             .onChange(of: selectedValue) { _, _ in
                 updateSearch()
@@ -171,6 +210,13 @@ struct FeedMainView: View {
             .fullScreenCover(isPresented: $pointIntroduced) {
                 MainOnboardingView()
             }
+            .alert("🎉 +10\n\nNew Daily Talents!", isPresented: $showNewDailyPoints, actions: {
+                Button("Sounds great!") {
+                    showNewDailyPoints = false
+                }
+            }, message: {
+                Text("Open the app every day to earn more Talents")
+            })
             .task {
                 if authViewModel.currentUser?.selfSkills.isEmpty ?? false {
                     showSelfSkill = true
@@ -264,6 +310,7 @@ struct FeedMainView: View {
 struct HeaderMainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var callManager: CallManager
+    @EnvironmentObject var viewModel: PointsViewModel
     
     @State private var showTopView = false
     
@@ -273,26 +320,21 @@ struct HeaderMainView: View {
                 CallTopView()
             }
             
-            HStack {
-                if let user = authViewModel.currentUser, UserHelper.isUserPro(user.proDate) {
-                    Image("logoPro")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 125)
-                } else {
-                    Image("logo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 125)
-                }
-            }
-            .padding(.bottom, 5)
-            .padding(.horizontal, 15)
-            .onChange(of: callManager.show) { _, _ in
-                withAnimation {
-                    showTopView = callManager.show
-                }
-            }
+//            HStack {
+//                if let user = authViewModel.currentUser, UserHelper.isUserPro(user.proDate) {
+//                    Image("logoPro")
+//                        .resizable()
+//                        .scaledToFit()
+//                        .frame(width: 125)
+//                } else {
+//                    Image("logo")
+//                        .resizable()
+//                        .scaledToFit()
+//                        .frame(width: 125)
+//                }
+//            }
+//            .padding(.bottom, 5)
+//            .padding(.horizontal, 15)
             
             HStack {
                 VStack(alignment: .leading) {
@@ -307,12 +349,18 @@ struct HeaderMainView: View {
                 
                 Spacer()
                 
-//                PointScoreView()
+                PointScoreView()
+                    .environmentObject(viewModel)
             }
             
             Divider()
         }
         .padding(.horizontal)
+        .onChange(of: callManager.show) { _, _ in
+            withAnimation {
+                showTopView = callManager.show
+            }
+        }
     }
 }
 

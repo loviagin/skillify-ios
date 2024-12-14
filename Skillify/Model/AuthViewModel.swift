@@ -386,6 +386,9 @@ class AuthViewModel: ObservableObject {
                     } else if currentUser.block != nil {
                         self.userState = .blocked(reason: currentUser.block)
                     } else {
+                        Task {
+                            await checkGamePoints()
+                        }
                         self.userState = .loggedIn
                     }
                 }
@@ -407,6 +410,20 @@ class AuthViewModel: ObservableObject {
             // В случае ошибки установки состояния в .loggedOut
             await MainActor.run {
                 self.userState = .loggedOut
+            }
+        }
+    }
+    
+    //MARK: - Check welcome game point
+    func checkGamePoints() async {
+        guard let currentUser else { return }
+        
+        if let docs = try? await Firestore.firestore().collection("users").document(currentUser.id).collection("points").whereField("name", isEqualTo: "Welcome Talent").getDocuments() {
+            if docs.isEmpty {
+                let newPoint = GamePoint(name: "Welcome Talent", value: 10)
+                try? Firestore.firestore().collection("users").document(currentUser.id).collection("points").addDocument(from: newPoint)
+            } else {
+                print("already has welcome talent")
             }
         }
     }
@@ -715,7 +732,7 @@ class AuthViewModel: ObservableObject {
 
     func cancelPro() {
         print("cance;ed")
-        if let user = currentUser {
+        if let user = currentUser, UserHelper.isUserPro(user.proDate), let data = user.proData, !data.contains("gift") {
             let time = Date()
             Firestore.firestore().collection("users").document(user.id).updateData([
                 "proDate": Timestamp(date: time)

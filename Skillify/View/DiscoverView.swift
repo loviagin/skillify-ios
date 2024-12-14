@@ -11,171 +11,171 @@ import FirebaseFirestore
 import GoogleMobileAds
 import UIKit
 
-struct DiscoverView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
-    @StateObject var viewModel = UsersViewModel()
-    @StateObject var activeSkillManager = ActiveSkillManager()
-    
-    private let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
-    @State private var selectedPicture = 0
-    @State private var pictures: [String] = []
-    
-    var body: some View {
-        NavigationStack {
-            VStack {
-                HStack {
-                    Image("logo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 125)
-                        .padding(.top, 5)
-
-                    Spacer()
-                    NavigationLink(destination: FavoritesView()) {
-                        Image(systemName: "star.circle.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 25)
-                            .foregroundColor(.brandBlue)
-                    }
-                }
-                .padding(.bottom, 5)
-                .padding(.horizontal, 15)
-                ScrollView {
-                    NavigationLink(
-                        destination: UsersSearchView()
-                    ) {
-                        Text("Search users, skills...")
-                            .padding()
-                            .frame(maxWidth: .infinity, maxHeight: 35, alignment: .leading)
-                            .background(.lGray)
-                            .foregroundColor(.gray)
-                            .cornerRadius(10)
-                            .padding(.horizontal)
-                    }
-                    
-                    HStack {
-                        Text("Popular skills ")
-                            .padding()
-                        Spacer()
-                        NavigationLink(destination: UsersSearchView(textSearch: "Design")) {
-                            Text("Design")
-                                .padding(10)
-                                .background(.lGray)
-                                .cornerRadius(15)
-                        }
-                        Spacer()
-
-                        NavigationLink(destination: UsersSearchView(textSearch: "Cooking")) {
-                            Text("Cooking")
-                                .padding(10)
-                                .background(.lGray)
-                                .cornerRadius(15)
-                        }                        
-                        Spacer()
-
-                    }                    
-                    .padding(.top, 10)
-
-                    HStack {
-                        Spacer()
-                        NavigationLink(destination: UsersSearchView(textSearch: "Programming")) {
-                            Text("Programming")
-                                .padding(10)
-                                .background(.lGray)
-                                .cornerRadius(15)
-                        }
-                        Spacer()
-
-                        NavigationLink(destination: UsersSearchView(textSearch: "Drum playing")) {
-                            Text("Drum playing")
-                                .padding(10)
-                                .background(.lGray)
-                                .cornerRadius(15)
-                        }
-                        Spacer()
-                    }
-                    if let user = authViewModel.currentUser, !UserHelper.isUserPro(user.proDate) {
-                        GeometryReader { geometry in
-                            let adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(geometry.size.width)
-                            
-                            VStack {
-                                Spacer()
-                                BannerView(adSize)
-                                    .frame(height: adSize.size.height)
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.bottom, 20)
-                    }
-                    
-                    if !pictures.isEmpty {
-                        GeometryReader { geometry in
-                            TabView(selection: $selectedPicture) {
-                                ForEach(pictures.indices, id: \.self) { index in
-                                    AsyncImage(url: URL(string: pictures[index])) { phase in
-                                        if let image = phase.image {
-                                            image
-                                                .resizable()
-                                                .scaledToFit() // Используем scaledToFit для предотвращения обрезки
-                                                .frame(width: geometry.size.width - 40, height: geometry.size.height)
-                                                .clipShape(RoundedRectangle(cornerRadius: 20)) // Добавляем закругление углов
-                                                .padding(.horizontal, 20) // Добавляем горизонтальные отступы
-                                        } else if phase.error != nil {
-                                            Color.red // Или любой другой индикатор ошибки
-                                                .frame(width: geometry.size.width - 40, height: geometry.size.height)
-                                                .clipShape(RoundedRectangle(cornerRadius: 20)) // Добавляем закругление углов
-                                                .padding(.horizontal, 20) // Добавляем горизонтальные отступы
-                                        } else {
-                                            Color.gray // Или любой другой индикатор загрузки
-                                                .frame(width: geometry.size.width - 40, height: geometry.size.height)
-                                                .clipShape(RoundedRectangle(cornerRadius: 20)) // Добавляем закругление углов
-                                                .padding(.horizontal, 20) // Добавляем горизонтальные отступы
-                                        }
-                                    }
-                                    .tag(index)
-                                }
-                            }
-                            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always)) // Включаем индикаторы точек
-                            .frame(height: geometry.size.height)
-                            .onReceive(timer) { _ in
-                                withAnimation {
-                                    selectedPicture = (selectedPicture + 1) % pictures.count // Переключаем на следующий слайд
-                                }
-                            }
-                        }
-                        .frame(height: 120) // Увеличиваем высоту для лучшего отображения
-                    }
-                    
-                    LazyVStack(alignment: .leading, spacing: 10) {
-                        Text("All users")
-
-                        ForEach(viewModel.users) { user in
-                            UserCardView(user: user,
-                                         authViewModel: authViewModel, activeSkillManager: activeSkillManager, id: (authViewModel.currentUser?.id ?? ""))
-                            .foregroundColor(.primary)
-                        }
-                    }
-                    .padding()
-                }
-            }
-            .onAppear {
-                viewModel.currentUser = authViewModel.currentUser
-                viewModel.loadUsers()
-                Firestore.firestore().collection("admin").document("messages").getDocument { doc, error in
-                    if error != nil {
-                        print("error while load admin")
-                    } else {
-                        self.pictures = doc?.get("posts") as? [String] ?? []
-                    }
-                }
-            }
-            .onDisappear {
-                timer.upstream.connect().cancel()
-            }
-        }
-    }
-}
+//struct DiscoverView: View {
+//    @EnvironmentObject var authViewModel: AuthViewModel
+//    @StateObject var viewModel = UsersViewModel()
+//    @StateObject var activeSkillManager = ActiveSkillManager()
+//    
+//    private let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+//    @State private var selectedPicture = 0
+//    @State private var pictures: [String] = []
+//    
+//    var body: some View {
+//        NavigationStack {
+//            VStack {
+//                HStack {
+//                    Image("logo")
+//                        .resizable()
+//                        .scaledToFit()
+//                        .frame(width: 125)
+//                        .padding(.top, 5)
+//
+//                    Spacer()
+//                    NavigationLink(destination: FavoritesView()) {
+//                        Image(systemName: "star.circle.fill")
+//                            .resizable()
+//                            .scaledToFit()
+//                            .frame(width: 25)
+//                            .foregroundColor(.brandBlue)
+//                    }
+//                }
+//                .padding(.bottom, 5)
+//                .padding(.horizontal, 15)
+//                ScrollView {
+//                    NavigationLink(
+//                        destination: UsersSearchView()
+//                    ) {
+//                        Text("Search users, skills...")
+//                            .padding()
+//                            .frame(maxWidth: .infinity, maxHeight: 35, alignment: .leading)
+//                            .background(.lGray)
+//                            .foregroundColor(.gray)
+//                            .cornerRadius(10)
+//                            .padding(.horizontal)
+//                    }
+//                    
+//                    HStack {
+//                        Text("Popular skills ")
+//                            .padding()
+//                        Spacer()
+//                        NavigationLink(destination: UsersSearchView(textSearch: "Design")) {
+//                            Text("Design")
+//                                .padding(10)
+//                                .background(.lGray)
+//                                .cornerRadius(15)
+//                        }
+//                        Spacer()
+//
+//                        NavigationLink(destination: UsersSearchView(textSearch: "Cooking")) {
+//                            Text("Cooking")
+//                                .padding(10)
+//                                .background(.lGray)
+//                                .cornerRadius(15)
+//                        }                        
+//                        Spacer()
+//
+//                    }                    
+//                    .padding(.top, 10)
+//
+//                    HStack {
+//                        Spacer()
+//                        NavigationLink(destination: UsersSearchView(textSearch: "Programming")) {
+//                            Text("Programming")
+//                                .padding(10)
+//                                .background(.lGray)
+//                                .cornerRadius(15)
+//                        }
+//                        Spacer()
+//
+//                        NavigationLink(destination: UsersSearchView(textSearch: "Drum playing")) {
+//                            Text("Drum playing")
+//                                .padding(10)
+//                                .background(.lGray)
+//                                .cornerRadius(15)
+//                        }
+//                        Spacer()
+//                    }
+//                    if let user = authViewModel.currentUser, !UserHelper.isUserPro(user.proDate) {
+//                        GeometryReader { geometry in
+//                            let adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(geometry.size.width)
+//                            
+//                            VStack {
+//                                Spacer()
+//                                BannerView(adSize)
+//                                    .frame(height: adSize.size.height)
+//                            }
+//                        }
+//                        .padding(.horizontal)
+//                        .padding(.bottom, 20)
+//                    }
+//                    
+//                    if !pictures.isEmpty {
+//                        GeometryReader { geometry in
+//                            TabView(selection: $selectedPicture) {
+//                                ForEach(pictures.indices, id: \.self) { index in
+//                                    AsyncImage(url: URL(string: pictures[index])) { phase in
+//                                        if let image = phase.image {
+//                                            image
+//                                                .resizable()
+//                                                .scaledToFit() // Используем scaledToFit для предотвращения обрезки
+//                                                .frame(width: geometry.size.width - 40, height: geometry.size.height)
+//                                                .clipShape(RoundedRectangle(cornerRadius: 20)) // Добавляем закругление углов
+//                                                .padding(.horizontal, 20) // Добавляем горизонтальные отступы
+//                                        } else if phase.error != nil {
+//                                            Color.red // Или любой другой индикатор ошибки
+//                                                .frame(width: geometry.size.width - 40, height: geometry.size.height)
+//                                                .clipShape(RoundedRectangle(cornerRadius: 20)) // Добавляем закругление углов
+//                                                .padding(.horizontal, 20) // Добавляем горизонтальные отступы
+//                                        } else {
+//                                            Color.gray // Или любой другой индикатор загрузки
+//                                                .frame(width: geometry.size.width - 40, height: geometry.size.height)
+//                                                .clipShape(RoundedRectangle(cornerRadius: 20)) // Добавляем закругление углов
+//                                                .padding(.horizontal, 20) // Добавляем горизонтальные отступы
+//                                        }
+//                                    }
+//                                    .tag(index)
+//                                }
+//                            }
+//                            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always)) // Включаем индикаторы точек
+//                            .frame(height: geometry.size.height)
+//                            .onReceive(timer) { _ in
+//                                withAnimation {
+//                                    selectedPicture = (selectedPicture + 1) % pictures.count // Переключаем на следующий слайд
+//                                }
+//                            }
+//                        }
+//                        .frame(height: 120) // Увеличиваем высоту для лучшего отображения
+//                    }
+//                    
+//                    LazyVStack(alignment: .leading, spacing: 10) {
+//                        Text("All users")
+//
+//                        ForEach(viewModel.users) { user in
+//                            UserCardView(user: user,
+//                                         authViewModel: authViewModel, activeSkillManager: activeSkillManager, id: (authViewModel.currentUser?.id ?? ""))
+//                            .foregroundColor(.primary)
+//                        }
+//                    }
+//                    .padding()
+//                }
+//            }
+//            .onAppear {
+//                viewModel.currentUser = authViewModel.currentUser
+//                viewModel.loadUsers()
+//                Firestore.firestore().collection("admin").document("messages").getDocument { doc, error in
+//                    if error != nil {
+//                        print("error while load admin")
+//                    } else {
+//                        self.pictures = doc?.get("posts") as? [String] ?? []
+//                    }
+//                }
+//            }
+//            .onDisappear {
+//                timer.upstream.connect().cancel()
+//            }
+//        }
+//    }
+//}
 
 struct BannerView: UIViewRepresentable {
     let adSize: GADAdSize
@@ -195,7 +195,7 @@ struct BannerView: UIViewRepresentable {
     }
     
     func makeCoordinator() -> BannerCoordinator {
-        return BannerCoordinator(self, adId: "ca-app-pub-7767067923336598/8459315269")
+        return BannerCoordinator(self, adId: "ca-app-pub-7767067923336598/4559021716")
     }
 }
 
@@ -339,9 +339,4 @@ struct Triangle: Shape {
         
         return path
     }
-}
-
-#Preview {
-    DiscoverView()
-        .environmentObject(AuthViewModel.mock)
 }

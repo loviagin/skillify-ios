@@ -12,13 +12,13 @@ struct PrivacyView: View {
     @EnvironmentObject private var viewModel: AuthViewModel
     @State private var showProSheet = false
     
-//    @State private var publicMessages = true
-//    @State private var publicPhotos = true
-//    @State private var publicVideos = true
-//    
-//    @State private var audioCalls = true
-//    @State private var videoCalls = true
-//    @State private var notPublicCalls = true
+    //    @State private var publicMessages = true
+    //    @State private var publicPhotos = true
+    //    @State private var publicVideos = true
+    //
+    //    @State private var audioCalls = true
+    //    @State private var videoCalls = true
+    //    @State private var notPublicCalls = true
     
     @State private var notificationMessages = true
     @State private var notificationSubscriber = true
@@ -33,92 +33,90 @@ struct PrivacyView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            List {
-//                Section {
-//                    Toggle("All can send me messages", systemImage: "message.badge", isOn: $publicMessages)
-//                        .frame(maxWidth: .infinity, alignment: .leading)
-//                    Toggle("All can send me photos", systemImage: "plus.message", isOn: $publicPhotos)
-//                        .frame(maxWidth: .infinity, alignment: .leading)
-//                    Toggle("All can send me videos", systemImage: "plus.message", isOn: $publicVideos)
-//                        .frame(maxWidth: .infinity, alignment: .leading)
-//                        .disabled(!UserHelper.isUserPro(viewModel.currentUser?.pro))
-//                        .onTapGesture {
-//                            if !UserHelper.isUserPro(viewModel.currentUser?.pro) {
-//                                showProSheet = true
-//                            }
-//                        }
-//                        .sheet(isPresented: $showProSheet) {
-//                            ProView()
-//                        }
-//                } header: {
-//                    Text("Messages")
-//                }
-                
-//                Section {
-//                    Toggle("Calls only for friends", systemImage: "phone.connection", isOn: $notPublicCalls)
-//                        .frame(maxWidth: .infinity, alignment: .leading)
-//                        .disabled(!UserHelper.isUserPro(viewModel.currentUser?.pro))
-//                        .onTapGesture {
-//                            if !UserHelper.isUserPro(viewModel.currentUser?.pro) {
-//                                showProSheet = true
-//                            }
-//                        }
-//                        .sheet(isPresented: $showProSheet) {
-//                            ProView()
-//                        }
-//                    Toggle("Audio calls", systemImage: "phone.badge.waveform.fill", isOn: $audioCalls)
-//                        .frame(maxWidth: .infinity, alignment: .leading)
-//                    Toggle("Video calls", systemImage: "video.badge.waveform.fill", isOn: $videoCalls)
-//                        .frame(maxWidth: .infinity, alignment: .leading)
-//                    
-//                } header: {
-//                    Text("Calls")
-//                }
-                
-                Section {
-                    Toggle("New messages", systemImage: "app.badge", isOn: $notificationMessages)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Toggle("New subscriber", systemImage: "app.badge", isOn: $notificationSubscriber)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Toggle("System notifications", systemImage: "app.badge.fill", isOn: $notificationSystem)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .disabled(!UserHelper.isUserPro(viewModel.currentUser?.proDate))
-                        .onTapGesture {
-                            if !UserHelper.isUserPro(viewModel.currentUser?.proDate) {
-                                showProSheet = true
-                            }
-                        }
-                        .sheet(isPresented: $showProSheet) {
-                            ProView()
-                        }
-                    
-                } header: {
-                    Text("Notifications")
-                }
-                Section {
-                    NavigationLink(destination: BlockedUsersView()) {
-                        Text("Blocked users")
-                    }
-                    
-                } header: {
-                    Text("")
-                }
-                
-                Section {
-                    if showHidden {
-                        Picker(selection: $selectedCountry, label: Text("Select payment region")) {
-                            Text("Other countries").tag(Countries.other_countries)
-                            Text("Russia").tag(Countries.russia)
+        List {
+            //                Section {
+            //                    Toggle("All can send me messages", systemImage: "message.badge", isOn: $publicMessages)
+            //                        .frame(maxWidth: .infinity, alignment: .leading)
+            //                    Toggle("All can send me photos", systemImage: "plus.message", isOn: $publicPhotos)
+            //                        .frame(maxWidth: .infinity, alignment: .leading)
+            //                    Toggle("All can send me videos", systemImage: "plus.message", isOn: $publicVideos)
+            //                        .frame(maxWidth: .infinity, alignment: .leading)
+            //                        .disabled(!UserHelper.isUserPro(viewModel.currentUser?.pro))
+            //                        .onTapGesture {
+            //                            if !UserHelper.isUserPro(viewModel.currentUser?.pro) {
+            //                                showProSheet = true
+            //                            }
+            //                        }
+            //                        .sheet(isPresented: $showProSheet) {
+            //                            ProView()
+            //                        }
+            //                } header: {
+            //                    Text("Messages")
+            //                }
+            
+            //                Section {
+            //                    Toggle("Calls only for friends", systemImage: "phone.connection", isOn: $notPublicCalls)
+            //                        .frame(maxWidth: .infinity, alignment: .leading)
+            //                        .disabled(!UserHelper.isUserPro(viewModel.currentUser?.pro))
+            //                        .onTapGesture {
+            //                            if !UserHelper.isUserPro(viewModel.currentUser?.pro) {
+            //                                showProSheet = true
+            //                            }
+            //                        }
+            //                        .sheet(isPresented: $showProSheet) {
+            //                            ProView()
+            //                        }
+            //                    Toggle("Audio calls", systemImage: "phone.badge.waveform.fill", isOn: $audioCalls)
+            //                        .frame(maxWidth: .infinity, alignment: .leading)
+            //                    Toggle("Video calls", systemImage: "video.badge.waveform.fill", isOn: $videoCalls)
+            //                        .frame(maxWidth: .infinity, alignment: .leading)
+            //
+            //                } header: {
+            //                    Text("Calls")
+            //                }
+            
+            Section {
+                Toggle("New messages", systemImage: "app.badge", isOn: $notificationMessages)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Toggle("New subscriber", systemImage: "app.badge", isOn: $notificationSubscriber)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Toggle("System notifications", systemImage: "app.badge.fill", isOn: $notificationSystem)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .disabled(!UserHelper.isUserPro(viewModel.currentUser?.proDate))
+                    .onTapGesture {
+                        if !UserHelper.isUserPro(viewModel.currentUser?.proDate) {
+                            showProSheet = true
                         }
                     }
-                } header: {
-                    Text("Other settings")
-                }
+                    .sheet(isPresented: $showProSheet) {
+                        ProView()
+                    }
+                
+            } header: {
+                Text("Notifications")
             }
-            .listStyle(PlainListStyle())
-            .navigationTitle("Privacy & Security")
+            Section {
+                NavigationLink(destination: BlockedUsersView()) {
+                    Text("Blocked users")
+                }
+                
+            } header: {
+                Text("")
+            }
+            
+            Section {
+                if showHidden {
+                    Picker(selection: $selectedCountry, label: Text("Select payment region")) {
+                        Text("Other countries").tag(Countries.other_countries)
+                        Text("Russia").tag(Countries.russia)
+                    }
+                }
+            } header: {
+                Text("Other settings")
+            }
         }
+        .listStyle(PlainListStyle())
+        .navigationTitle("Privacy & Security")
         .onAppear {
             if let user = viewModel.currentUser, let data = user.privacyData {
                 self.notificationSystem = !data.contains(where: { $0 == "blockSystemNotification" })
@@ -139,7 +137,7 @@ struct PrivacyView: View {
                 self.selectedCountry = .russia
             }
         }
-        .onChange(of: selectedCountry) { _ in
+        .onChange(of: selectedCountry) { _, _ in
             print(selectedCountry.rawValue)
             UserDefaults.standard.setValue(selectedCountry.rawValue, forKey: "country")
         }
@@ -164,11 +162,11 @@ struct PrivacyView: View {
             } else {
                 adding.append("blockSubscriptionNotification")
             }
-                        
+            
             if let user = viewModel.currentUser {
                 viewModel.currentUser!.privacyData = []
                 viewModel.currentUser!.privacyData = adding as? [String]
-
+                
                 Firestore.firestore().collection("users").document(user.id)
                     .updateData([
                         "privacyData": FieldValue.arrayUnion(adding)

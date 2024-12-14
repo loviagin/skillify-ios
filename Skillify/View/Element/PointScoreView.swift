@@ -8,20 +8,29 @@
 import SwiftUI
 
 struct PointScoreView: View {
-    @State var points: Int = 10
+    @EnvironmentObject private var viewModel: PointsViewModel
+    @State var points: Int = 0
     
     var body: some View {
-        HStack {
+        HStack(spacing: 5) {
             Image(systemName: "bolt.fill")
                 .foregroundStyle(.white)
             
-            Text("\(points)")
-                .foregroundStyle(.white)
-                .bold()
+            if points > 0 {
+                Text("\(points)")
+                    .foregroundStyle(.white)
+                    .bold()
+            }
         }
-        .padding()
+        .padding(.vertical, 5)
+        .padding(.horizontal, 10)
         .background(LinearGradient(colors: [.blue.opacity(0.8), .red.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing))
         .clipShape(RoundedRectangle(cornerRadius: 55))
+        .onChange(of: viewModel.gamePoints) { _, newValue in
+            withAnimation {
+                self.points = viewModel.getSummaryPoints()
+            }
+        }
     }
 }
 

@@ -14,7 +14,7 @@ struct BlockedUsersView: View {
     @State var showProfile = false
     
     var body: some View {
-        NavigationStack {
+        Group {
             if let user = viewModel.currentUser, !user.blockedUsers.isEmpty {
                 List {
                     ForEach(users, id: \.self) { it in
@@ -27,7 +27,7 @@ struct BlockedUsersView: View {
             } else {
                 Text("No blocked users")
             }
-        }            
+        }
         .navigationTitle("Blocked Users")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {

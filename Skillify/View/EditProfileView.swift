@@ -37,256 +37,254 @@ struct EditProfileView: View {
     let genders = ["-", "Male", "Female", "Other"]
     
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading) {
-                    HStack {
-                        if let selectedImage {
-                            Image(uiImage: selectedImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 100, height: 100)
-                                .clipShape(Circle())
-                        } else {
-                            if UserHelper.avatars.contains(authViewModel.currentUser?.urlAvatar.split(separator: ":").first.map(String.init) ?? "") {
-                                Image(authViewModel.currentUser!.urlAvatar.split(separator: ":").first.map(String.init) ?? "")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .padding(.top, 10)
-                                    .frame(width: 80, height: 80)
-                                    .padding(.vertical, 10)
-                                    .background(colorAvatar)
-                                    .clipShape(Circle())
-                            } else if let urlString = authViewModel.currentUser?.urlAvatar, let url = URL(string: urlString) {
-                                KFImage(url)
-                                        .resizable()
-                                        .placeholder {
-                                            Image("user") // Плейсхолдер, отображаемый при загрузке
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 80, height: 80)
-                                                .clipShape(Circle())
-                                        }
-                                        .clipShape(Circle()) // Делаем изображение круглым
-                                        .frame(width: 80, height: 80)
-                                        .padding(.vertical, 10)
-                            } else {
-                                Image("user") // Тот же плейсхолдер, если URL не существует
-                                    .resizable()
-                                    .frame(width: 80, height: 80)
-                                    .padding(.vertical, 10)
-                            }
-                        }
-                        VStack(alignment: .leading) {
-                            Text("Avatar image *")
-                            Text("Choose your avatar")
-                                .frame(width: 150, height: 20)
-                                .padding(.horizontal, 5)
-                                .padding(.vertical, 5)
-                                .background(.lGray)
-                                .cornerRadius(15)
-                                .onTapGesture {
-                                    showAvatarChooser = true
-                                }
-                                .confirmationDialog("Avatar type", isPresented: $showAvatarChooser, titleVisibility: .visible) {
-                                    Button("Standard avatar") {
-                                        showAvatarStandard = true
-                                    }
-                                    Button("Your selfie") {
-                                        isImagePickerPresented = true
-                                    }
-                                } message: {
-                                    Text("Standard image or your selfie")
-                                }
-                                .sheet(isPresented: $showAvatarStandard) {
-                                    StandardAvatarView(isImageUploaded: $isAvatarUploaded, colorAvatar: $colorAvatar)
-                                        .presentationDetents([.height(600), .large])
-                                }
-                        }
-                        .padding(.leading, 20)
-                        if UserHelper.isUserPro(authViewModel.currentUser?.proDate) {
-                            Spacer()
-                            
-                            NavigationLink(destination: CustomizeProfileView()) {
-                                Image(systemName: "paintbrush.pointed.fill")
-                                    .foregroundStyle(.brandBlue)
-                            }
-                        }
-                    }
-                    .padding(.bottom, 20)
-                    Text("First name *")
-                    TextField("Your First name", text: $first_name)
-                        .textFieldStyle(.roundedBorder)
-                        .padding(.bottom, 20)
-                        .onReceive(first_name.publisher.collect()) {
-                            let filtered = filterSpecialCharacters(from: String($0))
-                            if filtered.count > 15 {
-                                first_name = String(filtered.prefix(15))
-                            } else {
-                                first_name = filtered
-                            }
-                        }
-                    
-                    Text("Last name")
-                    TextField("Your Last name", text: $last_name)
-                        .textFieldStyle(.roundedBorder)
-                        .padding(.bottom, 20)
-                        .onReceive(last_name.publisher.collect()) {
-                            let filtered = filterSpecialCharacters(from: String($0))
-                            if filtered.count > 15 {
-                                last_name = String(filtered.prefix(15))
-                            } else {
-                                last_name = filtered
-                            }
-                        }
-                    Text("Short description")
-                    TextEditor(text: $bio)
-                        .frame(height: 100)
-                        .padding(5)
-                        .background(
-                            RoundedRectangle(cornerRadius: 5)
-                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                        )
-                        .onReceive(bio.publisher.collect()) {
-                            let filtered = String($0)
-                            if filtered.count > 75 {
-                                bio = String(filtered.prefix(75))
-                            } else {
-                                bio = filtered
-                            }
-                        }
-                    
-                    Text("Nickname *")
-                    TextField("@nickname", text: $nickname)
-                        .autocapitalization(.none)
-                        .textFieldStyle(.roundedBorder)
-                        .onReceive(nickname.publisher.collect()) {
-                            let filtered = filterSpecialCharacters(from: String($0))
-                            if filtered.count > 15 {
-                                nickname = String(filtered.prefix(15))
-                                showNicknameAlert = true
-                            } else {
-                                nickname = filtered
-                            }
-                        }
-                        .alert(isPresented: $showNicknameAlert) {
-                            Alert(title: Text("Invalid Character"),
-                                  message: Text("Only letters, numbers, hyphens, and underscores are allowed in nicknames."),
-                                  dismissButton: .default(Text("OK")))
-                        }
-                    
-                    if showNicknameUAlert {
-                        Text("This nickname already in use")
-                            .font(.caption)
-                            .foregroundColor(.red)
-                    }
-                    
-                    DatePicker(
-                        "Your birthday",
-                        selection: $birthDate,
-                        in: ...Date(), // Ограничиваем дату текущим днем и ранее
-                        displayedComponents: .date // Показываем только компонент даты
-                    )
-                    .padding([.bottom, .top], 15)
-                    
-                    HStack {
-                        Text("Select your gender")
-                        Spacer()
-                        Picker("Male", selection: $gender) {
-                            ForEach(genders, id: \.self) { gender in
-                                Text(gender).tag(gender)
-                            }
-                        }
-                        .pickerStyle(MenuPickerStyle())
-                    }
-                    .padding(.bottom, 10)
-                    
-                    Text("Email")
-                    TextField("", text: $email)
-                        .textFieldStyle(.roundedBorder)
-                        .disabled(true)
-                    
-                    Spacer()
-                    
-                    Button {
-                        checkAgeAndSave()
-                    } label: {
-                        if isLoading {
-                            ProgressView()
-                                .padding(.vertical, 15)
-                                .frame(maxWidth: .infinity)
-                                .background(.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(15)
-                        } else {
-                            Text("Save")
-                                .padding(.vertical, 15)
-                                .frame(maxWidth: .infinity)
-                                .background(.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(15)
-                        }
-                    }
-                    .padding(.top)
-                    Text("* - required field")
-                        .font(.caption2)
-                } // VStack main (after ScrollView main)
-                
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .navigationTitle("Edit your profile")
-                .navigationBarTitleDisplayMode(.inline)
-                .onDisappear {
-                    checkAgeAndSave()
-                }
-                .onChange(of: selectedImage) { _, _ in
+        ScrollView {
+            VStack(alignment: .leading) {
+                HStack {
                     if let selectedImage {
-                        print("analyze")
-                        analyzeImage(image: selectedImage)
-                    }
-                }
-                .onAppear {
-                    isLoading = false
-                    first_name = authViewModel.currentUser?.first_name ?? ""
-                    last_name = authViewModel.currentUser?.last_name ?? ""
-                    bio = authViewModel.currentUser?.bio ?? ""
-                    email = authViewModel.currentUser?.email ?? ""
-                    gender = authViewModel.currentUser?.sex.isEmpty ?? true ? "-" : authViewModel.currentUser?.sex ?? "Male"
-                    if UserHelper.avatars.contains(authViewModel.currentUser?.urlAvatar.split(separator: ":").first.map(String.init) ?? "") {
-                        if let colorString = authViewModel.currentUser?.urlAvatar.split(separator: ":").last.map(String.init) {
-                            self.colorAvatar = Color.fromRGBAString(colorString) ?? Color.blue.opacity(0.4)
+                        Image(uiImage: selectedImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 100, height: 100)
+                            .clipShape(Circle())
+                    } else {
+                        if UserHelper.avatars.contains(authViewModel.currentUser?.urlAvatar.split(separator: ":").first.map(String.init) ?? "") {
+                            Image(authViewModel.currentUser!.urlAvatar.split(separator: ":").first.map(String.init) ?? "")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .padding(.top, 10)
+                                .frame(width: 80, height: 80)
+                                .padding(.vertical, 10)
+                                .background(colorAvatar)
+                                .clipShape(Circle())
+                        } else if let urlString = authViewModel.currentUser?.urlAvatar, let url = URL(string: urlString) {
+                            KFImage(url)
+                                .resizable()
+                                .placeholder {
+                                    Image("user") // Плейсхолдер, отображаемый при загрузке
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 80, height: 80)
+                                        .clipShape(Circle())
+                                }
+                                .clipShape(Circle()) // Делаем изображение круглым
+                                .frame(width: 80, height: 80)
+                                .padding(.vertical, 10)
                         } else {
-                            self.colorAvatar = Color.blue.opacity(0.4)
+                            Image("user") // Тот же плейсхолдер, если URL не существует
+                                .resizable()
+                                .frame(width: 80, height: 80)
+                                .padding(.vertical, 10)
                         }
                     }
-                    if let nk = authViewModel.currentUser?.nickname {
-                        if nk.isEmpty {
-                            let v = UserHelper.generateNickname()
-                            DispatchQueue.main.async {
-                                nickname = v
+                    VStack(alignment: .leading) {
+                        Text("Avatar image *")
+                        Text("Choose your avatar")
+                            .frame(width: 150, height: 20)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 5)
+                            .background(.lGray)
+                            .cornerRadius(15)
+                            .onTapGesture {
+                                showAvatarChooser = true
                             }
-                        } else {
-                            nickname = nk
+                            .confirmationDialog("Avatar type", isPresented: $showAvatarChooser, titleVisibility: .visible) {
+                                Button("Standard avatar") {
+                                    showAvatarStandard = true
+                                }
+                                Button("Your selfie") {
+                                    isImagePickerPresented = true
+                                }
+                            } message: {
+                                Text("Standard image or your selfie")
+                            }
+                            .sheet(isPresented: $showAvatarStandard) {
+                                StandardAvatarView(isImageUploaded: $isAvatarUploaded, colorAvatar: $colorAvatar)
+                                    .presentationDetents([.height(600), .large])
+                            }
+                    }
+                    .padding(.leading, 20)
+                    if UserHelper.isUserPro(authViewModel.currentUser?.proDate) {
+                        Spacer()
+                        
+                        NavigationLink(destination: CustomizeProfileView()) {
+                            Image(systemName: "paintbrush.pointed.fill")
+                                .foregroundStyle(.brandBlue)
                         }
                     }
-                    nickname = authViewModel.currentUser?.nickname ?? ""
-                    birthDate = authViewModel.currentUser?.birthday ?? Date()
                 }
-                .sheet(isPresented: $isImagePickerPresented) {
-                    ImagePicker(selectedImage: $selectedImage, isImageUploaded: $isImageUploaded, allowsEditing: true)
-                        .ignoresSafeArea()
+                .padding(.bottom, 20)
+                Text("First name *")
+                TextField("Your First name", text: $first_name)
+                    .textFieldStyle(.roundedBorder)
+                    .padding(.bottom, 20)
+                    .onReceive(first_name.publisher.collect()) {
+                        let filtered = filterSpecialCharacters(from: String($0))
+                        if filtered.count > 15 {
+                            first_name = String(filtered.prefix(15))
+                        } else {
+                            first_name = filtered
+                        }
+                    }
+                
+                Text("Last name")
+                TextField("Your Last name", text: $last_name)
+                    .textFieldStyle(.roundedBorder)
+                    .padding(.bottom, 20)
+                    .onReceive(last_name.publisher.collect()) {
+                        let filtered = filterSpecialCharacters(from: String($0))
+                        if filtered.count > 15 {
+                            last_name = String(filtered.prefix(15))
+                        } else {
+                            last_name = filtered
+                        }
+                    }
+                Text("Short description")
+                TextEditor(text: $bio)
+                    .frame(height: 100)
+                    .padding(5)
+                    .background(
+                        RoundedRectangle(cornerRadius: 5)
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                    )
+                    .onReceive(bio.publisher.collect()) {
+                        let filtered = String($0)
+                        if filtered.count > 75 {
+                            bio = String(filtered.prefix(75))
+                        } else {
+                            bio = filtered
+                        }
+                    }
+                
+                Text("Nickname *")
+                TextField("@nickname", text: $nickname)
+                    .autocapitalization(.none)
+                    .textFieldStyle(.roundedBorder)
+                    .onReceive(nickname.publisher.collect()) {
+                        let filtered = filterSpecialCharacters(from: String($0))
+                        if filtered.count > 15 {
+                            nickname = String(filtered.prefix(15))
+                            showNicknameAlert = true
+                        } else {
+                            nickname = filtered
+                        }
+                    }
+                    .alert(isPresented: $showNicknameAlert) {
+                        Alert(title: Text("Invalid Character"),
+                              message: Text("Only letters, numbers, hyphens, and underscores are allowed in nicknames."),
+                              dismissButton: .default(Text("OK")))
+                    }
+                
+                if showNicknameUAlert {
+                    Text("This nickname already in use")
+                        .font(.caption)
+                        .foregroundColor(.red)
                 }
-            }
-            
-            .alert(isPresented: .constant(showAlert != nil)) {
-                Alert(
-                    title: Text(showAlert!),
-                    message: Text(""),
-                    dismissButton: .default(Text("OK"), action: {
-                        showAlert = nil // Сбросить showAlert после закрытия алерта
-                    })
+                
+                DatePicker(
+                    "Your birthday",
+                    selection: $birthDate,
+                    in: ...Date(), // Ограничиваем дату текущим днем и ранее
+                    displayedComponents: .date // Показываем только компонент даты
                 )
+                .padding([.bottom, .top], 15)
+                
+                HStack {
+                    Text("Select your gender")
+                    Spacer()
+                    Picker("Male", selection: $gender) {
+                        ForEach(genders, id: \.self) { gender in
+                            Text(gender).tag(gender)
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                }
+                .padding(.bottom, 10)
+                
+                Text("Email")
+                TextField("", text: $email)
+                    .textFieldStyle(.roundedBorder)
+                    .disabled(true)
+                
+                Spacer()
+                
+                Button {
+                    checkAgeAndSave()
+                } label: {
+                    if isLoading {
+                        ProgressView()
+                            .padding(.vertical, 15)
+                            .frame(maxWidth: .infinity)
+                            .background(.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(15)
+                    } else {
+                        Text("Save")
+                            .padding(.vertical, 15)
+                            .frame(maxWidth: .infinity)
+                            .background(.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(15)
+                    }
+                }
+                .padding(.top)
+                Text("* - required field")
+                    .font(.caption2)
+            } // VStack main (after ScrollView main)
+            
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .navigationTitle("Edit your profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .onDisappear {
+                checkAgeAndSave()
             }
+            .onChange(of: selectedImage) { _, _ in
+                if let selectedImage {
+                    print("analyze")
+                    analyzeImage(image: selectedImage)
+                }
+            }
+            .onAppear {
+                isLoading = false
+                first_name = authViewModel.currentUser?.first_name ?? ""
+                last_name = authViewModel.currentUser?.last_name ?? ""
+                bio = authViewModel.currentUser?.bio ?? ""
+                email = authViewModel.currentUser?.email ?? ""
+                gender = authViewModel.currentUser?.sex.isEmpty ?? true ? "-" : authViewModel.currentUser?.sex ?? "Male"
+                if UserHelper.avatars.contains(authViewModel.currentUser?.urlAvatar.split(separator: ":").first.map(String.init) ?? "") {
+                    if let colorString = authViewModel.currentUser?.urlAvatar.split(separator: ":").last.map(String.init) {
+                        self.colorAvatar = Color.fromRGBAString(colorString) ?? Color.blue.opacity(0.4)
+                    } else {
+                        self.colorAvatar = Color.blue.opacity(0.4)
+                    }
+                }
+                if let nk = authViewModel.currentUser?.nickname {
+                    if nk.isEmpty {
+                        let v = UserHelper.generateNickname()
+                        DispatchQueue.main.async {
+                            nickname = v
+                        }
+                    } else {
+                        nickname = nk
+                    }
+                }
+                nickname = authViewModel.currentUser?.nickname ?? ""
+                birthDate = authViewModel.currentUser?.birthday ?? Date()
+            }
+            .sheet(isPresented: $isImagePickerPresented) {
+                ImagePicker(selectedImage: $selectedImage, isImageUploaded: $isImageUploaded, allowsEditing: true)
+                    .ignoresSafeArea()
+            }
+        }
+        
+        .alert(isPresented: .constant(showAlert != nil)) {
+            Alert(
+                title: Text(showAlert!),
+                message: Text(""),
+                dismissButton: .default(Text("OK"), action: {
+                    showAlert = nil // Сбросить showAlert после закрытия алерта
+                })
+            )
         }
     }
     
@@ -313,42 +311,42 @@ struct EditProfileView: View {
         request.httpBody = httpBody
         
         URLSession.shared.dataTask(with: request) { data, response, error in
-                    if let error = error {
-                        print("Error making request: \(error.localizedDescription)")
-                        return
-                    }
-
-                    guard let data = data else {
-                        print("No data received")
-                        return
-                    }
-
-                    do {
-                        if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                            if let responses = jsonResponse["responses"] as? [[String: Any]],
-                               let safeSearchAnnotation = responses.first?["safeSearchAnnotation"] as? [String: Any] {
-                                DispatchQueue.main.async {
-                                    self.handleSafeSearchAnnotation(safeSearchAnnotation)
-                                }
-                            } else {
-//                                print("SafeSearch annotation not found in the response")
-//                                DispatchQueue.main.async {
-////                                    self.showAlert = "Error analyzing image: SafeSearch annotation not found"
-//                                }
-                            }
-                        } else {
-                            print("Failed to parse JSON response")
-//                            DispatchQueue.main.async {
-////                                self.showAlert = "Error analyzing image: Failed to parse JSON response"
-//                            }
+            if let error = error {
+                print("Error making request: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let data = data else {
+                print("No data received")
+                return
+            }
+            
+            do {
+                if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                    if let responses = jsonResponse["responses"] as? [[String: Any]],
+                       let safeSearchAnnotation = responses.first?["safeSearchAnnotation"] as? [String: Any] {
+                        DispatchQueue.main.async {
+                            self.handleSafeSearchAnnotation(safeSearchAnnotation)
                         }
-                    } catch {
-                        print("Error parsing JSON: \(error.localizedDescription)")
-//                        DispatchQueue.main.async {
-////                            self.showAlert = "Error analyzing image: \(error.localizedDescription)"
-//                        }
+                    } else {
+                        //                                print("SafeSearch annotation not found in the response")
+                        //                                DispatchQueue.main.async {
+                        ////                                    self.showAlert = "Error analyzing image: SafeSearch annotation not found"
+                        //                                }
                     }
-                }.resume()
+                } else {
+                    print("Failed to parse JSON response")
+                    //                            DispatchQueue.main.async {
+                    ////                                self.showAlert = "Error analyzing image: Failed to parse JSON response"
+                    //                            }
+                }
+            } catch {
+                print("Error parsing JSON: \(error.localizedDescription)")
+                //                        DispatchQueue.main.async {
+                ////                            self.showAlert = "Error analyzing image: \(error.localizedDescription)"
+                //                        }
+            }
+        }.resume()
     }
     
     func handleSafeSearchAnnotation(_ annotation: [String: Any]) {
