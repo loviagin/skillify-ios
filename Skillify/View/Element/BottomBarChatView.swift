@@ -272,16 +272,17 @@ struct BottomBarChatView: View {
     private func startRecording() {
         let audioSession = AVAudioSession.sharedInstance()
         do {
-            try audioSession.setCategory(.playAndRecord, mode: .default)
+            try audioSession.setCategory(.playAndRecord, mode: .default, options: .defaultToSpeaker)
             try audioSession.setActive(true)
             
             let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
             let audioFilename = documentDirectory.appendingPathComponent("voiceMessage.m4a")
             let settings = [
                 AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-                AVSampleRateKey: 12000,
+                AVSampleRateKey: 44100, // Увеличиваем частоту дискретизации
                 AVNumberOfChannelsKey: 1,
-                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+                AVEncoderAudioQualityKey: AVAudioQuality.max.rawValue, // Максимальное качество
+                AVEncoderBitRateKey: 128000 // Увеличиваем битрейт
             ]
             
             audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
