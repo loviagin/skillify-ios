@@ -49,4 +49,5 @@ struct BlockedView: View {
 
 #Preview {
     BlockedView()
+        .environmentObject(AuthViewModel.mock)
 }

@@ -28,12 +28,12 @@ struct TabsView: View {
                 .tag(TabType.chats)
                 .badge(chatViewModel.countUnread())
             
-            MarketView()
-                .tabItem {
-                    Label("Market", systemImage: "storefront")
-                        .environment(\.symbolVariants, authViewModel.selectedTab == .market ? .fill : .none)
-                }
-                .tag(TabType.market)
+//            MarketView()
+//                .tabItem {
+//                    Label("Market", systemImage: "storefront")
+//                        .environment(\.symbolVariants, authViewModel.selectedTab == .market ? .fill : .none)
+//                }
+//                .tag(TabType.market)
             
             AccountView()
                 .tabItem {

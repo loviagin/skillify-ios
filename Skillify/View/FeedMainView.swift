@@ -36,6 +36,7 @@ struct FeedMainView: View {
     var body: some View {
         NavigationStack {
             VStack {
+                //MARK: - header with a logo
                 HeaderMainView()
                     .environmentObject(pointsViewModel)
                     .padding(.vertical, 5)
@@ -104,21 +105,45 @@ struct FeedMainView: View {
                         //                        TipView(TipNewVersion156())
                         //                            .padding(.trailing, 10)
                         
-                        VStack {
-                            HStack {
-                                Text("New courses")
-                                    .font(.headline)
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("Skillify wishes you a Merry Christmas!")
+                                    .font(.title2)
+                                    .multilineTextAlignment(.leading)
                                     .bold()
                                 
-                                Spacer()
+                                Text("May your holiday season be filled with joy, warmth, and unforgettable moments. We wish you success, inspiration, and new achievements in the coming year!")
+                                    .multilineTextAlignment(.leading)
                             }
                             
-                            ForEach(newCourses) { course in
-                                HorizontalCourseView(course: course)
-                                Divider()
-                            }
+                            Spacer()
+                            
+                            Image(.christmas)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 50)
+                                .padding()
                         }
-                        .padding([.bottom, .top, .trailing])
+                        .background(Image(.snow).resizable().scaledToFill().colorMultiply(Color.gray.opacity(0.6)))
+                        .padding(.vertical)
+                        .padding(.vertical)
+                        
+                        //MARK: - COURSES
+//                        VStack {
+//                            HStack {
+//                                Text("New courses")
+//                                    .font(.headline)
+//                                    .bold()
+//                                
+//                                Spacer()
+//                            }
+//                            
+//                            ForEach(newCourses) { course in
+//                                HorizontalCourseView(course: course)
+//                                Divider()
+//                            }
+//                        }
+//                        .padding([.bottom, .top, .trailing])
                         
                         NavigationLink(
                             destination: UsersSearchView()
@@ -337,6 +362,11 @@ struct HeaderMainView: View {
 //            .padding(.horizontal, 15)
             
             HStack {
+                Image(.tree)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 30)
+                
                 VStack(alignment: .leading) {
                     Text("Hi, \(authViewModel.currentUser?.first_name ?? "")")
                         .font(.title)

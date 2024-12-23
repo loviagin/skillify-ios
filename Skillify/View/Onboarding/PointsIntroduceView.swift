@@ -31,8 +31,6 @@ struct PointsIntroduceView: View {
 
             Text("Gather 500 Talents and enjoy a free Pro subscription for an entire week. Come back for more rewards as many times as you want!")
                 .multilineTextAlignment(.center)
-//                .font(.subheadline)
-//                .foregroundColor(.secondary)
         }
         .padding()
     }
