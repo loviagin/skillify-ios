@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -20,6 +20,8 @@
 		866286F32BEECFEB00102FA0 /* OneSignalNotificationServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 866286EC2BEECFEB00102FA0 /* OneSignalNotificationServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		866E49DF2CE8E1AC00CD4B5F /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 866E49DE2CE8E1AC00CD4B5F /* GoogleMobileAds */; };
 		86980BE02E54F77A00A7D9AB /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 86980BDF2E54F77A00A7D9AB /* Launch Screen.storyboard */; };
+		86980BE32E550E9900A7D9AB /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86980BE22E550E9900A7D9AB /* JavaScriptCore.framework */; };
+		86980BE52E550F2100A7D9AB /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 86980BE42E550F2100A7D9AB /* GoogleService-Info.plist */; };
 		86A9ABF92BEEBF0300F4C7FE /* LearnsyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A9ABF82BEEBF0300F4C7FE /* LearnsyApp.swift */; };
 		86A9ABFB2BEEBF0300F4C7FE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A9ABFA2BEEBF0300F4C7FE /* ContentView.swift */; };
 		86A9ABFD2BEEBF0300F4C7FE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86A9ABFC2BEEBF0300F4C7FE /* Assets.xcassets */; };
@@ -68,6 +70,8 @@
 		866286F02BEECFEB00102FA0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		866286F82BEED03C00102FA0 /* OneSignalNotificationServiceExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OneSignalNotificationServiceExtension.entitlements; sourceTree = "<group>"; };
 		86980BDF2E54F77A00A7D9AB /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
+		86980BE22E550E9900A7D9AB /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		86980BE42E550F2100A7D9AB /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		86A9ABF52BEEBF0300F4C7FE /* Learnsy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Learnsy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		86A9ABF82BEEBF0300F4C7FE /* LearnsyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearnsyApp.swift; sourceTree = "<group>"; };
 		86A9ABFA2BEEBF0300F4C7FE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -75,6 +79,10 @@
 		86A9ABFF2BEEBF0300F4C7FE /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		86A9AC182BEEC26000F4C7FE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		86980BE12E550D3B00A7D9AB /* ViewModel */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = ViewModel; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		866286E92BEECFEB00102FA0 /* Frameworks */ = {
@@ -89,6 +97,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				86980BE32E550E9900A7D9AB /* JavaScriptCore.framework in Frameworks */,
 				86E186622CA03D6A00780C9E /* FirebaseMessaging in Frameworks */,
 				866E49DF2CE8E1AC00CD4B5F /* GoogleMobileAds in Frameworks */,
 				862813052BEF878B003FA32E /* OneSignalFramework in Frameworks */,
@@ -117,6 +126,7 @@
 		865ADB2B2BFE297D009CDA90 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				86980BE22E550E9900A7D9AB /* JavaScriptCore.framework */,
 				86023CD32C3498770035F995 /* StoreKit.framework */,
 			);
 			name = Frameworks;
@@ -168,6 +178,7 @@
 		86A9ABF72BEEBF0300F4C7FE /* Learnsy */ = {
 			isa = PBXGroup;
 			children = (
+				86980BE12E550D3B00A7D9AB /* ViewModel */,
 				866286A92BEECB8400102FA0 /* View */,
 				8662866F2BEECB8400102FA0 /* Model */,
 				86A9ABF82BEEBF0300F4C7FE /* LearnsyApp.swift */,
@@ -175,6 +186,7 @@
 				866286612BEEC61200102FA0 /* Learnsy.entitlements */,
 				86A9AC182BEEC26000F4C7FE /* Info.plist */,
 				86A9ABFC2BEEBF0300F4C7FE /* Assets.xcassets */,
+				86980BE42E550F2100A7D9AB /* GoogleService-Info.plist */,
 				86980BDF2E54F77A00A7D9AB /* Launch Screen.storyboard */,
 				86A9ABFE2BEEBF0300F4C7FE /* Preview Content */,
 			);
@@ -226,6 +238,9 @@
 			);
 			dependencies = (
 				866286F22BEECFEB00102FA0 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				86980BE12E550D3B00A7D9AB /* ViewModel */,
 			);
 			name = Learnsy;
 			packageProductDependencies = (
@@ -311,6 +326,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				86A9AC002BEEBF0300F4C7FE /* Preview Assets.xcassets in Resources */,
+				86980BE52E550F2100A7D9AB /* GoogleService-Info.plist in Resources */,
 				86A9ABFD2BEEBF0300F4C7FE /* Assets.xcassets in Resources */,
 				86980BE02E54F77A00A7D9AB /* Launch Screen.storyboard in Resources */,
 			);
