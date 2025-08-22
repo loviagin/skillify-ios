@@ -33,7 +33,6 @@
 		865ADB2A2BFE1AC1009CDA90 /* AgoraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865ADB292BFE1AC1009CDA90 /* AgoraManager.swift */; };
 		865ADB2D2BFE297D009CDA90 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 865ADB2C2BFE297D009CDA90 /* FirebaseFunctions */; };
 		866286632BEECA6500102FA0 /* ringtone.wav in Resources */ = {isa = PBXBuildFile; fileRef = 866286622BEECA6500102FA0 /* ringtone.wav */; };
-		866286652BEECA7500102FA0 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 866286642BEECA7500102FA0 /* Launch Screen.storyboard */; };
 		866286AA2BEECB8400102FA0 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286672BEECB8400102FA0 /* AuthViewModel.swift */; };
 		866286AB2BEECB8400102FA0 /* FavoritesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286682BEECB8400102FA0 /* FavoritesViewModel.swift */; };
 		866286AC2BEECB8400102FA0 /* LearningSkillsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866286692BEECB8400102FA0 /* LearningSkillsModel.swift */; };
@@ -118,7 +117,7 @@
 		868BBAEB2CE7D7610080A0A3 /* ActiveSkillManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868BBAEA2CE7D7610080A0A3 /* ActiveSkillManager.swift */; };
 		868BBAEF2CE7F2250080A0A3 /* UserState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868BBAEE2CE7F2250080A0A3 /* UserState.swift */; };
 		868BBAF12CE7F5010080A0A3 /* UserViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868BBAF02CE7F5010080A0A3 /* UserViewModel.swift */; };
-		86980BE02E54F77A00A7D9AB /* Launch Screen 2.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 86980BDF2E54F77A00A7D9AB /* Launch Screen 2.storyboard */; };
+		86980BE02E54F77A00A7D9AB /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 86980BDF2E54F77A00A7D9AB /* Launch Screen.storyboard */; };
 		86A1CFE72C80615600B4F432 /* ImageOpenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A1CFE62C80615600B4F432 /* ImageOpenView.swift */; };
 		86A1CFE92C80618000B4F432 /* FlexibleGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A1CFE82C80618000B4F432 /* FlexibleGridView.swift */; };
 		86A9ABF92BEEBF0300F4C7FE /* LearnsyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A9ABF82BEEBF0300F4C7FE /* LearnsyApp.swift */; };
@@ -204,7 +203,6 @@
 		865ADB292BFE1AC1009CDA90 /* AgoraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgoraManager.swift; sourceTree = "<group>"; };
 		866286612BEEC61200102FA0 /* Learnsy.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Learnsy.entitlements; sourceTree = "<group>"; };
 		866286622BEECA6500102FA0 /* ringtone.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ringtone.wav; sourceTree = "<group>"; };
-		866286642BEECA7500102FA0 /* Launch Screen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		866286672BEECB8400102FA0 /* AuthViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		866286682BEECB8400102FA0 /* FavoritesViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FavoritesViewModel.swift; sourceTree = "<group>"; };
 		866286692BEECB8400102FA0 /* LearningSkillsModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LearningSkillsModel.swift; sourceTree = "<group>"; };
@@ -290,7 +288,7 @@
 		868BBAEA2CE7D7610080A0A3 /* ActiveSkillManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveSkillManager.swift; sourceTree = "<group>"; };
 		868BBAEE2CE7F2250080A0A3 /* UserState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserState.swift; sourceTree = "<group>"; };
 		868BBAF02CE7F5010080A0A3 /* UserViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserViewModel.swift; sourceTree = "<group>"; };
-		86980BDF2E54F77A00A7D9AB /* Launch Screen 2.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen 2.storyboard"; sourceTree = "<group>"; };
+		86980BDF2E54F77A00A7D9AB /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		86A1CFE62C80615600B4F432 /* ImageOpenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageOpenView.swift; sourceTree = "<group>"; };
 		86A1CFE82C80618000B4F432 /* FlexibleGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlexibleGridView.swift; sourceTree = "<group>"; };
 		86A9ABF52BEEBF0300F4C7FE /* Learnsy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Learnsy.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -579,8 +577,7 @@
 				866286612BEEC61200102FA0 /* Learnsy.entitlements */,
 				86A9AC182BEEC26000F4C7FE /* Info.plist */,
 				86A9ABFC2BEEBF0300F4C7FE /* Assets.xcassets */,
-				866286642BEECA7500102FA0 /* Launch Screen.storyboard */,
-				86980BDF2E54F77A00A7D9AB /* Launch Screen 2.storyboard */,
+				86980BDF2E54F77A00A7D9AB /* Launch Screen.storyboard */,
 				867DF8592E54EF3D008CB206 /* GoogleService-Info.plist */,
 				86A9ABFE2BEEBF0300F4C7FE /* Preview Content */,
 			);
@@ -732,10 +729,9 @@
 			files = (
 				86A9AC002BEEBF0300F4C7FE /* Preview Assets.xcassets in Resources */,
 				86A9ABFD2BEEBF0300F4C7FE /* Assets.xcassets in Resources */,
-				86980BE02E54F77A00A7D9AB /* Launch Screen 2.storyboard in Resources */,
+				86980BE02E54F77A00A7D9AB /* Launch Screen.storyboard in Resources */,
 				867DF85A2E54EF3D008CB206 /* GoogleService-Info.plist in Resources */,
 				866286632BEECA6500102FA0 /* ringtone.wav in Resources */,
-				866286652BEECA7500102FA0 /* Launch Screen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

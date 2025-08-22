@@ -339,7 +339,7 @@ struct HeaderMainView: View {
 //            .padding(.horizontal, 15)
             
             HStack {
-                Image(.tree)
+                Image(.newLogo)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 30)

@@ -11,7 +11,7 @@ struct SelfSkillsView: View {
     @EnvironmentObject private var authViewModel: AuthViewModel
     @Environment(\.dismiss) private var dismiss
     
-    @State private var viewModel = SkillsViewModel()
+    @StateObject private var viewModel = SkillsViewModel()
     @State private var showToast = false
     @State private var showError = false
     @State var isRegistration = false
@@ -94,10 +94,11 @@ struct SelfSkillsView: View {
                             .onChange(of: viewModel.filteredSkills[index].level) { _, newValue in
                                 if let newLevel = newValue {
                                     let updatedSkill = Skill(name: viewModel.filteredSkills[index].name, level: newLevel)
+                                    print("Changing skill level to \(updatedSkill.name)")
                                     authViewModel.updateSkill(updatedSkill)
                                     
                                     // Скрываем плашку выбора уровня
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    DispatchQueue.main.async {
                                         viewModel.deselectSkill()
                                     }
                                 }

@@ -11,7 +11,7 @@ struct LearningSkillsView: View {
     @EnvironmentObject private var authViewModel: AuthViewModel
     @Environment(\.dismiss) private var dismiss
     
-    @State private var viewModel = LearningSkillsViewModel()
+    @StateObject private var viewModel = LearningSkillsViewModel()
     @State private var showToast = false
     @State private var showError: Bool = false
     @State var isRegistration = false
