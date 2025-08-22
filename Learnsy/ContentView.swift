@@ -1,8 +1,8 @@
 //
 //  ContentView.swift
-//  Skillify
+//  Learnsy
 //
-//  Created by Ilia Loviagin on 5/10/24.
+//  Created by Ilia Loviagin on 8/20/25.
 //
 
 import SwiftUI
@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         Group {
+            
         }
     }
 }

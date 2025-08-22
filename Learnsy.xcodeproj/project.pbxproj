@@ -81,6 +81,8 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		8677A7942E58361D007DEF06 /* Model */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Model; sourceTree = "<group>"; };
+		8677A7952E583622007DEF06 /* View */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = View; sourceTree = "<group>"; };
 		86980BE12E550D3B00A7D9AB /* ViewModel */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = ViewModel; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -132,20 +134,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		8662866F2BEECB8400102FA0 /* Model */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Model;
-			sourceTree = "<group>";
-		};
-		866286A92BEECB8400102FA0 /* View */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = View;
-			sourceTree = "<group>";
-		};
 		866286ED2BEECFEB00102FA0 /* OneSignalNotificationServiceExtension */ = {
 			isa = PBXGroup;
 			children = (
@@ -178,9 +166,9 @@
 		86A9ABF72BEEBF0300F4C7FE /* Learnsy */ = {
 			isa = PBXGroup;
 			children = (
+				8677A7952E583622007DEF06 /* View */,
+				8677A7942E58361D007DEF06 /* Model */,
 				86980BE12E550D3B00A7D9AB /* ViewModel */,
-				866286A92BEECB8400102FA0 /* View */,
-				8662866F2BEECB8400102FA0 /* Model */,
 				86A9ABF82BEEBF0300F4C7FE /* LearnsyApp.swift */,
 				86A9ABFA2BEEBF0300F4C7FE /* ContentView.swift */,
 				866286612BEEC61200102FA0 /* Learnsy.entitlements */,
@@ -240,6 +228,8 @@
 				866286F22BEECFEB00102FA0 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
+				8677A7942E58361D007DEF06 /* Model */,
+				8677A7952E583622007DEF06 /* View */,
 				86980BE12E550D3B00A7D9AB /* ViewModel */,
 			);
 			name = Learnsy;
