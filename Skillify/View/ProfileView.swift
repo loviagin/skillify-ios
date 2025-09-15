@@ -532,7 +532,7 @@ struct AvatarView: View {
     var avatarUrl: String
     var body: some View {
         VStack {
-            if UserHelper.avatars.contains(avatarUrl.split(separator: ":").first.map(String.init) ?? "") { // если аватарка стандартная (из предустановленных)
+            if UserHelper.avatars.contains(avatarUrl.split(separator: ":").first.map(String.init) ?? "") { // если аватарка стандартная
                 Image(avatarUrl.split(separator: ":").first.map(String.init) ?? "")
                     .resizable()
                     .aspectRatio(contentMode: .fill)

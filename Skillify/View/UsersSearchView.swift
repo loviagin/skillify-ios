@@ -11,7 +11,7 @@ struct UsersSearchView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @StateObject var viewModel = UsersViewModel()
     @State private var selectedCategory: UsersViewModel.SearchCategory = .firstName
-    @State var textSearch: String? = ""
+    @State var textSearch: String = ""
     
     @FocusState private var isTextFieldFocused: Bool
     @StateObject var activeSkillManager = ActiveSkillManager() // Создание экземпляра
@@ -21,7 +21,7 @@ struct UsersSearchView: View {
             TextField("Search", text: $viewModel.searchText)
                 .padding()
                 .focused($isTextFieldFocused)
-                .onChange(of: viewModel.searchText) { _ in
+                .onChange(of: viewModel.searchText) { _, _ in
                     viewModel.searchUsers(by: selectedCategory)
                 }
 
@@ -32,6 +32,9 @@ struct UsersSearchView: View {
             }
             .pickerStyle(SegmentedPickerStyle())
             .padding()
+            .onChange(of: selectedCategory) { _, category in
+                viewModel.searchUsers(by: category)
+            }
 
             ScrollView {
                 VStack(spacing: 10) {
@@ -42,22 +45,11 @@ struct UsersSearchView: View {
                 }
                 .padding()
             }
-            .onAppear() {
-                self.viewModel.currentUser = authViewModel.currentUser
-                self.viewModel.loadAllUsers()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    if let ts = textSearch, !ts.isEmpty {
-                        selectedCategory = .skill
-                        viewModel.searchText = ts
-                        viewModel.searchUsers(by: selectedCategory)
-                    } else {
-                        self.isTextFieldFocused = true
-                    }
-                }
-            }
         }
         .onAppear {
-            viewModel.searchUsers(by: selectedCategory)
+            self.viewModel.currentUser = authViewModel.currentUser
+            self.viewModel.loadAllUsers()
+            self.isTextFieldFocused = true
         }
     }
 }

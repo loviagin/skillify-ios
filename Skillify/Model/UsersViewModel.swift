@@ -13,69 +13,50 @@ class UsersViewModel: ObservableObject {
     @Published var filteredUsers = [User]() // Отфильтрованные пользователи
     @Published var searchText = "" // Текст поиска
     
-    private let db = Firestore.firestore()
     var currentUser: User?
     
-//    init() {
-//        fetchUsers()
-//    }
-    func loadUsers() {
-        fetchUsers(currentUser: currentUser)
-    }
-    
     func loadAllUsers() {
-        fetchAllUsers(currentUser: currentUser)
+        Task {
+            await fetchAllUsers(currentUser: currentUser)
+        }
     }
     
-    func fetchUsers(currentUser: User?) {
-        db.collection("users")
-            .getDocuments { [weak self] (querySnapshot, error) in
-                guard let documents = querySnapshot?.documents else {
-                    print("No documents: \(error?.localizedDescription ?? "Unknown error")")
-                    return
-                }
-                
-                let allUsers = documents.compactMap { queryDocumentSnapshot -> User? in
-                    try? queryDocumentSnapshot.data(as: User.self)
-                }
-                
-                self?.users = allUsers.filter { user in
-                    !user.first_name.isEmpty && 
-                    !user.nickname.isEmpty &&
-                    !user.urlAvatar.isEmpty &&
-                    user.block == nil &&
-                    !(currentUser?.blockedUsers.contains(user.id) ?? false)
-                }
+    func fetchAllUsers(currentUser: User?) async {
+        let querySnapshot = try? await Firestore.firestore().collection("users").getDocuments()
+        
+        guard let documents = querySnapshot?.documents else {
+            print("No documents")
+            return
+        }
+        
+        let allUsers = documents.compactMap { queryDocumentSnapshot -> User? in
+            try? queryDocumentSnapshot.data(as: User.self)
+        }
+        
+        DispatchQueue.main.async {
+            self.users = allUsers.filter { user in
+                !user.first_name.isEmpty && user.block == nil
             }
-    }
-    
-    func fetchAllUsers(currentUser: User?) {
-        db.collection("users")
-            .getDocuments { [weak self] (querySnapshot, error) in
-                guard let documents = querySnapshot?.documents else {
-                    print("No documents: \(error?.localizedDescription ?? "Unknown error")")
-                    return
-                }
-                
-                let allUsers = documents.compactMap { queryDocumentSnapshot -> User? in
-                    try? queryDocumentSnapshot.data(as: User.self)
-                }
-                
-                self?.users = allUsers.filter { user in
-                    !user.first_name.isEmpty && user.block == nil
-                }
-            }
+        }
+        
+        self.searchUsers(by: .firstName)
     }
     
     func searchUsers(by category: SearchCategory) {
-        switch category {
-        case .firstName:
-            filteredUsers = users.filter { $0.first_name.lowercased().contains(searchText.lowercased()) }
-        case .skill:
-            filteredUsers = users.filter { $0.selfSkills.map({$0.name}).description.lowercased().contains(searchText.lowercased()) ||
-                                        $0.learningSkills.map({$0.name}).description.lowercased().contains(searchText.lowercased())}
-//        case .group:
-//            filteredUsers = users.filter { $0.nickname.lowercased().contains(searchText.lowercased()) }
+        DispatchQueue.main.async {
+            if self.searchText.isEmpty {
+                self.filteredUsers = self.users
+            } else {
+                switch category {
+                case .firstName:
+                    self.filteredUsers = self.users.filter { $0.first_name.lowercased().contains(self.searchText.lowercased()) || $0.last_name.lowercased().contains(self.searchText.lowercased()) }
+                case .skill:
+                    self.filteredUsers = self.users.filter { $0.selfSkills.map({$0.name}).description.lowercased().contains(self.searchText.lowercased()) ||
+                        $0.learningSkills.map({$0.name}).description.lowercased().contains(self.searchText.lowercased())}
+                    //        case .group:
+                    //            filteredUsers = users.filter { $0.nickname.lowercased().contains(searchText.lowercased()) }
+                }
+            }
         }
     }
     

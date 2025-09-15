@@ -105,29 +105,6 @@ struct FeedMainView: View {
                         //                        TipView(TipNewVersion156())
                         //                            .padding(.trailing, 10)
                         
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text("Skillify wishes you a Merry Christmas!")
-                                    .font(.title2)
-                                    .multilineTextAlignment(.leading)
-                                    .bold()
-                                
-                                Text("May your holiday season be filled with joy, warmth, and unforgettable moments. We wish you success, inspiration, and new achievements in the coming year!")
-                                    .multilineTextAlignment(.leading)
-                            }
-                            
-                            Spacer()
-                            
-                            Image(.christmas)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 50)
-                                .padding()
-                        }
-                        .background(Image(.snow).resizable().scaledToFill().colorMultiply(Color.gray.opacity(0.6)))
-                        .padding(.vertical)
-                        .padding(.vertical)
-                        
                         //MARK: - COURSES
 //                        VStack {
 //                            HStack {

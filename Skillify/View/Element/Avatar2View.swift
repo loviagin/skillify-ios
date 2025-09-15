@@ -30,8 +30,6 @@ struct Avatar2View: View {
             } else if let url = URL(string: avatarUrl) {
                 KFImage(url)
                     .resizable()
-                    .downsampling(size: CGSize(width: 60, height: 60))
-                    .cacheOriginalImage()
                     .placeholder {
                         Image("avatar1")
                             .resizable()
