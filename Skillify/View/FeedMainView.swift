@@ -24,6 +24,8 @@ struct FeedMainView: View {
     @State private var showLearningSkill = false
     @State private var showNewDailyPoints = false
     
+    @State private var showHandledUrl = false
+    
     @State private var selectedValue: SearchType = .learningsSkills
     @State var searchViewModel = SearchViewModel(chipArray: [])
     @State var newCourses: [Course] = [Course(preview: "https://avatars.yandex.net/get-music-content/6201394/2e88bc3c.a.23429889-1/m1000x1000?webp=false", title: "Guitar Pro", description: "Get up your guitar and start playing!", rating: 4.8), Course(preview: "https://avatars.mds.yandex.net/i?id=b60e7cfd0b5e5dc7e1a5c8eda6e5e176_l-9138034-images-thumbs&n=13", title: "Piano Pro", description: "Get up your piano and start playing!", rating: 4.9)]
@@ -196,6 +198,11 @@ struct FeedMainView: View {
                     pointsViewModel.newDailyPoints = false
                 }
             }
+            .alert("Url Hadled", isPresented: $showHandledUrl, actions: {
+                Button("Ok", role: .cancel) {
+                    showHandledUrl = false
+                }
+            })
             .onChange(of: selectedValue) { _, _ in
                 updateSearch()
             }
@@ -264,10 +271,12 @@ struct FeedMainView: View {
         // Проверка, что пользователь залогинен
         guard Auth.auth().currentUser != nil else { return }
         
-        if url.scheme == "skillify" {
+        if url.scheme == "skillify" || url.scheme == "learnsy" {
             let pathComponents = url.pathComponents
             
-            if pathComponents.contains("m") {
+            if pathComponents.contains("test") { //MARK: - DEBUG
+                showHandledUrl = true
+            } else if pathComponents.contains("m") {
                 // Открытие конкретного чата
                 if let chatId = pathComponents.last {
                     authViewModel.selectedTab = .chats

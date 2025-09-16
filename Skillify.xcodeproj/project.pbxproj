@@ -10,6 +10,7 @@
 		86023CD02C3497A60035F995 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 86023CCF2C3497A60035F995 /* RevenueCat */; };
 		86023CD22C3497A60035F995 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 86023CD12C3497A60035F995 /* RevenueCatUI */; };
 		86023CD42C3498770035F995 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 86023CD32C3498770035F995 /* StoreKit.framework */; };
+		860405F32E7878880048A396 /* OIDCClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860405F22E7878880048A396 /* OIDCClient.swift */; };
 		860A90B22CC282270085B991 /* IconElementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860A90B12CC282270085B991 /* IconElementView.swift */; };
 		861092442C0CEF8900062EBE /* CoursesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861092432C0CEF8900062EBE /* CoursesView.swift */; };
 		861092462C0CF16200062EBE /* CustomizeProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861092452C0CF16200062EBE /* CustomizeProfileView.swift */; };
@@ -185,6 +186,7 @@
 
 /* Begin PBXFileReference section */
 		86023CD32C3498770035F995 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		860405F22E7878880048A396 /* OIDCClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OIDCClient.swift; sourceTree = "<group>"; };
 		860A90B12CC282270085B991 /* IconElementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconElementView.swift; sourceTree = "<group>"; };
 		861092432C0CEF8900062EBE /* CoursesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoursesView.swift; sourceTree = "<group>"; };
 		861092452C0CF16200062EBE /* CustomizeProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizeProfileView.swift; sourceTree = "<group>"; };
@@ -360,6 +362,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		860405F12E78787F0048A396 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				860405F22E7878880048A396 /* OIDCClient.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		865ADB2B2BFE297D009CDA90 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -565,6 +575,7 @@
 		86A9ABF72BEEBF0300F4C7FE /* Skillify */ = {
 			isa = PBXGroup;
 			children = (
+				860405F12E78787F0048A396 /* Services */,
 				866E49E82CE9F00200CD4B5F /* Extensions */,
 				866286A92BEECB8400102FA0 /* View */,
 				86AC33172CC19A2700BFAD72 /* Enum */,
@@ -780,6 +791,7 @@
 				86C96D392C19D3600058600C /* CoursesViewModel.swift in Sources */,
 				866286CC2BEECB8400102FA0 /* SkillsSelectionView.swift in Sources */,
 				866286CA2BEECB8400102FA0 /* SearchChip.swift in Sources */,
+				860405F32E7878880048A396 /* OIDCClient.swift in Sources */,
 				866286AD2BEECB8400102FA0 /* MessagesViewModel.swift in Sources */,
 				866E49F92CEA2A9800CD4B5F /* TabTypeEnum.swift in Sources */,
 				866286C62BEECB8400102FA0 /* DocumentPicker.swift in Sources */,
@@ -929,7 +941,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify.OneSignalNotificationServiceExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -960,7 +972,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify.OneSignalNotificationServiceExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -1109,7 +1121,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Skillify/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Skillify;
+				INFOPLIST_KEY_CFBundleDisplayName = Learnsy;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_NSCameraUsageDescription = "For making video calls";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "For audio calls and voice messages usage";
@@ -1152,7 +1164,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Skillify/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Skillify;
+				INFOPLIST_KEY_CFBundleDisplayName = Learnsy;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_NSCameraUsageDescription = "For making video calls";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "For audio calls and voice messages usage";

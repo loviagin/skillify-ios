@@ -28,10 +28,12 @@ struct ChatsView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                     ScrollView(.horizontal, showsIndicators: false) {
-                        ForEach(activeUsers) { user in
-                            NavigationLink(destination: MessagesView(userId: user.id).toolbar(.hidden, for: .tabBar)) {
-                                ActiveUserView(u: user)
-                                    .foregroundColor(.primary)
+                        HStack {
+                            ForEach(activeUsers) { user in
+                                NavigationLink(destination: MessagesView(userId: user.id).toolbar(.hidden, for: .tabBar)) {
+                                    ActiveUserView(u: user)
+                                        .foregroundColor(.primary)
+                                }
                             }
                         }
                     }
