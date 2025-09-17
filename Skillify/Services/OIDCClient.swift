@@ -181,3 +181,38 @@ private extension Data {
             .replacingOccurrences(of: "=", with: "")
     }
 }
+
+extension OIDCClient {
+    func refresh(using refreshToken: String) async throws -> OIDCTokens {
+        let tokenEndpoint = issuer.appendingPathComponent("token")
+        var req = URLRequest(url: tokenEndpoint)
+        req.httpMethod = "POST"
+        req.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        let body = [
+            "grant_type=refresh_token",
+            "refresh_token=\(urlEncode(refreshToken))",
+            "client_id=\(urlEncode(clientId))",
+        ].joined(separator: "&")
+        req.httpBody = body.data(using: .utf8)
+
+        struct TokenResp: Decodable {
+            let access_token: String
+            let refresh_token: String?
+            let id_token: String?
+            let token_type: String
+            let expires_in: Int?
+        }
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw NSError(domain: "OIDC", code: 0, userInfo: [NSLocalizedDescriptionKey: "Refresh failed"])
+        }
+        let t = try JSONDecoder().decode(TokenResp.self, from: data)
+        return .init(
+            accessToken: t.access_token,
+            refreshToken: t.refresh_token ?? refreshToken, // если не пришёл новый — оставь старый
+            idToken: t.id_token,
+            tokenType: t.token_type,
+            expiresIn: t.expires_in
+        )
+    }
+}

@@ -6,12 +6,10 @@
 //
 
 import SwiftUI
-//import FirebaseAuth
-//import FirebaseFirestore
 import AuthenticationServices
 
 struct ContentView: View {
-    @StateObject private var vm = AuthViewModel2()
+    @StateObject private var vm = AuthViewModel()
 
     var body: some View {
         VStack(spacing: 16) {
@@ -40,23 +38,13 @@ struct ContentView: View {
             }
             .disabled(vm.isLoading)
 
-//            Button {
-//                vm.signUp()
-//            } label: {
-//                Text(vm.isLoading ? "Opening…" : "Create account")
-//                    .frame(maxWidth: .infinity).padding()
-//                    .background(Color.blue.opacity(0.12))
-//                    .clipShape(RoundedRectangle(cornerRadius: 12))
-//            }
-//            .disabled(vm.isLoading)
-
             if let err = vm.error {
                 Text(err).font(.footnote).foregroundStyle(.red).multilineTextAlignment(.center)
             }
 
             if vm.tokens != nil {
                 Button(role: .destructive) {
-                    vm.signOut()
+                    vm.rpLogout()
                 } label: {
                     Text("Sign out")
                         .frame(maxWidth: .infinity).padding()
@@ -70,34 +58,67 @@ struct ContentView: View {
 }
 
 // MARK: - ViewModel
-
-final class AuthViewModel2: NSObject, ObservableObject {
+final class AuthViewModel: NSObject, ObservableObject {
+    // UI state
     @Published var isLoading = false
     @Published var error: String?
     @Published var tokens: OIDCTokens?
     @Published var userInfo: OIDCUserInfo?
 
-    // ⚠️ подставь свои значения
+    // OIDC
     private let client = OIDCClient(
         issuer: URL(string: "https://auth.lovig.in/api/oidc")!,
         clientId: "demo-ios",
         redirectURI: "com.lovigin.ios.Skillify://oidc",
-        scopes: ["openid", "profile", "email", "offline_access"]
+        scopes: ["openid", "profile", "email", "offline_access"] // offline_access нужен для RT
     )
 
+    private lazy var authManager = AuthManager(client: client)
     private var session: ASWebAuthenticationSession?
 
-    func signIn()  { startAuthFlow(prompt: .none, screen: nil, ephemeral: false) }
-//    func signUp()  { startAuthFlow(prompt: .none,  screen: "signup",   ephemeral: true)  }
+    // MARK: - Публичные методы для UI
 
-    /// Универсальный запуск OIDC-потока
-    private func startAuthFlow(prompt: OIDCClient.Prompt, screen: String?, ephemeral: Bool) {
+    /// Одна кнопка: открывает chooser-страницу (без форса prompt/screen)
+    func beginAuth() {
+        startAuthFlow(prompt: .none, screen: nil, ephemeral: false)
+    }
+
+    /// Вход по email (если нужна отдельная кнопка)
+    func signIn() {
+        startAuthFlow(prompt: .login, screen: nil, ephemeral: false)
+    }
+
+    func signOut() {
+        tokens = nil
+        userInfo = nil
+        error = nil
+        authManager.clear()
+        client.clearStored()
+        // (опц.) дернуть RP-logout провайдера через ASWebAuthenticationSession
+    }
+
+    // Пример авторизованного запроса к вашему API
+    func loadProfileFromAPI() async {
+        do {
+            let url = URL(string: "https://api.skillify.app/v1/me")!
+            let (data, _) = try await authManager.performAuthorizedRequest(url)
+            // обработай data как нужно
+            print("ME:", String(data: data, encoding: .utf8) ?? "")
+        } catch {
+            await MainActor.run { self.error = error.localizedDescription }
+        }
+    }
+
+    // MARK: - Внутреннее: запуск OIDC-потока
+
+    /// Универсальный запуск: prompt = .none|.login; screen = "signup" как UI-хинт; ephemeral=true для чистой регистрации
+    func startAuthFlow(prompt: OIDCClient.Prompt, screen: String?, ephemeral: Bool) {
         error = nil
         isLoading = true
 
         do {
             let authURL = try client.buildAuthorizeURL(prompt: prompt, screen: screen)
-            print("AUTH URL:", authURL.absoluteString) // для дебага
+            print("AUTH URL:", authURL.absoluteString)
 
             session = ASWebAuthenticationSession(
                 url: authURL,
@@ -115,6 +136,7 @@ final class AuthViewModel2: NSObject, ObservableObject {
                     return
                 }
 
+                // code/state
                 let comps = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
                 let code  = comps?.queryItems?.first(where: { $0.name == "code" })?.value
                 let state = comps?.queryItems?.first(where: { $0.name == "state" })?.value
@@ -136,6 +158,8 @@ final class AuthViewModel2: NSObject, ObservableObject {
                         await MainActor.run {
                             self.tokens = tokens
                             self.userInfo = info
+                            // ← важно: положить токены в стор и запланировать авто-refresh
+                            self.authManager.setInitialTokens(tokens)
                         }
                     } catch {
                         await MainActor.run { self.error = error.localizedDescription }
@@ -144,7 +168,7 @@ final class AuthViewModel2: NSObject, ObservableObject {
             }
 
             session?.presentationContextProvider = self
-            session?.prefersEphemeralWebBrowserSession = ephemeral // регистрация — только эпемерал
+            session?.prefersEphemeralWebBrowserSession = ephemeral // регистрация — лучше true
             _ = session?.start()
 
         } catch {
@@ -152,48 +176,53 @@ final class AuthViewModel2: NSObject, ObservableObject {
             self.error = error.localizedDescription
         }
     }
+    
+    func rpLogout() {
+        // 1) берём последний id_token, он нужен как id_token_hint
+        guard let idToken = tokens?.idToken else {
+            // fallback: просто чистим локально
+            signOut()
+            return
+        }
 
-    func signOut() {
-        tokens = nil
-        userInfo = nil
-        client.clearStored()
-        // (опц.) можно открыть end_session_endpoint провайдера через ASWebAuthenticationSession,
-        // чтобы гасить куки провайдера; тогда следующий вход/регистрация будет всегда «чистым».
+        // 2) формируем end_session URL
+        let endSession = URL(string: "https://auth.lovig.in/api/oidc/session/end")!
+        let postLogoutRedirect = "https://auth.lovig.in" // должен быть в post_logout_redirect_uris у клиента
+        let state = UUID().uuidString
+
+        var comps = URLComponents(url: endSession, resolvingAgainstBaseURL: false)!
+        comps.queryItems = [
+            .init(name: "id_token_hint", value: idToken),
+            .init(name: "post_logout_redirect_uri", value: postLogoutRedirect),
+            .init(name: "state", value: state),
+        ]
+        guard let url = comps.url else { return }
+
+        // 3) открываем end_session в веб-сессии
+        let sess = ASWebAuthenticationSession(
+            url: url,
+            callbackURLScheme: nil // здесь редирект идёт на https, схему ловить не нужно
+        ) { [weak self] _, _ in
+            // 4) после выхода — чистим локально
+            self?.signOut()
+        }
+        sess.presentationContextProvider = self
+        // обычная (не эпемерал) сессия — нам нужно стереть cookie на стороне провайдера
+        sess.prefersEphemeralWebBrowserSession = false
+        _ = sess.start()
     }
 }
 
-extension AuthViewModel2: ASWebAuthenticationPresentationContextProviding {
+// MARK: - ASWebAuthenticationPresentationContextProviding
+extension AuthViewModel: ASWebAuthenticationPresentationContextProviding {
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        // универсальный способ получить key window
         UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .flatMap { $0.windows }
             .first { $0.isKeyWindow } ?? ASPresentationAnchor()
     }
 }
-//struct ContentView: View {
-//    @EnvironmentObject private var authViewModel: AuthViewModel
-//    @EnvironmentObject private var chatViewModel: ChatViewModel
-//
-//    var body: some View {
-//        Group {
-//            switch authViewModel.userState {
-//            case .loggedOut:
-//                AuthView()
-//            case .loading, .loggedIn:
-//                TabsView()
-//            case .profileEditRequired:
-//                EditProfileView()
-//            case .blocked(let reason):
-//                BlockedView(text: reason)
-//            }
-//        }
-//    }
-//}
 
 #Preview {
     ContentView()
-        .environmentObject(AuthViewModel.mock)
-        .environmentObject(ChatViewModel.mock)
-        .environmentObject(CallManager.mock)
 }
