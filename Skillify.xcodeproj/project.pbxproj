@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -44,6 +44,10 @@
 		86A9AC182BEEC26000F4C7FE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		862CD2D82E83103F00F543C4 /* ViewModels */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = ViewModels; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		86A9ABF22BEEBF0300F4C7FE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -71,12 +75,12 @@
 			path = Store;
 			sourceTree = "<group>";
 		};
-		860406852E79E3050048A396 /* Manager */ = {
+		860406852E79E3050048A396 /* Managers */ = {
 			isa = PBXGroup;
 			children = (
 				860406862E79E30C0048A396 /* AuthManager.swift */,
 			);
-			path = Manager;
+			path = Managers;
 			sourceTree = "<group>";
 		};
 		865ADB2B2BFE297D009CDA90 /* Frameworks */ = {
@@ -106,7 +110,8 @@
 		86A9ABF72BEEBF0300F4C7FE /* Skillify */ = {
 			isa = PBXGroup;
 			children = (
-				860406852E79E3050048A396 /* Manager */,
+				862CD2D82E83103F00F543C4 /* ViewModels */,
+				860406852E79E3050048A396 /* Managers */,
 				860406822E79E2EB0048A396 /* Store */,
 				860405F12E78787F0048A396 /* Services */,
 				86A9ABF82BEEBF0300F4C7FE /* SkillifyApp.swift */,
@@ -143,6 +148,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				862CD2D82E83103F00F543C4 /* ViewModels */,
 			);
 			name = Skillify;
 			packageProductDependencies = (
@@ -352,7 +360,7 @@
 				INFOPLIST_FILE = Skillify/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Learnsy;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "The application requires access to a photo library to save images.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "The application requires access to a photo library to save images.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -370,7 +378,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -393,7 +401,7 @@
 				INFOPLIST_FILE = Skillify/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Learnsy;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "The application requires access to a photo library to save images.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "The application requires access to a photo library to save images.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -411,7 +419,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

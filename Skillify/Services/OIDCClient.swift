@@ -2,7 +2,6 @@ import Foundation
 import CryptoKit
 
 // MARK: - Models
-
 struct OIDCTokens: Codable {
     let accessToken: String
     let refreshToken: String?
@@ -19,12 +18,10 @@ struct OIDCUserInfo: Codable {
 }
 
 // MARK: - Client
-
 final class OIDCClient {
     enum Prompt: String {
         case none
         case login
-        // ⚠️ signup как prompt НЕ используем — используем кастомный screen=signup
     }
 
     private let issuer: URL          // например: https://auth.lovig.in/api/oidc
@@ -45,7 +42,7 @@ final class OIDCClient {
     }
 
     // MARK: Authorize URL (supports prompt + custom screen)
-    func buildAuthorizeURL(prompt: Prompt = .none, screen: String? = nil) throws -> URL {
+    func buildAuthorizeURL(prompt: Prompt = .none) throws -> URL {
         let authEndpoint = issuer.appendingPathComponent("auth")
 
         // state, nonce, PKCE
@@ -71,9 +68,6 @@ final class OIDCClient {
 
         if prompt == .login {
             items.append(.init(name: "prompt", value: "login"))
-        }
-        if let screen, !screen.isEmpty {
-            items.append(.init(name: "screen", value: screen)) // <-- наш UI-хинт
         }
 
         var comps = URLComponents(url: authEndpoint, resolvingAgainstBaseURL: false)!
@@ -145,7 +139,6 @@ final class OIDCClient {
     }
 
     // MARK: - Utils
-
     private func codeChallengeS256(_ verifier: String) -> String {
         let data = Data(verifier.utf8)
         let digest = SHA256.hash(data: data)
