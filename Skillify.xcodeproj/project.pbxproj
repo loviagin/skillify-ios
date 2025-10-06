@@ -15,6 +15,7 @@
 		86A9ABFB2BEEBF0300F4C7FE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86A9ABFA2BEEBF0300F4C7FE /* ContentView.swift */; };
 		86A9ABFD2BEEBF0300F4C7FE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86A9ABFC2BEEBF0300F4C7FE /* Assets.xcassets */; };
 		86A9AC002BEEBF0300F4C7FE /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86A9ABFF2BEEBF0300F4C7FE /* Preview Assets.xcassets */; };
+		86B3A0622E92C81100D9D631 /* KeychainTokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86B3A0612E92C81100D9D631 /* KeychainTokenStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -42,10 +43,13 @@
 		86A9ABFC2BEEBF0300F4C7FE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		86A9ABFF2BEEBF0300F4C7FE /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		86A9AC182BEEC26000F4C7FE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		86B3A0612E92C81100D9D631 /* KeychainTokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainTokenStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		862CD2D82E83103F00F543C4 /* ViewModels */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = ViewModels; sourceTree = "<group>"; };
+		86FF9A332E831A0000B6F7ED /* Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Views; sourceTree = "<group>"; };
+		86FF9A3B2E83252900B6F7ED /* Models */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Models; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +75,7 @@
 			isa = PBXGroup;
 			children = (
 				860406832E79E2F00048A396 /* TokenStore.swift */,
+				86B3A0612E92C81100D9D631 /* KeychainTokenStore.swift */,
 			);
 			path = Store;
 			sourceTree = "<group>";
@@ -110,6 +115,8 @@
 		86A9ABF72BEEBF0300F4C7FE /* Skillify */ = {
 			isa = PBXGroup;
 			children = (
+				86FF9A3B2E83252900B6F7ED /* Models */,
+				86FF9A332E831A0000B6F7ED /* Views */,
 				862CD2D82E83103F00F543C4 /* ViewModels */,
 				860406852E79E3050048A396 /* Managers */,
 				860406822E79E2EB0048A396 /* Store */,
@@ -151,6 +158,8 @@
 			);
 			fileSystemSynchronizedGroups = (
 				862CD2D82E83103F00F543C4 /* ViewModels */,
+				86FF9A332E831A0000B6F7ED /* Views */,
+				86FF9A3B2E83252900B6F7ED /* Models */,
 			);
 			name = Skillify;
 			packageProductDependencies = (
@@ -215,6 +224,7 @@
 				860406872E79E30C0048A396 /* AuthManager.swift in Sources */,
 				860405F32E7878880048A396 /* OIDCClient.swift in Sources */,
 				86A9ABFB2BEEBF0300F4C7FE /* ContentView.swift in Sources */,
+				86B3A0622E92C81100D9D631 /* KeychainTokenStore.swift in Sources */,
 				860406842E79E2F00048A396 /* TokenStore.swift in Sources */,
 				86A9ABF92BEEBF0300F4C7FE /* SkillifyApp.swift in Sources */,
 			);

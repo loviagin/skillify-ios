@@ -9,70 +9,52 @@ import Foundation
 import AuthenticationServices
 
 final class AuthViewModel: NSObject, ObservableObject {
-    // UI state
     @Published var isLoading = false
     @Published var error: String?
     @Published var tokens: OIDCTokens?
     @Published var userInfo: OIDCUserInfo?
+    @Published var appState: AppAuthState = .idle
 
-    // OIDC
+    private let serverUrl = "https://la.nqstx.online"
+
     private let client = OIDCClient(
         issuer: URL(string: "https://auth.lovig.in/api/oidc")!,
         clientId: "learnsy-ios",
         redirectURI: "com.lovigin.ios.Skillify://oidc",
-        scopes: ["openid", "profile", "email", "offline_access"] // offline_access нужен для RT
+        scopes: ["openid", "profile", "email", "offline_access"]
     )
 
     private lazy var authManager = AuthManager(client: client)
     private var session: ASWebAuthenticationSession?
 
-    // MARK: - Публичные методы для UI
-    /// Вход по email (если нужна отдельная кнопка)
     func signIn() {
-        startAuthFlow(prompt: .login)
+        startAuthFlow()
     }
 
     func signOut() {
-        tokens = nil
-        userInfo = nil
-        error = nil
+        tokens = nil; userInfo = nil; error = nil
+        appState = .idle
         authManager.clear()
         client.clearStored()
-        // (опц.) дернуть RP-logout провайдера через ASWebAuthenticationSession
     }
 
-    // Пример авторизованного запроса к вашему API
-//    func loadProfileFromAPI() async {
-//        do {
-//            let url = URL(string: "https://api.skillify.app/v1/me")!
-//            let (data, _) = try await authManager.performAuthorizedRequest(url)
-//            // обработай data как нужно
-//            print("ME:", String(data: data, encoding: .utf8) ?? "")
-//        } catch {
-//            await MainActor.run { self.error = error.localizedDescription }
-//        }
-//    }
-
-    // MARK: - Внутреннее: запуск OIDC-потока
-
-    /// Универсальный запуск: prompt = .none|.login; screen = "signup" как UI-хинт; ephemeral=true для чистой регистрации
-    func startAuthFlow(prompt: OIDCClient.Prompt) {
+    // шаг 1: авторизация OIDC
+    func startAuthFlow() {
+        authManager.clear()  // Очищаем старые токены перед новым входом
         error = nil
         isLoading = true
-
         do {
-            let authURL = try client.buildAuthorizeURL(prompt: prompt)
-            print("AUTH URL:", authURL.absoluteString)
+            let authURL = try client.buildAuthorizeURL()
 
             session = ASWebAuthenticationSession(
                 url: authURL,
                 callbackURLScheme: "com.lovigin.ios.Skillify"
             ) { [weak self] callbackURL, sessionError in
-                guard let self = self else { return }
+                guard let self else { return }
                 Task { @MainActor in self.isLoading = false }
 
                 if let sessionError {
-                    Task { @MainActor in self.error = sessionError.localizedDescription }
+                    Task { @MainActor in self.error = "ASWebAuth error: \(sessionError.localizedDescription)" }
                     return
                 }
                 guard let callbackURL else {
@@ -80,7 +62,6 @@ final class AuthViewModel: NSObject, ObservableObject {
                     return
                 }
 
-                // code/state
                 let comps = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
                 let code  = comps?.queryItems?.first(where: { $0.name == "code" })?.value
                 let state = comps?.queryItems?.first(where: { $0.name == "state" })?.value
@@ -91,69 +72,103 @@ final class AuthViewModel: NSObject, ObservableObject {
                     return
                 }
                 guard let code, let state else {
-                    Task { @MainActor in self.error = "Missing code/state" }
+                    Task { @MainActor in self.error = "Missing code/state in callback" }
                     return
                 }
 
                 Task {
                     do {
                         let tokens = try await self.client.exchangeCodeForToken(code: code, returnedState: state)
-                        let info   = try await self.client.fetchUserInfo(accessToken: tokens.accessToken)
+                        let info   = try await self.client.safeFetchUserInfo(accessToken: tokens.accessToken)
                         await MainActor.run {
                             self.tokens = tokens
                             self.userInfo = info
-                            // ← важно: положить токены в стор и запланировать авто-refresh
                             self.authManager.setInitialTokens(tokens)
                         }
+                        // >>> ВАЖНО: после OIDC спросить приложение и проставить appState
+                        try await self.afterOIDC_PeekAndRoute()
                     } catch {
-                        await MainActor.run { self.error = error.localizedDescription }
+                        await MainActor.run { self.error = "After auth: \(error.localizedDescription)" }
                     }
                 }
             }
-
             session?.presentationContextProvider = self
             session?.prefersEphemeralWebBrowserSession = false
             _ = session?.start()
-
         } catch {
             isLoading = false
             self.error = error.localizedDescription
         }
     }
-    
-    func rpLogout() {
-        // 1) берём последний id_token, он нужен как id_token_hint
-        guard let idToken = tokens?.idToken else {
-            // fallback: просто чистим локально
-            signOut()
-            return
+
+    // шаг 2: спросить у app API, есть ли запись
+    private func afterOIDC_PeekAndRoute() async throws {
+        guard let url = URL(string: "\(serverUrl)/v1/me/peek") else { return }
+
+        let (data, resp) = try await authManager.performAuthorizedRequest(url)
+        guard let http = resp as? HTTPURLResponse else {
+            throw NSError(domain: "API", code: -1, userInfo: [NSLocalizedDescriptionKey: "No HTTP response"])
         }
 
-        // 2) формируем end_session URL
-        let endSession = URL(string: "https://auth.lovig.in/api/oidc/session/end")!
-        let postLogoutRedirect = "https://auth.lovig.in" // должен быть в post_logout_redirect_uris у клиента
-        let state = UUID().uuidString
-
-        var comps = URLComponents(url: endSession, resolvingAgainstBaseURL: false)!
-        comps.queryItems = [
-            .init(name: "id_token_hint", value: idToken),
-            .init(name: "post_logout_redirect_uri", value: postLogoutRedirect),
-            .init(name: "state", value: state),
-        ]
-        guard let url = comps.url else { return }
-
-        // 3) открываем end_session в веб-сессии
-        let sess = ASWebAuthenticationSession(
-            url: url,
-            callbackURLScheme: nil // здесь редирект идёт на https, схему ловить не нужно
-        ) { [weak self] _, _ in
-            // 4) после выхода — чистим локально
-            self?.signOut()
+        // Проверим код/тип
+        guard (200...299).contains(http.statusCode) else {
+            throw NSError(domain: "API", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: "Peek HTTP \(http.statusCode)"])
         }
-        sess.presentationContextProvider = self
-        // обычная (не эпемерал) сессия — нам нужно стереть cookie на стороне провайдера
-        sess.prefersEphemeralWebBrowserSession = false
-        _ = sess.start()
+
+        // Пытаемся распарсить JSON
+        struct PeekResp: Decodable {
+            let exists: Bool?
+            let profile: AppUserDraft?
+        }
+
+        do {
+            let p = try JSONDecoder().decode(PeekResp.self, from: data)
+            let exists = p.exists ?? false
+            await MainActor.run {
+                if exists, p.profile == nil {
+                    // Пользователь уже есть в app_users
+                    self.appState = .ready
+                } else if let draft = p.profile, !exists {
+                    // Нет в app_users — показать форму
+                    self.appState = .needsProfile(draft)
+                } else {
+                    // Неопознанный ответ — считаем, что ещё нет профиля
+                    self.appState = .needsProfile(AppUserDraft(sub: userInfo?.sub ?? "", email: userInfo?.email, name: userInfo?.name, avatarUrl: nil))
+                }
+            }
+        } catch {
+            // Если это не JSON (или не те поля) — покажем тело и не роняемся
+            throw NSError(domain: "API", code: 0, userInfo: [NSLocalizedDescriptionKey: "peek decode failed"])
+        }
+    }
+
+    // шаг 3: пользователь нажал «Создать профиль в приложении»
+    func completeBootstrap(name: String?, email: String?, avatarUrl: String?) async {
+        do {
+            let url = URL(string: "\(serverUrl)/v1/me/bootstrap")!
+            let body = try JSONSerialization.data(withJSONObject: [
+                "name": name as Any,
+                "email": email as Any,
+                "avatarUrl": avatarUrl as Any
+            ].compactMapValues { $0 })
+
+            // performAuthorizedRequest теперь сам проставит Content-Type при наличии body
+            let (data, resp) = try await authManager.performAuthorizedRequest(url, method: "POST", body: body)
+            guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+                throw NSError(domain: "API", code: 0, userInfo: [NSLocalizedDescriptionKey: "Bootstrap failed"])
+            }
+            _ = data
+            await MainActor.run { self.appState = .ready }
+        } catch {
+            await MainActor.run { self.error = error.localizedDescription }
+        }
+    }
+
+    enum AppAuthState {
+        case idle
+        case authenticating
+        case needsProfile(AppUserDraft)
+        case ready
     }
 }
 
@@ -164,5 +179,40 @@ extension AuthViewModel: ASWebAuthenticationPresentationContextProviding {
             .compactMap { $0 as? UIWindowScene }
             .flatMap { $0.windows }
             .first { $0.isKeyWindow } ?? ASPresentationAnchor()
+    }
+}
+
+extension AuthViewModel {
+    /// Попробовать восстановить сессию из Keychain и понять, есть ли app_user
+    @MainActor
+    func tryRestoreSession() {
+        if authManager.bearer() != nil {
+            Task {
+                do {
+                    try await self.afterOIDC_PeekAndRoute()
+                } catch {
+                    await MainActor.run {
+                        self.appState = .idle
+                        self.error = nil
+                    }
+                }
+            }
+        } else {
+            self.appState = .idle
+        }
+    }
+
+    /// Удобный вход с переключением состояния
+    @MainActor
+    func beginSignIn() {
+        self.appState = .authenticating
+        self.startAuthFlow()
+    }
+}
+
+extension AuthViewModel {
+    static var mock: AuthViewModel {
+        let vm = AuthViewModel()
+        return vm
     }
 }
