@@ -7,7 +7,6 @@ final class OIDCClient {
     private let clientId: String     // e.g. learnsy-ios
     private let redirectURI: String  // e.g. com.lovigin.ios.Skillify://oidc
     private let scopes: [String]
-    private let resourceAudience = "https://la.nqstx.online"
     
     // PKCE / state / nonce — держим на время флоу (ВАЖНО: не терять!)
     private var codeVerifier: String?
@@ -22,7 +21,7 @@ final class OIDCClient {
     }
     
     // MARK: Authorize URL
-    func buildAuthorizeURL() throws -> URL {
+    func buildAuthorizeURL(maxAge: Int? = nil) throws -> URL {
         let authEndpoint = issuer.appendingPathComponent("auth")
         let state = randomURLSafe(32)
         let nonce = randomURLSafe(32)
@@ -42,6 +41,11 @@ final class OIDCClient {
             .init(name: "code_challenge", value: challenge),
             .init(name: "code_challenge_method", value: "S256"),
         ]
+        
+        // Добавляем max_age=0 для принудительной реаутентификации
+        if let maxAge = maxAge {
+            items.append(.init(name: "max_age", value: String(maxAge)))
+        }
         
         var comps = URLComponents(url: authEndpoint, resolvingAgainstBaseURL: false)!
         comps.queryItems = items
@@ -125,6 +129,25 @@ final class OIDCClient {
         codeVerifier = nil
         state = nil
         nonce = nil
+    }
+    
+    // MARK: Logout (RP-Initiated Logout)
+    func buildLogoutURL(idToken: String?) -> URL {
+        let endSessionEndpoint = issuer.appendingPathComponent("session").appendingPathComponent("end")
+        let postLogoutRedirect = "com.lovigin.ios.Skillify://logout"
+        
+        var items: [URLQueryItem] = [
+            .init(name: "client_id", value: clientId),
+            .init(name: "post_logout_redirect_uri", value: postLogoutRedirect),
+        ]
+        
+        if let idToken = idToken {
+            items.append(.init(name: "id_token_hint", value: idToken))
+        }
+        
+        var comps = URLComponents(url: endSessionEndpoint, resolvingAgainstBaseURL: false)!
+        comps.queryItems = items
+        return comps.url ?? endSessionEndpoint
     }
     
     // MARK: Refresh

@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct LoadingView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @State private var isAnimating = false
     @State private var rotation = 0.0
     @State private var scale = 0.8
@@ -15,9 +16,13 @@ struct LoadingView: View {
     
     var body: some View {
         ZStack {
-            // Градиентный фон
+            // Градиентный фон с адаптацией к темной теме
             LinearGradient(
-                colors: [
+                colors: colorScheme == .dark ? [
+                    Color(red: 0.1, green: 0.1, blue: 0.15),
+                    Color(red: 0.15, green: 0.12, blue: 0.2),
+                    Color(red: 0.08, green: 0.08, blue: 0.12)
+                ] : [
                     Color(red: 0.95, green: 0.85, blue: 0.95),
                     Color(red: 0.85, green: 0.90, blue: 1.0),
                     Color.white
@@ -32,7 +37,10 @@ struct LoadingView: View {
                 Circle()
                     .fill(
                         LinearGradient(
-                            colors: [Color.newPink.opacity(0.15), Color.clear],
+                            colors: [
+                                Color.newPink.opacity(colorScheme == .dark ? 0.25 : 0.15),
+                                Color.clear
+                            ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -45,7 +53,10 @@ struct LoadingView: View {
                 Circle()
                     .fill(
                         LinearGradient(
-                            colors: [Color.blue.opacity(0.1), Color.clear],
+                            colors: [
+                                Color.blue.opacity(colorScheme == .dark ? 0.2 : 0.1),
+                                Color.clear
+                            ],
                             startPoint: .bottomTrailing,
                             endPoint: .topLeading
                         )
@@ -67,8 +78,8 @@ struct LoadingView: View {
                         .fill(
                             RadialGradient(
                                 colors: [
-                                    Color.newPink.opacity(0.3),
-                                    Color.blue.opacity(0.2),
+                                    Color.newPink.opacity(colorScheme == .dark ? 0.4 : 0.3),
+                                    Color.blue.opacity(colorScheme == .dark ? 0.3 : 0.2),
                                     Color.clear
                                 ],
                                 center: .center,
@@ -78,7 +89,7 @@ struct LoadingView: View {
                         )
                         .frame(width: 200, height: 200)
                         .scaleEffect(isAnimating ? 1.3 : 0.8)
-                        .opacity(isAnimating ? 0.3 : 0.6)
+                        .opacity(isAnimating ? (colorScheme == .dark ? 0.4 : 0.3) : (colorScheme == .dark ? 0.7 : 0.6))
                     
                     // Логотип
                     Image(.newLogo)
@@ -95,7 +106,10 @@ struct LoadingView: View {
                         .font(.system(size: 32, weight: .bold, design: .rounded))
                         .foregroundStyle(
                             LinearGradient(
-                                colors: [.newPink, .blue],
+                                colors: colorScheme == .dark ? [
+                                    Color.newPink.opacity(0.9),
+                                    Color.blue.opacity(0.9)
+                                ] : [.newPink, .blue],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -104,7 +118,7 @@ struct LoadingView: View {
                     
                     Text("Sharpen your skills anytime, connecting with people across the globe")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(colorScheme == .dark ? .white.opacity(0.7) : .secondary)
                         .multilineTextAlignment(.center)
                         .opacity(opacity * 0.8)
                 }
@@ -162,7 +176,13 @@ struct LoadingView: View {
     }
 }
 
-#Preview {
+#Preview("Light Mode") {
     LoadingView()
+        .preferredColorScheme(.light)
+}
+
+#Preview("Dark Mode") {
+    LoadingView()
+        .preferredColorScheme(.dark)
 }
 

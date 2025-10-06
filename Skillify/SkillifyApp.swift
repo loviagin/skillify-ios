@@ -19,8 +19,8 @@ struct SkillifyApp: App {
             ContentView()
                 .environmentObject(authViewModel)
                 .environmentObject(mainViewModel)
-                .task {
-                    await authViewModel.tryRestoreSession()
+                .onAppear {
+                    authViewModel.tryRestoreSession()
                 }
                 .task {
                     try? Tips.configure([

@@ -22,50 +22,25 @@ struct StartView: View {
                     .frame(width: 200, height: 70)
                                 
                 Image(.mainPicture)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 300)
                 
-                Text("Welcome to Learnsy! Hone your skills anytime, anywhere, with people from all around the world")
-                    .multilineTextAlignment(.center)
-                    .font(.subheadline)
-                    .bold()
-                
-                #if debug
-                if let user = viewModel.userInfo {
-                    VStack(spacing: 6) {
-                        Text("Signed in").font(.headline)
-                        Text("sub: \(user.sub)").font(.footnote).foregroundStyle(.secondary)
-                        if let name = user.name { Text("name: \(name)").font(.footnote) }
-                        if let email = user.email { Text("email: \(email)").font(.footnote) }
-                    }
-                } else {
-                    Text("You are not signed in")
-                        .foregroundStyle(.secondary)
-                }
-                #endif
+                Spacer()
                                 
                 VStack(spacing: 15) {
+                    Text("Welcome to Learnsy! Hone your skills anytime, anywhere, with people from all around the world")
+                        .multilineTextAlignment(.center)
+                        .font(.subheadline)
+                        .bold()
+                        .padding(.vertical)
+                    
                     if let errorMessage {
                         Text(errorMessage)
                             .font(.caption)
                             .foregroundStyle(.red)
                             .multilineTextAlignment(.center)
                     }
-                    
-                    // DEBUG: Кнопка для очистки сессии
-                    #if DEBUG
-                    if viewModel.userInfo != nil {
-                        Button(action: {
-                            print("[StartView] Clearing session manually")
-                            viewModel.signOut()
-                        }) {
-                            Text("Clear Session (Debug)")
-                                .font(.caption)
-                                .foregroundStyle(.orange)
-                                .padding(8)
-                                .background(Color.orange.opacity(0.1))
-                                .cornerRadius(8)
-                        }
-                    }
-                    #endif
                     
                     AppButton(text: "Get Started", background: .newPink, isLoading: $isLoading) {
                         withAnimation {
@@ -86,13 +61,12 @@ struct StartView: View {
                         }
                     }
                     
-                    Link(destination: URL(string: "https://auth.lovig.in/privacy")!) {
+                    Link(destination: URL(string: URLs.privacyUrl)!) {
                         Text("By using Learnsy app you agree to our Privacy Policy")
                             .font(.caption)
                             .foregroundStyle(.gray)
                     }
                 }
-//                .padding(.top)
             }
             .padding(20)
         }
