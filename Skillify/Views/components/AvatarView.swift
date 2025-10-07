@@ -11,19 +11,21 @@ struct AvatarView: View {
     @Binding var avatarImage: UIImage?
     @Binding var avatarUrl: String?
     
+    @State var size: CGFloat = 120
+    
     var body: some View {
         if let avatarImage {
             Image(uiImage: avatarImage)
                 .resizable()
                 .scaledToFill()
-                .frame(width: 120, height: 120)
+                .frame(width: size, height: size)
                 .clipShape(Circle())
         } else if let avatarUrl {
             if Avatars.avatars.contains(avatarUrl) {
                 Image(avatarUrl)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 120, height: 120)
+                    .frame(width: size, height: size)
                     .padding([.top, .leading, .trailing])
                     .background(.newBlue.opacity(0.5))
                     .clipShape(Circle())
@@ -33,12 +35,12 @@ struct AvatarView: View {
                         image
                             .resizable()
                             .scaledToFill()
-                            .frame(width: 120, height: 120)
+                            .frame(width: size, height: size)
                             .clipShape(Circle())
                     } else if phase.error != nil {
                         Circle()
                             .fill(Color.gray.opacity(0.2))
-                            .frame(width: 120, height: 120)
+                            .frame(width: size, height: size)
                             .overlay {
                                 Image(systemName: "exclamationmark.triangle")
                                     .font(.system(size: 30))
@@ -47,7 +49,7 @@ struct AvatarView: View {
                     } else {
                         Circle()
                             .fill(Color.gray.opacity(0.2))
-                            .frame(width: 120, height: 120)
+                            .frame(width: size, height: size)
                             .overlay {
                                 ProgressView()
                             }
@@ -57,7 +59,7 @@ struct AvatarView: View {
         } else {
             Circle()
                 .fill(Color.gray.opacity(0.2))
-                .frame(width: 120, height: 120)
+                .frame(width: size, height: size)
                 .overlay {
                     Image(systemName: "person.fill")
                         .font(.system(size: 50))

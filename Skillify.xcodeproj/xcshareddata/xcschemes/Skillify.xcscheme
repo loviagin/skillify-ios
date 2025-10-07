@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "86A9ABF42BEEBF0300F4C7FE"
-               BuildableName = "Skillify.app"
+               BuildableName = "Learnsy.app"
                BlueprintName = "Skillify"
                ReferencedContainer = "container:Skillify.xcodeproj">
             </BuildableReference>
@@ -45,7 +45,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "86A9ABF42BEEBF0300F4C7FE"
-            BuildableName = "Skillify.app"
+            BuildableName = "Learnsy.app"
             BlueprintName = "Skillify"
             ReferencedContainer = "container:Skillify.xcodeproj">
          </BuildableReference>
@@ -69,7 +69,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "86A9ABF42BEEBF0300F4C7FE"
-            BuildableName = "Skillify.app"
+            BuildableName = "Learnsy.app"
             BlueprintName = "Skillify"
             ReferencedContainer = "container:Skillify.xcodeproj">
          </BuildableReference>

@@ -21,6 +21,11 @@ struct RegistrationView: View {
     @State private var isLoading: Bool = false
     @State private var errorMessage: String? = nil
     
+    // Skills
+    @State private var mySkills: [UserSkill] = []
+    @State private var learningSkills: [UserSkill] = []
+    @State private var navigationPath = NavigationPath()
+    
     // Focus management
     @FocusState private var focusedField: Field?
     
@@ -36,204 +41,238 @@ struct RegistrationView: View {
     @State private var showPresetsAvatar = false
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Title
-                Text("Create an Account")
-                    .font(.title)
-                    .fontWeight(.bold)
-                
-                // Avatar picker
-                VStack(spacing: 12) {
-                    ZStack(alignment: .bottomTrailing) {
-                        AvatarView(avatarImage: $avatarImage, avatarUrl: $avatarUrl)
-                        
-                        Menu {
-                            Button("Gallery", systemImage: "photo.badge.plus") {
-                                avatarUrl = nil
-                                showImagePicker = true
-                            }
+        NavigationStack(path: $navigationPath) {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Title
+                    Text("Create an Account")
+                        .font(.title)
+                        .fontWeight(.bold)
+                    
+                    // Avatar picker
+                    VStack(spacing: 12) {
+                        ZStack(alignment: .bottomTrailing) {
+                            AvatarView(avatarImage: $avatarImage, avatarUrl: $avatarUrl)
                             
-                            Divider()
-                            
-                            Button("Preset avatars", systemImage: "person.circle") {
-                                avatarImage = nil
-                                showPresetsAvatar = true
-                            }
-                        } label: {
-                            Image(systemName: "camera.fill")
-                                .font(.system(size: 16))
-                                .foregroundStyle(.white)
-                                .frame(width: 36, height: 36)
-                                .background(Color.newBlue)
-                                .clipShape(Circle())
-                                .overlay {
-                                    Circle()
-                                        .stroke(Color.white, lineWidth: 3)
+                            Menu {
+                                Button("Gallery", systemImage: "photo.badge.plus") {
+                                    avatarUrl = nil
+                                    showImagePicker = true
                                 }
+                                
+                                Divider()
+                                
+                                Button("Preset avatars", systemImage: "person.circle") {
+                                    avatarImage = nil
+                                    showPresetsAvatar = true
+                                }
+                            } label: {
+                                Image(systemName: "camera.fill")
+                                    .font(.system(size: 16))
+                                    .foregroundStyle(.white)
+                                    .frame(width: 36, height: 36)
+                                    .background(Color.newBlue)
+                                    .clipShape(Circle())
+                                    .overlay {
+                                        Circle()
+                                            .stroke(Color.white, lineWidth: 3)
+                                    }
+                            }
+                        }
+                        
+                        Text("Add avatar")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 10)
+                    
+                    // Form fields
+                    VStack(spacing: 20) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("First name")
+                                .font(.body)
+                                .fontWeight(.medium)
+                            
+                            TextField("Enter your First name", text: $firstName)
+                                .textFieldStyle(CustomTextFieldStyle())
+                                .focused($focusedField, equals: .firstName)
+                                .submitLabel(.next)
+                                .onSubmit {
+                                    focusedField = .username
+                                }
+                                .onChange(of: firstName) { _, newValue in
+                                    if newValue.count > Limits.maxNameLength {
+                                        firstName = String(newValue.prefix(50))
+                                    }
+                                }
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Username")
+                                .font(.body)
+                                .fontWeight(.medium)
+                            
+                            TextField("Enter your Username", text: $username)
+                                .textFieldStyle(CustomTextFieldStyle())
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled()
+                                .focused($focusedField, equals: .username)
+                                .submitLabel(.next)
+                                .onSubmit {
+                                    focusedField = nil
+                                }
+                                .onChange(of: username) { _, newValue in
+                                    // Фильтруем: только буквы, цифры и подчеркивание
+                                    let filtered = newValue.filter { $0.isLetter || $0.isNumber || $0 == "_" }
+                                    // Ограничиваем
+                                    let limited = String(filtered.prefix(Limits.maxNicknameLength))
+                                    if username != limited {
+                                        username = limited
+                                    }
+                                }
+                        }
+                        
+                        HStack {
+                            Text("Date of Birth")
+                                .font(.body)
+                                .fontWeight(.medium)
+                            
+                            Spacer()
+                            
+                            DatePicker(
+                                "",
+                                selection: $birthDate,
+                                in: ...Limits.maxBirthDate,
+                                displayedComponents: .date
+                            )
+                            .datePickerStyle(.compact)
+                            .labelsHidden()
+                            .padding()
+                            .cornerRadius(12)
+                            .accentColor(.newBlue)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Email")
+                                .font(.body)
+                                .fontWeight(.medium)
+                            
+                            TextField("Enter your Email", text: $email)
+                                .textFieldStyle(CustomTextFieldStyle())
+                                .textInputAutocapitalization(.never)
+                                .keyboardType(.emailAddress)
+                                .autocorrectionDisabled()
+                                .foregroundStyle(.gray)
+                                .disabled(true)
                         }
                     }
                     
-                    Text("Add avatar")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.vertical, 10)
-                
-                // Form fields
-                VStack(spacing: 20) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("First name")
-                            .font(.body)
-                            .fontWeight(.medium)
-                        
-                        TextField("Enter your First name", text: $firstName)
-                            .textFieldStyle(CustomTextFieldStyle())
-                            .focused($focusedField, equals: .firstName)
-                            .submitLabel(.next)
-                            .onSubmit {
-                                focusedField = .username
-                            }
-                            .onChange(of: firstName) { _, newValue in
-                                if newValue.count > Limits.maxNameLength {
-                                    firstName = String(newValue.prefix(50))
-                                }
-                            }
+                    // Error message
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .font(.callout)
+                            .foregroundStyle(.red)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
                     }
                     
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Username")
-                            .font(.body)
-                            .fontWeight(.medium)
-                        
-                        TextField("Enter your Username", text: $username)
-                            .textFieldStyle(CustomTextFieldStyle())
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                            .focused($focusedField, equals: .username)
-                            .submitLabel(.next)
-                            .onSubmit {
-                                focusedField = nil
-                            }
-                            .onChange(of: username) { _, newValue in
-                                // Фильтруем: только буквы, цифры и подчеркивание
-                                let filtered = newValue.filter { $0.isLetter || $0.isNumber || $0 == "_" }
-                                // Ограничиваем
-                                let limited = String(filtered.prefix(Limits.maxNicknameLength))
-                                if username != limited {
-                                    username = limited
-                                }
-                            }
+                    // Continue button
+                    NavigationLink(value: "mySkills") {
+                        Text("Continue")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(isFormValid ? Color.newBlue : Color.gray.opacity(0.3))
+                            .cornerRadius(12)
                     }
+                    .disabled(!isFormValid)
+                    .opacity(isFormValid ? 1.0 : 0.5)
+                    .padding(.top, 10)
+                    .simultaneousGesture(TapGesture().onEnded {
+                    focusedField = nil
+                    // Показываем ошибки только при попытке перехода
+                    if firstName.count < 2 {
+                        errorMessage = "Name must be at least 2 characters"
+                    } else if username.count < 3 {
+                        errorMessage = "Username must be at least 3 characters"
+                    } else {
+                        errorMessage = nil
+                    }
+                    })
                     
                     HStack {
-                        Text("Date of Birth")
-                            .font(.body)
-                            .fontWeight(.medium)
-                        
-                        Spacer()
-                        
-                        DatePicker(
-                            "",
-                            selection: $birthDate,
-                            in: ...Limits.maxBirthDate,
-                            displayedComponents: .date
-                        )
-                        .datePickerStyle(.compact)
-                        .labelsHidden()
-                        .padding()
-                        .cornerRadius(12)
-                        .accentColor(.newBlue)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Email")
-                            .font(.body)
-                            .fontWeight(.medium)
-                        
-                        TextField("Enter your Email", text: $email)
-                            .textFieldStyle(CustomTextFieldStyle())
-                            .textInputAutocapitalization(.never)
-                            .keyboardType(.emailAddress)
-                            .autocorrectionDisabled()
-                            .foregroundStyle(.gray)
-                            .disabled(true)
-                    }
-                }
-                
-                // Error message
-                if let errorMessage = errorMessage {
-                    Text(errorMessage)
-                        .font(.callout)
-                        .foregroundStyle(.red)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                }
-                
-                // Register button
-                AppButton(
-                    text: "Register",
-                    background: .newPink,
-                    isLoading: $isLoading
-                ) {
-                    handleRegistration()
-                }
-                .disabled(!isFormValid)
-                .opacity(isFormValid ? 1.0 : 0.5)
-                .padding(.top, 10)
-                
-                HStack {
-                    // Terms agreement
-                    VStack(alignment: .leading) {
-                        Text("By continuing, you agree to our")
-                            .foregroundStyle(.primary)
-                        
-                        HStack(spacing: 4) {
-                            Link("Terms of Service", destination: URL(string: URLs.termsUrl)!)
-                                .foregroundStyle(.newBlue)
-                            
-                            Text("and")
+                        // Terms agreement
+                        VStack(alignment: .leading) {
+                            Text("By continuing, you agree to our")
                                 .foregroundStyle(.primary)
                             
-                            Link("Privacy Policy", destination: URL(string: URLs.privacyUrl)!)
-                                .foregroundStyle(.newBlue)
+                            HStack(spacing: 4) {
+                                Link("Terms of Service", destination: URL(string: URLs.termsUrl)!)
+                                    .foregroundStyle(.newBlue)
+                                
+                                Text("and")
+                                    .foregroundStyle(.primary)
+                                
+                                Link("Privacy Policy", destination: URL(string: URLs.privacyUrl)!)
+                                    .foregroundStyle(.newBlue)
+                            }
                         }
+                        .font(.callout)
+                        .foregroundStyle(.gray)
+                        
+                        Spacer()
+                    }
+                    
+                    // Sign In link
+                    HStack(spacing: 4) {
+                        Text("Not your account?")
+                            .foregroundStyle(.secondary)
+                        
+                        Button {
+                            // Handle sign in navigation
+                            authViewModel.signOut()
+                        } label: {
+                            Text("Sign Out")
+                                .foregroundStyle(.newBlue)
+                                .fontWeight(.semibold)
+                        }
+                        
+                        Spacer()
                     }
                     .font(.callout)
-                    .foregroundStyle(.gray)
-                    
-                    Spacer()
+                    .padding(.bottom, 30)
                 }
-                
-                // Sign In link
-                HStack(spacing: 4) {
-                    Text("Not your account?")
-                        .foregroundStyle(.secondary)
-                    
-                    Button {
-                        // Handle sign in navigation
-                        authViewModel.signOut()
-                    } label: {
-                        Text("Sign Out")
-                            .foregroundStyle(.newBlue)
-                            .fontWeight(.semibold)
-                    }
-                    
-                    Spacer()
-                }
-                .font(.callout)
-                .padding(.bottom, 30)
+                .padding()
             }
-            .padding()
+            .scrollIndicators(.never)
+            .onTapGesture {
+                focusedField = nil
+            }
+            .navigationDestination(for: String.self) { destination in
+                if destination == "mySkills" {
+                    MySkillsView(
+                        selectedSkills: $mySkills,
+                        onContinue: {
+                            navigationPath.append("learningSkills")
+                        }
+                    )
+                } else if destination == "learningSkills" {
+                    LearningSkillsView(
+                        selectedSkills: $learningSkills,
+                        mySkills: mySkills,
+                        isLoading: $isLoading,
+                        onComplete: {
+                            handleRegistration()
+                        }
+                    )
+                }
+            }
+            .photosPicker(isPresented: $showImagePicker, selection: $selectedItem, matching: .images)
+            .sheet(isPresented: $showPresetsAvatar, content: {
+                PresetAvatarsView(selectedAvatar: $avatarUrl)
+            })
         }
-        .scrollIndicators(.never)
-        .onTapGesture {
-            focusedField = nil
-        }
-        .photosPicker(isPresented: $showImagePicker, selection: $selectedItem, matching: .images)
-        .sheet(isPresented: $showPresetsAvatar, content: {
-            PresetAvatarsView(selectedAvatar: $avatarUrl)
-        })
         .onChange(of: selectedItem) { _, newValue in
             Task {
                 if let data = try? await newValue?.loadTransferable(type: Data.self),
@@ -261,34 +300,14 @@ struct RegistrationView: View {
     
     private var isFormValid: Bool {
         !firstName.trimmingCharacters(in: .whitespaces).isEmpty &&
-        !username.trimmingCharacters(in: .whitespaces).isEmpty
+        !username.trimmingCharacters(in: .whitespaces).isEmpty &&
+        username.count >= 3 &&
+        firstName.count >= 2
     }
     
     private func handleRegistration() {
-        // Убираем фокус с полей
-        focusedField = nil
-        
-        // Очищаем предыдущие ошибки
-        errorMessage = nil
-        
-        // Валидация
-        guard isFormValid else {
-            errorMessage = "Please fill in all required fields"
-            return
-        }
-        
-        // Дополнительная валидация
-        if username.count < 3 {
-            errorMessage = "Username must be at least 3 characters"
-            return
-        }
-        
-        if firstName.count < 2 {
-            errorMessage = "Name must be at least 2 characters"
-            return
-        }
-        
         isLoading = true
+        errorMessage = nil
         
         let trimmedFirstName = firstName.trimmingCharacters(in: .whitespaces)
         let trimmedUsername = username.trimmingCharacters(in: .whitespaces)
@@ -317,7 +336,9 @@ struct RegistrationView: View {
                     username: trimmedUsername,
                     email: email.trimmingCharacters(in: .whitespaces),
                     avatarUrl: finalAvatarUrl,
-                    birthDate: birthDate
+                    birthDate: birthDate,
+                    ownedSkills: mySkills,
+                    desiredSkills: learningSkills
                 )
                 
                 await MainActor.run {
@@ -325,6 +346,8 @@ struct RegistrationView: View {
                     // Проверяем, не произошла ли ошибка в authViewModel
                     if let error = authViewModel.error {
                         errorMessage = error
+                        // Возвращаемся назад при ошибке
+                        navigationPath.removeLast()
                     }
                 }
             }

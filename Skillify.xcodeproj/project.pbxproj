@@ -35,7 +35,7 @@
 		860406862E79E30C0048A396 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		866286612BEEC61200102FA0 /* Skillify.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Skillify.entitlements; sourceTree = "<group>"; };
 		866286642BEECA7500102FA0 /* Launch Screen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
-		86A9ABF52BEEBF0300F4C7FE /* Skillify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Skillify.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		86A9ABF52BEEBF0300F4C7FE /* Skillify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = Skillify.app; path = Learnsy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		86A9ABF82BEEBF0300F4C7FE /* SkillifyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillifyApp.swift; sourceTree = "<group>"; };
 		86A9ABFA2BEEBF0300F4C7FE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		86A9ABFC2BEEBF0300F4C7FE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -384,7 +384,7 @@
 				MARKETING_VERSION = 1.6.9;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Learnsy;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
@@ -425,7 +425,7 @@
 				MARKETING_VERSION = 1.6.9;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.lovigin.ios.Skillify;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = Learnsy;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;

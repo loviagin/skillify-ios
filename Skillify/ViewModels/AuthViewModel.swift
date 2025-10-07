@@ -33,7 +33,11 @@ final class AuthViewModel: NSObject, ObservableObject {
     }
 
     func signOut() {
-        // OIDC logout через Safari (завершает сессию, но сохраняет Google/Apple SSO)
+        // OIDC logout через Safari для полного завершения сессии
+        // Это гарантирует показ экрана выбора аккаунта при следующем входе
+        // 
+        // Примечание: iOS показывает системный алерт "Wants to Use to Sign In"
+        // Текст алерта нельзя изменить - это ограничение Apple API
         performOIDCLogout()
     }
     
@@ -59,6 +63,8 @@ final class AuthViewModel: NSObject, ObservableObject {
             }
         }
         session?.presentationContextProvider = self
+        // НЕ используем ephemeral session - это удаляет все cookies и ломает следующий вход
+        // max_age=0 при входе гарантирует показ экрана авторизации
         session?.prefersEphemeralWebBrowserSession = false
         _ = session?.start()
     }
@@ -70,7 +76,10 @@ final class AuthViewModel: NSObject, ObservableObject {
         isLoading = true
         do {
             // Используем max_age=0 для принудительной реаутентификации
-            let authURL = try client.buildAuthorizeURL(maxAge: 0)
+            // prompt убран, так как может вызывать invalid_request на некоторых OIDC серверах
+            let authURL = try client.buildAuthorizeURL(maxAge: 0, prompt: nil)
+            
+            print("[Auth] Starting auth flow with URL: \(authURL.absoluteString)")
 
             session = ASWebAuthenticationSession(
                 url: authURL,
@@ -181,7 +190,9 @@ final class AuthViewModel: NSObject, ObservableObject {
         username: String?,
         email: String?,
         avatarUrl: String?,
-        birthDate: Date?
+        birthDate: Date?,
+        ownedSkills: [UserSkill] = [],
+        desiredSkills: [UserSkill] = []
     ) async {
         do {
             let url = URL(string: "\(URLs.serverUrl)/v1/me/bootstrap")!
@@ -195,6 +206,22 @@ final class AuthViewModel: NSObject, ObservableObject {
             if let birthDate = birthDate {
                 let formatter = ISO8601DateFormatter()
                 params["birthDate"] = formatter.string(from: birthDate)
+            }
+            
+            // Добавляем навыки
+            if !ownedSkills.isEmpty {
+                params["ownedSkills"] = ownedSkills.map { skill in
+                    [
+                        "skillId": skill.skill.id,
+                        "level": skill.level?.rawValue ?? "Bronze"
+                    ]
+                }
+            }
+            
+            if !desiredSkills.isEmpty {
+                params["desiredSkills"] = desiredSkills.map { skill in
+                    ["skillId": skill.skill.id]
+                }
             }
             
             let body = try JSONSerialization.data(withJSONObject: params)
@@ -274,6 +301,7 @@ extension AuthViewModel {
 extension AuthViewModel {
     static var mock: AuthViewModel {
         let vm = AuthViewModel()
+        vm.userViewModel.currentUser?.id = "cejwinwij"
         return vm
     }
 }

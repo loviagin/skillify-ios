@@ -57,20 +57,29 @@ final class KeychainTokenStore {
     // MARK: Keychain
     private func persist() {
         guard let c = current else { deleteFromKeychain(); return }
-        let data = try! JSONEncoder().encode(c)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account
-        ]
-        let attrs: [String: Any] = [
-            kSecValueData as String: data
-        ]
-        let status = SecItemUpdate(query as CFDictionary, attrs as CFDictionary)
-        if status == errSecItemNotFound {
-            var add = query
-            add[kSecValueData as String] = data
-            SecItemAdd(add as CFDictionary, nil)
+        do {
+            let data = try JSONEncoder().encode(c)
+            // Build base attributes
+            var base: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: service,
+                kSecAttrAccount as String: account,
+                kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+            ]
+            // Delete old value to avoid update edge cases on fresh devices
+            SecItemDelete(base as CFDictionary)
+            base[kSecValueData as String] = data
+            let addStatus = SecItemAdd(base as CFDictionary, nil)
+            #if DEBUG
+            if addStatus != errSecSuccess {
+                let code = Int(addStatus)
+                print("[Keychain] SecItemAdd failed: \(code)")
+            }
+            #endif
+        } catch {
+            #if DEBUG
+            print("[Keychain] Encode failed: \(error.localizedDescription)")
+            #endif
         }
     }
 
@@ -79,12 +88,15 @@ final class KeychainTokenStore {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
-            kSecReturnData as String: true
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnData as String: kCFBooleanTrue as Any
         ]
         var out: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &out)
         if status == errSecSuccess, let data = out as? Data {
             current = try? JSONDecoder().decode(Stored.self, from: data)
+        } else {
+            current = nil
         }
     }
 

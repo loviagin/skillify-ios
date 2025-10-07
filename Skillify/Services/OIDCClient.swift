@@ -21,7 +21,7 @@ final class OIDCClient {
     }
     
     // MARK: Authorize URL
-    func buildAuthorizeURL(maxAge: Int? = nil) throws -> URL {
+    func buildAuthorizeURL(maxAge: Int? = nil, prompt: String? = nil) throws -> URL {
         let authEndpoint = issuer.appendingPathComponent("auth")
         let state = randomURLSafe(32)
         let nonce = randomURLSafe(32)
@@ -45,6 +45,13 @@ final class OIDCClient {
         // Добавляем max_age=0 для принудительной реаутентификации
         if let maxAge = maxAge {
             items.append(.init(name: "max_age", value: String(maxAge)))
+        }
+        
+        // Добавляем prompt для контроля показа UI
+        // prompt=select_account - показывает выбор аккаунта
+        // prompt=login - показывает форму входа
+        if let prompt = prompt {
+            items.append(.init(name: "prompt", value: prompt))
         }
         
         var comps = URLComponents(url: authEndpoint, resolvingAgainstBaseURL: false)!
