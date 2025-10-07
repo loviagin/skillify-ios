@@ -18,6 +18,18 @@ final class UserViewModel: ObservableObject {
     init(authManager: AuthManager) {
         self.authManager = authManager
     }
+
+    // MARK: - Username availability
+    func isUsernameAvailable(_ username: String) async -> Bool {
+        guard let url = URL(string: "\(URLs.serverUrl)/v1/me/username-available?username=\(username)") else { return false }
+        do {
+            let (data, resp) = try await authManager.performAuthorizedRequest(url)
+            guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { return false }
+            struct Resp: Decodable { let available: Bool? }
+            let r = try JSONDecoder().decode(Resp.self, from: data)
+            return r.available ?? false
+        } catch { return false }
+    }
     
     // MARK: - Fetch Profile
     

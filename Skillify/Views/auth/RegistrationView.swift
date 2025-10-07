@@ -15,6 +15,8 @@ struct RegistrationView: View {
     
     @State private var firstName: String = ""
     @State private var username: String = ""
+    @State private var isUsernameChecking: Bool = false
+    @State private var isUsernameAvailable: Bool? = nil
     @State private var birthDate: Date = Calendar.current.date(byAdding: .year, value: -12, to: Date()) ?? Date()
     @State private var email: String = ""
     @State private var avatarUrl: String? = nil
@@ -112,24 +114,46 @@ struct RegistrationView: View {
                                 .font(.body)
                                 .fontWeight(.medium)
                             
-                            TextField("Enter your Username", text: $username)
-                                .textFieldStyle(CustomTextFieldStyle())
-                                .textInputAutocapitalization(.never)
-                                .autocorrectionDisabled()
-                                .focused($focusedField, equals: .username)
-                                .submitLabel(.next)
-                                .onSubmit {
-                                    focusedField = nil
+                            HStack {
+                                Text("@")
+                                
+                                TextField("Enter your Username", text: $username)
+                                    .textFieldStyle(CustomTextFieldStyle())
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                                    .focused($focusedField, equals: .username)
+                                    .submitLabel(.next)
+                                    .onSubmit {
+                                        focusedField = nil
+                                    }
+                                    .onChange(of: username) { _, newValue in
+                                        // Фильтруем: только буквы, цифры и подчеркивание
+                                        let filtered = newValue.filter { $0.isLetter || $0.isNumber || $0 == "_" }
+                                        // Ограничиваем
+                                        let limited = String(filtered.prefix(Limits.maxNicknameLength))
+                                        if username != limited {
+                                            username = limited
+                                        }
+                                        debounceUsernameCheck()
+                                    }
+                            }
+                            
+                            //MARK: - Nickname check label
+                            HStack(spacing: 6) {
+                                if isUsernameChecking {
+                                    ProgressView()
+                                        .scaleEffect(0.7)
                                 }
-                                .onChange(of: username) { _, newValue in
-                                    // Фильтруем: только буквы, цифры и подчеркивание
-                                    let filtered = newValue.filter { $0.isLetter || $0.isNumber || $0 == "_" }
-                                    // Ограничиваем
-                                    let limited = String(filtered.prefix(Limits.maxNicknameLength))
-                                    if username != limited {
-                                        username = limited
+                                if let available = isUsernameAvailable {
+                                    HStack {
+                                        Image(systemName: available ? "checkmark.circle.fill" : "xmark.octagon.fill")
+                                            .foregroundStyle(available ? .green : .red)
+                                        
+                                        Text(available ? "Available" : "Not available")
+                                            .font(.caption)
                                     }
                                 }
+                            }
                         }
                         
                         HStack {
@@ -190,15 +214,15 @@ struct RegistrationView: View {
                     .opacity(isFormValid ? 1.0 : 0.5)
                     .padding(.top, 10)
                     .simultaneousGesture(TapGesture().onEnded {
-                    focusedField = nil
-                    // Показываем ошибки только при попытке перехода
-                    if firstName.count < 2 {
-                        errorMessage = "Name must be at least 2 characters"
-                    } else if username.count < 3 {
-                        errorMessage = "Username must be at least 3 characters"
-                    } else {
-                        errorMessage = nil
-                    }
+                        focusedField = nil
+                        // Показываем ошибки только при попытке перехода
+                        if firstName.count < 2 {
+                            errorMessage = "Name must be at least 2 characters"
+                        } else if username.count < 3 {
+                            errorMessage = "Username must be at least 3 characters"
+                        } else {
+                            errorMessage = nil
+                        }
                     })
                     
                     HStack {
@@ -302,7 +326,8 @@ struct RegistrationView: View {
         !firstName.trimmingCharacters(in: .whitespaces).isEmpty &&
         !username.trimmingCharacters(in: .whitespaces).isEmpty &&
         username.count >= 3 &&
-        firstName.count >= 2
+        firstName.count >= 2 &&
+        (isUsernameAvailable ?? false)
     }
     
     private func handleRegistration() {
@@ -354,6 +379,26 @@ struct RegistrationView: View {
         }
     }
     
+}
+
+// MARK: - Username debounce
+extension RegistrationView {
+    private func debounceUsernameCheck() {
+        // Мини-дебаунс через async задержку
+        let current = username
+        isUsernameChecking = true
+        isUsernameAvailable = nil
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 450_000_000) // 450ms
+            if current == username, username.count >= 3 {
+                let available = await authViewModel.userViewModel.isUsernameAvailable(username)
+                isUsernameAvailable = available
+            } else if username.count < 3 {
+                isUsernameAvailable = nil
+            }
+            isUsernameChecking = false
+        }
+    }
 }
 
 // Custom TextField Style

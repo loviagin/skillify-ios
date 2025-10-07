@@ -14,26 +14,38 @@ struct StartView: View {
     @State private var errorMessage: String? = nil
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 55) {
-                Image(.newLogo)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 200, height: 70)
-                                
-                Image(.mainPicture)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(height: 300)
-                
-                Spacer()
-                                
-                VStack(spacing: 15) {
+        GeometryReader { geo in
+            let h = geo.size.height
+            let w = geo.size.width
+            let isTall = h > 800
+            let logoWidth = min(w * 0.55, 260)
+            let illustrationHeight = min(h * (isTall ? 0.40 : 0.34), 460)
+            let verticalPadding: CGFloat = 20
+
+            ScrollView {
+                VStack(spacing: isTall ? 40 : 28) {
+                    // Logo
+                    Image(.newLogo)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: logoWidth)
+                        .padding(.top, isTall ? 10 : 0)
+
+                    // Illustration
+                    Image(.mainPicture)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: illustrationHeight)
+
+                    Spacer(minLength: isTall ? h * 0.12 : 0)
+
+                    // CTA
+                    VStack(spacing: 15) {
                     Text("Welcome to Learnsy! Hone your skills anytime, anywhere, with people from all around the world")
                         .multilineTextAlignment(.center)
                         .font(.subheadline)
                         .bold()
-                        .padding(.vertical)
+                            .padding(.vertical)
                     
                     if let errorMessage {
                         Text(errorMessage)
@@ -66,11 +78,13 @@ struct StartView: View {
                             .font(.caption)
                             .foregroundStyle(.gray)
                     }
+                    }
                 }
+                .frame(minHeight: h - verticalPadding * 2)
+                .padding(20)
             }
-            .padding(20)
+            .scrollIndicators(.never)
         }
-        .scrollIndicators(.never)
     }
 }
 
