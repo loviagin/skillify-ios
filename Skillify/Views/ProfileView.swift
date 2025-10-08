@@ -30,42 +30,7 @@ struct ProfileView: View {
                     } else if let user = userViewModel.currentUser {
                         // Avatar
                         VStack {
-                            AsyncImage(url: URL(string: user.avatarUrl ?? "")) { phase in
-                                switch phase {
-                                case .empty:
-                                    Circle()
-                                        .fill(Color.gray.opacity(0.3))
-                                        .frame(width: 120, height: 120)
-                                        .overlay {
-                                            Image(systemName: "person.fill")
-                                                .font(.system(size: 50))
-                                                .foregroundStyle(.gray)
-                                        }
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 120, height: 120)
-                                        .clipShape(Circle())
-                                case .failure:
-                                    Circle()
-                                        .fill(Color.gray.opacity(0.3))
-                                        .frame(width: 120, height: 120)
-                                        .overlay {
-                                            Image(systemName: "person.fill")
-                                                .font(.system(size: 50))
-                                                .foregroundStyle(.gray)
-                                        }
-                                @unknown default:
-                                    EmptyView()
-                                }
-                            }
-                            
-                            PhotosPicker(selection: $selectedItem, matching: .images) {
-                                Text("Change Avatar")
-                                    .font(.caption)
-                                    .foregroundStyle(.blue)
-                            }
+                            AvatarView(avatarImage: .constant(nil), avatarUrl: .constant(user.avatarUrl))
                         }
                         .padding(.vertical)
                         

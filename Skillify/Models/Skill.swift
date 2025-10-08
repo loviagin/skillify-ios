@@ -23,9 +23,9 @@ struct Skill: Codable, Identifiable, Hashable {
 
 // Уровни владения навыком
 enum SkillLevel: String, Codable, CaseIterable {
-    case bronze = "Bronze"
-    case silver = "Silver"
-    case gold = "Gold"
+    case bronze = "bronze"
+    case silver = "silver"
+    case gold = "gold"
     
     var color: String {
         switch self {
@@ -40,6 +40,14 @@ enum SkillLevel: String, Codable, CaseIterable {
         case .bronze: return "🌱"
         case .silver: return "🔷"
         case .gold: return "⭐️"
+        }
+    }
+    
+    var displayName: String {
+        switch self {
+        case .bronze: return "Bronze"
+        case .silver: return "Silver"
+        case .gold: return "Gold"
         }
     }
 }
@@ -122,6 +130,7 @@ extension Skill {
         Skill(id: "salsa", name: "Salsa", category: "Dance", iconName: "figure.dance"),
         Skill(id: "hiphop", name: "Hip-Hop", category: "Dance", iconName: "figure.dance"),
         Skill(id: "contemporary", name: "Contemporary", category: "Dance", iconName: "figure.dance"),
+        Skill(id: "dancing", name: "Dancing", category: "Dance", iconName: "figure.dance"),
         
         // Crafts & Handmade
         Skill(id: "sewing", name: "Sewing", category: "Crafts", iconName: "scissors"),

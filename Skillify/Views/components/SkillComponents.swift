@@ -88,7 +88,7 @@ struct SelectedSkillCard: View {
                     .fontWeight(.semibold)
                 
                 if let level = userSkill.level {
-                    Text("\(level.emoji) \(level.rawValue)")
+                    Text("\(level.emoji) \(level.displayName)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -169,7 +169,7 @@ struct LevelPickerSheet: View {
                             Text(level.emoji)
                                 .font(.title2)
                             
-                            Text(level.rawValue)
+                            Text(level.displayName)
                                 .font(.body)
                                 .fontWeight(.medium)
                             

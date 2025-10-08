@@ -7,9 +7,15 @@
 
 import SwiftUI
 
+enum SkillsViewMode {
+    case register
+    case update
+}
+
 struct MySkillsView: View {
     @Binding var selectedSkills: [UserSkill]
     var onContinue: () -> Void
+    var mode: SkillsViewMode = .register
     
     @State private var searchText: String = ""
     @State private var selectedCategory: String = "All"
@@ -203,7 +209,7 @@ struct MySkillsView: View {
                 Button {
                     onContinue()
                 } label: {
-                    Text("Continue")
+                    Text(mode == .register ? "Continue" : "Update Skills")
                         .font(.headline)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)

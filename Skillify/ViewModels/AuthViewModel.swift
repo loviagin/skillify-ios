@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 import AuthenticationServices
 
 final class AuthViewModel: NSObject, ObservableObject {
@@ -24,9 +25,23 @@ final class AuthViewModel: NSObject, ObservableObject {
 
     private lazy var authManager = AuthManager(client: client)
     private var session: ASWebAuthenticationSession?
+    private var cancellables = Set<AnyCancellable>()
     
     // UserViewModel для управления профилем пользователя
     private(set) lazy var userViewModel: UserViewModel = UserViewModel(authManager: authManager)
+    // Проксируем текущего пользователя для реактивного UI
+    @Published var appUser: AppUser?
+
+    override init() {
+        super.init()
+        // Связываем изменения профиля с Published полем, чтобы UI обновлялся
+        userViewModel.$currentUser
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] user in
+                self?.appUser = user
+            }
+            .store(in: &cancellables)
+    }
 
     func signIn() {
         startAuthFlow()
@@ -262,6 +277,58 @@ extension AuthViewModel: ASWebAuthenticationPresentationContextProviding {
             .compactMap { $0 as? UIWindowScene }
             .flatMap { $0.windows }
             .first { $0.isKeyWindow } ?? ASPresentationAnchor()
+    }
+    
+    // Функция обновления навыков пользователя
+    func updateUserSkills(
+        ownedSkills: [UserSkill] = [],
+        desiredSkills: [UserSkill] = []
+    ) async {
+        do {
+            let url = URL(string: "\(URLs.serverUrl)/v1/me/skills")!
+            
+            var params: [String: Any] = [:]
+            
+            // Добавляем навыки
+            if !ownedSkills.isEmpty {
+                params["ownedSkills"] = ownedSkills.compactMap { skill -> [String: Any]? in
+                    guard let level = skill.level else { return nil }
+                    return [
+                        "skillId": skill.skill.id,
+                        "level": level.rawValue
+                    ]
+                }
+            }
+            
+            if !desiredSkills.isEmpty {
+                params["desiredSkills"] = desiredSkills.map { skill in
+                    [
+                        "skillId": skill.skill.id
+                    ]
+                }
+            }
+            
+            let jsonData = try JSONSerialization.data(withJSONObject: params)
+            
+            print("📤 Sending request to: \(url)")
+            print("📤 Request body: \(String(data: jsonData, encoding: .utf8) ?? "Unable to encode")")
+            
+            let (data, response) = try await authManager.performAuthorizedRequest(url, method: "PUT", body: jsonData)
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 200 {
+                    print("✅ Skills updated successfully")
+                    // Профиль обновится автоматически при возврате на главный экран
+                } else {
+                    print("❌ Failed to update skills: \(httpResponse.statusCode)")
+                    if let responseData = String(data: data, encoding: .utf8) {
+                        print("Response body: \(responseData)")
+                    }
+                }
+            }
+        } catch {
+            print("Error updating skills: \(error)")
+        }
     }
 }
 

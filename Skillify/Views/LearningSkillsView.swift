@@ -12,6 +12,7 @@ struct LearningSkillsView: View {
     var mySkills: [UserSkill]
     @Binding var isLoading: Bool
     var onComplete: () -> Void
+    var mode: SkillsViewMode = .register
     
     @State private var searchText: String = ""
     @State private var selectedCategory: String = "All"
@@ -202,7 +203,7 @@ struct LearningSkillsView: View {
                 Divider()
                 
                 AppButton(
-                    text: "Complete Registration",
+                    text: mode == .register ? "Complete Registration" : "Update Skills",
                     background: .newPink,
                     isLoading: $isLoading
                 ) {

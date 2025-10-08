@@ -12,6 +12,7 @@ struct HomeView: View {
     @State private var selectedTab: Tab = .wantToLearn
     @State private var selectedWantToLearnSkills: Set<String> = []
     @State private var selectedWantToTeachSkills: Set<String> = []
+    @State private var navigationPath = NavigationPath()
     
     // Mock data для демонстрации (позже можно заменить на реальные данные)
     private let topUsers: [AppUser] = [
@@ -22,8 +23,14 @@ struct HomeView: View {
         .init(id: "cejwiwqefdcdbf22nwij", authUserId: "wenf", roles: [], createdAt: Date(), updatedAt: Date()),
     ]
     
-    private let wantToLearnSkills = ["Programming", "Graphic Design", "Marketing", "Entrepreneurship"]
-    private let wantToTeachSkills = ["Photography", "Writing", "Public Speaking", "Leadership"]
+    // Вычисляемые свойства для навыков пользователя
+    private var wantToLearnSkills: [UserSkill] {
+        viewModel.appUser?.desiredSkills ?? []
+    }
+    
+    private var wantToTeachSkills: [UserSkill] {
+        viewModel.appUser?.ownedSkills ?? []
+    }
     
     private let featuredUsers = [
         FeaturedUser(
@@ -61,7 +68,7 @@ struct HomeView: View {
     ]
     
     // Вычисляемые свойства
-    private var currentSkills: [String] {
+    private var currentSkills: [UserSkill] {
         selectedTab == .wantToLearn ? wantToLearnSkills : wantToTeachSkills
     }
     
@@ -74,16 +81,12 @@ struct HomeView: View {
     }
     
     private var filteredUsers: [FeaturedUser] {
-        if currentSelectedSkills.isEmpty {
-            return featuredUsers
-        }
-        return featuredUsers.filter { user in
-            !currentSelectedSkills.isDisjoint(with: user.skills)
-        }
+        // Показываем всех пользователей, так как у нас нет реальных данных других пользователей
+        return featuredUsers
     }
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     // Header
@@ -104,6 +107,39 @@ struct HomeView: View {
                 }
                 .padding(.top, 10)
             }
+            .onAppear {
+                // Обновляем профиль при возврате на главный экран
+                Task {
+                    await viewModel.userViewModel.fetchProfile()
+                }
+            }
+            .navigationDestination(for: String.self) { destination in
+                switch destination {
+                case "addDesiredSkills":
+                    LearningSkillsViewWrapper(
+                        initialSkills: viewModel.appUser?.desiredSkills ?? [],
+                        mySkills: viewModel.appUser?.ownedSkills ?? [],
+                        onComplete: { updatedSkills in
+                            await viewModel.updateUserSkills(
+                                desiredSkills: updatedSkills
+                            )
+                            await viewModel.userViewModel.fetchProfile()
+                        }
+                    )
+                case "addOwnedSkills":
+                    MySkillsViewWrapper(
+                        initialSkills: viewModel.appUser?.ownedSkills ?? [],
+                        onComplete: { updatedSkills in
+                            await viewModel.updateUserSkills(
+                                ownedSkills: updatedSkills
+                            )
+                            await viewModel.userViewModel.fetchProfile()
+                        }
+                    )
+                default:
+                    EmptyView()
+                }
+            }
         }
     }
     
@@ -111,7 +147,7 @@ struct HomeView: View {
     private var headerView: some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Hi, \(viewModel.userViewModel.currentUser?.name ?? "User")")
+                Text("Hi, \(viewModel.appUser?.name ?? viewModel.userViewModel.currentUser?.name ?? "User")")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(.primary)
                 
@@ -177,7 +213,7 @@ struct HomeView: View {
                                         )
                                 }
                             }
-                                
+                            
                             Text(user.name ?? "User")
                                 .font(.system(size: 14))
                                 .foregroundColor(.primary)
@@ -220,20 +256,68 @@ struct HomeView: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .padding(.horizontal)
-
+        
     }
     
     // MARK: - Skills Card
     private var learningSkillsCard: some View {
         VStack(alignment: .leading, spacing: 16) {
-            FlowLayout(spacing: 12) {
-                ForEach(currentSkills, id: \.self) { skill in
-                    SkillTag(
-                        title: skill,
-                        isSelected: currentSelectedSkills.contains(skill)
-                    ) {
-                        toggleSkillSelection(skill)
+            if currentSkills.isEmpty {
+                Text("No skills selected")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 20)
+            } else {
+                FlowLayout(spacing: 12) {
+                    ForEach(currentSkills, id: \.id) { userSkill in
+                        SkillTag(
+                            skill: userSkill.skill,
+                            isSelected: currentSelectedSkills.contains(userSkill.skill.name)
+                        ) {
+                            toggleSkillSelection(userSkill.skill.name)
+                        }
                     }
+                    
+                    // Кнопка добавления навыка
+                    Button(action: {
+                        // Навигация к соответствующему экрану редактирования навыков
+                        if selectedTab == .wantToLearn {
+                            // Навигация к экрану добавления желаемых навыков
+                            navigationPath.append("addDesiredSkills")
+                        } else {
+                            // Навигация к экрану добавления навыков для обучения
+                            navigationPath.append("addOwnedSkills")
+                        }
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 16))
+                            Text("Add")
+                                .font(.system(size: 15, weight: .medium))
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.4, green: 0.55, blue: 0.85),
+                                    Color(red: 0.6, green: 0.45, blue: 0.85),
+                                    Color(red: 0.85, green: 0.5, blue: 0.7)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .opacity(0.8)
+                        .cornerRadius(20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
             }
         }
@@ -261,31 +345,18 @@ struct HomeView: View {
     // MARK: - Featured Users Section
     private var featuredUsersSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if filteredUsers.isEmpty && hasSelectedSkills {
-                VStack(spacing: 12) {
-                    Image(systemName: "person.slash")
-                        .font(.system(size: 48))
-                        .foregroundColor(.gray)
-                    Text("No users found with selected skills")
-                        .font(.system(size: 16))
-                        .foregroundColor(.gray)
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: 12),
+                    GridItem(.flexible(), spacing: 12)
+                ],
+                spacing: 12
+            ) {
+                ForEach(filteredUsers) { user in
+                    FeaturedUserCard(user: user)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 40)
-            } else {
-                LazyVGrid(
-                    columns: [
-                        GridItem(.flexible(), spacing: 12),
-                        GridItem(.flexible(), spacing: 12)
-                    ],
-                    spacing: 12
-                ) {
-                    ForEach(filteredUsers) { user in
-                        FeaturedUserCard(user: user)
-                    }
-                }
-                .padding(.horizontal, 20)
             }
+            .padding(.horizontal, 20)
         }
     }
     enum Tab {
@@ -321,7 +392,7 @@ struct ToggleButton: View {
 }
 
 struct SkillTag: View {
-    let title: String
+    let skill: Skill
     var isSelected: Bool = false
     var action: (() -> Void)? = nil
     
@@ -334,10 +405,10 @@ struct SkillTag: View {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 16))
                 } else {
-                    Image(systemName: iconName)
+                    Image(systemName: skill.iconName ?? "star.fill")
                         .font(.system(size: 16))
                 }
-                Text(title)
+                Text(skill.name)
                     .font(.system(size: 15, weight: .medium))
             }
             .foregroundColor(.white)
@@ -368,20 +439,6 @@ struct SkillTag: View {
             .animation(.spring(response: 0.3), value: isSelected)
         }
         .buttonStyle(PlainButtonStyle())
-    }
-    
-    private var iconName: String {
-        switch title {
-        case "Programming": return "laptopcomputer"
-        case "Graphic Design": return "paintbrush.fill"
-        case "Marketing": return "megaphone.fill"
-        case "Entrepreneurship": return "lightbulb.fill"
-        case "Photography": return "camera.fill"
-        case "Writing": return "pencil.and.list.clipboard"
-        case "Public Speaking": return "mic.fill"
-        case "Leadership": return "flag.fill"
-        default: return "star.fill"
-        }
     }
 }
 
@@ -520,6 +577,66 @@ struct FlowLayout: Layout {
             
             self.size = CGSize(width: maxWidth, height: y + lineHeight)
         }
+    }
+}
+
+// MARK: - Wrapper Views for Skill Editing
+struct LearningSkillsViewWrapper: View {
+    let initialSkills: [UserSkill]
+    let mySkills: [UserSkill]
+    let onComplete: ([UserSkill]) async -> Void
+    
+    @State private var selectedSkills: [UserSkill]
+    @State private var isLoading = false
+    @Environment(\.dismiss) private var dismiss
+    
+    init(initialSkills: [UserSkill], mySkills: [UserSkill], onComplete: @escaping ([UserSkill]) async -> Void) {
+        self.initialSkills = initialSkills
+        self.mySkills = mySkills
+        self.onComplete = onComplete
+        self._selectedSkills = State(initialValue: initialSkills)
+    }
+    
+    var body: some View {
+        LearningSkillsView(
+            selectedSkills: $selectedSkills,
+            mySkills: mySkills,
+            isLoading: $isLoading,
+            onComplete: {
+                Task {
+                    await onComplete(selectedSkills)
+                    dismiss()
+                }
+            }, mode: .update
+        )
+        .toolbar(.hidden, for: .tabBar)
+    }
+}
+
+struct MySkillsViewWrapper: View {
+    let initialSkills: [UserSkill]
+    let onComplete: ([UserSkill]) async -> Void
+    
+    @State private var selectedSkills: [UserSkill]
+    @Environment(\.dismiss) private var dismiss
+    
+    init(initialSkills: [UserSkill], onComplete: @escaping ([UserSkill]) async -> Void) {
+        self.initialSkills = initialSkills
+        self.onComplete = onComplete
+        self._selectedSkills = State(initialValue: initialSkills)
+    }
+    
+    var body: some View {
+        MySkillsView(
+            selectedSkills: $selectedSkills,
+            onContinue: {
+                Task {
+                    await onComplete(selectedSkills)
+                    dismiss()
+                }
+            }, mode: .update
+        )
+        .toolbar(.hidden, for: .tabBar)
     }
 }
 
