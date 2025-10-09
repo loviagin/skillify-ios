@@ -113,11 +113,80 @@ struct ProfileView: View {
             }
             
             // Stats
-            HStack(spacing: 16) {
-                statButton(title: user.formattedSubscribersCount, subtitle: "Subscribers")
-                statButton(title: user.formattedSubscriptionsCount, subtitle: "Subscriptions")
-            }
+            subscriptionStatsView
         }
+    }
+    
+    // MARK: - Subscription Stats View
+    private var subscriptionStatsView: some View {
+        HStack(spacing: 0) {
+            // Subscribers
+            NavigationLink(destination: SubscriptionListView(user: user, initialTab: .subscribers)) {
+                VStack(spacing: 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "person.2.fill")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.blue)
+                        
+                        Text("Subscribers")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Text(user.formattedSubscribersCount)
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundStyle(.primary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.blue.opacity(0.05))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+                        )
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            // Divider
+            Rectangle()
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 1, height: 40)
+                .padding(.horizontal, 8)
+            
+            // Subscriptions
+            NavigationLink(destination: SubscriptionListView(user: user, initialTab: .subscriptions)) {
+                VStack(spacing: 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "person.badge.plus.fill")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.green)
+                        
+                        Text("Following")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Text(user.formattedSubscriptionsCount)
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundStyle(.primary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.green.opacity(0.05))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.green.opacity(0.2), lineWidth: 1)
+                        )
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .padding(.horizontal, 4)
     }
     
     private func statButton(title: String, subtitle: String) -> some View {

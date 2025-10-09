@@ -477,5 +477,96 @@ extension UserViewModel {
             return []
         }
     }
+    
+    // Get followers/subscriptions for specific user
+    func getUserFollowers(userId: String) async -> [AppUser] {
+        guard let url = URL(string: "\(URLs.serverUrl)/v1/users/\(userId)/followers") else { return [] }
+        
+        do {
+            let (data, response) = try await authManager.performAuthorizedRequest(url)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return [] }
+            
+            let decoder = JSONDecoder()
+            // Используем ту же стратегию декодирования дат
+            decoder.dateDecodingStrategy = .custom { decoder in
+                let container = try decoder.singleValueContainer()
+                let dateString = try container.decode(String.self)
+                
+                let iso8601Formatter = ISO8601DateFormatter()
+                iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                
+                if let date = iso8601Formatter.date(from: dateString) {
+                    return date
+                }
+                
+                let iso8601NoMsFormatter = ISO8601DateFormatter()
+                iso8601NoMsFormatter.formatOptions = [.withInternetDateTime]
+                
+                if let date = iso8601NoMsFormatter.date(from: dateString) {
+                    return date
+                }
+                
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd"
+                
+                if let date = dateFormatter.date(from: dateString) {
+                    return date
+                }
+                
+                throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date string \(dateString)")
+            }
+            
+            let users = try decoder.decode([AppUser].self, from: data)
+            return users
+        } catch {
+            print("Get user followers error: \(error)")
+            return []
+        }
+    }
+    
+    func getUserSubscriptions(userId: String) async -> [AppUser] {
+        guard let url = URL(string: "\(URLs.serverUrl)/v1/users/\(userId)/subscriptions") else { return [] }
+        
+        do {
+            let (data, response) = try await authManager.performAuthorizedRequest(url)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return [] }
+            
+            let decoder = JSONDecoder()
+            // Используем ту же стратегию декодирования дат
+            decoder.dateDecodingStrategy = .custom { decoder in
+                let container = try decoder.singleValueContainer()
+                let dateString = try container.decode(String.self)
+                
+                let iso8601Formatter = ISO8601DateFormatter()
+                iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                
+                if let date = iso8601Formatter.date(from: dateString) {
+                    return date
+                }
+                
+                let iso8601NoMsFormatter = ISO8601DateFormatter()
+                iso8601NoMsFormatter.formatOptions = [.withInternetDateTime]
+                
+                if let date = iso8601NoMsFormatter.date(from: dateString) {
+                    return date
+                }
+                
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd"
+                
+                if let date = dateFormatter.date(from: dateString) {
+                    return date
+                }
+                
+                throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date string \(dateString)")
+            }
+            
+            let users = try decoder.decode([AppUser].self, from: data)
+            return users
+        } catch {
+            print("Get user subscriptions error: \(error)")
+            return []
+        }
+    }
 }
 
