@@ -15,6 +15,7 @@ final class AuthViewModel: NSObject, ObservableObject {
     @Published var tokens: OIDCTokens?
     @Published var userInfo: OIDCUserInfo?
     @Published var appState: AppAuthState = .idle
+    @Published var allUsers: [AppUser] = []
 
     private let client = OIDCClient(
         issuer: URL(string: "\(URLs.authUrl)/api/oidc")!,
@@ -39,6 +40,14 @@ final class AuthViewModel: NSObject, ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] user in
                 self?.appUser = user
+            }
+            .store(in: &cancellables)
+
+        // Проксируем список всех пользователей для обновления UI
+        userViewModel.$allUsers
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] users in
+                self?.allUsers = users
             }
             .store(in: &cancellables)
     }

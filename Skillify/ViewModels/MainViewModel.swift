@@ -12,7 +12,7 @@ class MainViewModel: ObservableObject {
 }
 
 enum AppTab {
-    case home, account
+    case home, discover, account
 }
 
 extension MainViewModel {

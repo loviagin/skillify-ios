@@ -14,14 +14,19 @@ struct HomeView: View {
     @State private var selectedWantToTeachSkills: Set<String> = []
     @State private var navigationPath = NavigationPath()
     
-    // Mock data для демонстрации (позже можно заменить на реальные данные)
-    private let topUsers: [AppUser] = [
-        .init(id: "cejwinwij", authUserId: "wenf", roles: [], createdAt: Date(), updatedAt: Date()),
-        .init(id: "cejwifwefenwij", authUserId: "wenf", roles: [], createdAt: Date(), updatedAt: Date()),
-        .init(id: "cejwinfwwwwij", authUserId: "wenf", roles: [], createdAt: Date(), updatedAt: Date()),
-        .init(id: "cejwindfewij", authUserId: "wenf", roles: [], createdAt: Date(), updatedAt: Date()),
-        .init(id: "cejwiwqefdcdbf22nwij", authUserId: "wenf", roles: [], createdAt: Date(), updatedAt: Date()),
-    ]
+    // Top Users: сначала текущий пользователь, затем активные PRO
+    private var topUsers: [AppUser] {
+        var result: [AppUser] = []
+        if let me = viewModel.appUser {
+            result.append(me)
+        }
+        let currentId = viewModel.userViewModel.currentUser?.id
+        let pros = viewModel.allUsers
+            .filter { $0.subscription?.isActive == true && !$0.isCurrentUser(currentId) }
+            .sorted { $0.updatedAt > $1.updatedAt }
+        result.append(contentsOf: pros)
+        return result
+    }
     
     // Вычисляемые свойства для навыков пользователя
     private var wantToLearnSkills: [UserSkill] {
@@ -31,42 +36,7 @@ struct HomeView: View {
     private var wantToTeachSkills: [UserSkill] {
         viewModel.appUser?.ownedSkills ?? []
     }
-    
-    private let featuredUsers = [
-        FeaturedUser(
-            id: "1",
-            name: "Harry McWilliams",
-            bio: "I'm average height",
-            avatarName: "avatar3",
-            skills: ["Programming", "Marketing"],
-            skillIcons: ["💻", "📢", "🎯", "🌍", "🏋️"]
-        ),
-        FeaturedUser(
-            id: "2",
-            name: "Aline Jolith",
-            bio: "I'm UX designer",
-            avatarName: "avatar2",
-            skills: ["Graphic Design", "Photography"],
-            skillIcons: ["🎨", "📷", "✏️", "🌈", "🖌️"]
-        ),
-        FeaturedUser(
-            id: "3",
-            name: "John Doe",
-            bio: "Developer",
-            avatarName: "avatar1",
-            skills: ["Programming", "Leadership"],
-            skillIcons: ["💻", "🚀", "⚡", "🎯", "🏆"]
-        ),
-        FeaturedUser(
-            id: "4",
-            name: "Jane Smith",
-            bio: "Content Creator",
-            avatarName: "avatar4",
-            skills: ["Writing", "Marketing"],
-            skillIcons: ["✍️", "📢", "📚", "💡", "🎬"]
-        )
-    ]
-    
+        
     // Вычисляемые свойства
     private var currentSkills: [UserSkill] {
         selectedTab == .wantToLearn ? wantToLearnSkills : wantToTeachSkills
@@ -80,9 +50,23 @@ struct HomeView: View {
         !currentSelectedSkills.isEmpty
     }
     
-    private var filteredUsers: [FeaturedUser] {
-        // Показываем всех пользователей, так как у нас нет реальных данных других пользователей
-        return featuredUsers
+    private var filteredUsers: [AppUser] {
+        let all = viewModel.allUsers
+        let selectedNames = currentSelectedSkills
+        if selectedNames.isEmpty { return all }
+        if selectedTab == .wantToLearn {
+            // фильтр по desiredSkills
+            return all.filter { user in
+                let names = Set(user.desiredSkills.map { $0.skill.name })
+                return !names.isDisjoint(with: selectedNames)
+            }
+        } else {
+            // фильтр по ownedSkills
+            return all.filter { user in
+                let names = Set(user.ownedSkills.map { $0.skill.name })
+                return !names.isDisjoint(with: selectedNames)
+            }
+        }
     }
     
     var body: some View {
@@ -107,11 +91,13 @@ struct HomeView: View {
                 }
                 .padding(.top, 10)
             }
-            .onAppear {
-                // Обновляем профиль при возврате на главный экран
-                Task {
-                    await viewModel.userViewModel.fetchProfile()
-                }
+            .refreshable {
+                await viewModel.userViewModel.fetchProfile()
+                await viewModel.userViewModel.fetchAllUsers()
+            }
+            .task {
+                await viewModel.userViewModel.fetchProfile()
+                await viewModel.userViewModel.fetchAllUsers()
             }
             .navigationDestination(for: String.self) { destination in
                 switch destination {
@@ -140,6 +126,10 @@ struct HomeView: View {
                     EmptyView()
                 }
             }
+            .navigationDestination(for: AppUser.self) { user in
+                ProfileView(user: user)
+                    .environmentObject(viewModel)
+            }
         }
     }
     
@@ -159,13 +149,13 @@ struct HomeView: View {
             
             Spacer()
             
-            Button {
-                
-            } label: {
-                Image(systemName: "bell")
-                    .font(.system(size: 24))
-                    .foregroundColor(.primary)
-            }
+//            Button {
+//                
+//            } label: {
+//                Image(systemName: "bell")
+//                    .font(.system(size: 24))
+//                    .foregroundColor(.primary)
+//            }
         }
     }
     
@@ -179,45 +169,50 @@ struct HomeView: View {
                 
                 Spacer()
                 
-                Button("View all") {
-                    // Action
-                }
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.blue)
+//                Button("View all") {
+//                    // Action
+//                }
+//                .font(.system(size: 14, weight: .medium))
+//                .foregroundColor(.blue)
             }
             .padding(.horizontal, 20)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     ForEach(topUsers) { user in
-                        VStack {
-                            ZStack(alignment: .bottomTrailing) {
-                                AvatarView(avatarImage: .constant(nil), avatarUrl: .constant(user.avatarUrl), size: 80)
-                                    .overlay(
-                                        Circle()
-                                            .stroke(
-                                                user.isCurrentUser(viewModel.userViewModel.currentUser?.id) ? Color.blue : Color.clear,
-                                                lineWidth: 3
-                                            )
-                                    )
-                                    .padding(2)
-                                
-                                if user.isCurrentUser(viewModel.userViewModel.currentUser?.id) {
-                                    Circle()
-                                        .fill(Color.blue)
-                                        .frame(width: 24, height: 24)
+                        Button {
+                            navigationPath.append(user)
+                        } label: {
+                            VStack {
+                                ZStack(alignment: .bottomTrailing) {
+                                    AvatarView(avatarImage: .constant(nil), avatarUrl: .constant(user.avatarUrl), size: 80)
                                         .overlay(
-                                            Image(systemName: "plus")
-                                                .font(.system(size: 12, weight: .bold))
-                                                .foregroundColor(.white)
+                                            Circle()
+                                                .stroke(
+                                                    user.isCurrentUser(viewModel.userViewModel.currentUser?.id) ? .newBlue : .clear,
+                                                    lineWidth: 3
+                                                )
                                         )
+                                        .padding(2)
+
+                                    if user.isCurrentUser(viewModel.userViewModel.currentUser?.id) {
+                                        Circle()
+                                            .fill(.newBlue)
+                                            .frame(width: 24, height: 24)
+                                            .overlay(
+                                                Image(systemName: "plus")
+                                                    .font(.system(size: 12, weight: .bold))
+                                                    .foregroundColor(.white)
+                                            )
+                                    }
                                 }
+
+                                Text(user.name ?? "User")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.primary)
                             }
-                            
-                            Text(user.name ?? "User")
-                                .font(.system(size: 14))
-                                .foregroundColor(.primary)
                         }
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
                 .padding(.leading, 20)
@@ -256,69 +251,57 @@ struct HomeView: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .padding(.horizontal)
-        
     }
     
     // MARK: - Skills Card
     private var learningSkillsCard: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if currentSkills.isEmpty {
-                Text("No skills selected")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 20)
-            } else {
-                FlowLayout(spacing: 12) {
-                    ForEach(currentSkills, id: \.id) { userSkill in
-                        SkillTag(
-                            skill: userSkill.skill,
-                            isSelected: currentSelectedSkills.contains(userSkill.skill.name)
-                        ) {
-                            toggleSkillSelection(userSkill.skill.name)
-                        }
+            FlowLayout(spacing: 12) {
+                ForEach(currentSkills, id: \.id) { userSkill in
+                    SkillTag(
+                        skill: userSkill.skill,
+                        isSelected: currentSelectedSkills.contains(userSkill.skill.name)
+                    ) {
+                        toggleSkillSelection(userSkill.skill.name)
                     }
-                    
-                    // Кнопка добавления навыка
-                    Button(action: {
-                        // Навигация к соответствующему экрану редактирования навыков
-                        if selectedTab == .wantToLearn {
-                            // Навигация к экрану добавления желаемых навыков
-                            navigationPath.append("addDesiredSkills")
-                        } else {
-                            // Навигация к экрану добавления навыков для обучения
-                            navigationPath.append("addOwnedSkills")
-                        }
-                    }) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 16))
-                            Text("Add")
-                                .font(.system(size: 15, weight: .medium))
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(
-                            LinearGradient(
-                                colors: [
-                                    Color(red: 0.4, green: 0.55, blue: 0.85),
-                                    Color(red: 0.6, green: 0.45, blue: 0.85),
-                                    Color(red: 0.85, green: 0.5, blue: 0.7)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .opacity(0.8)
-                        .cornerRadius(20)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
                 }
+
+                // Кнопка добавления навыка — всегда отображается
+                Button(action: {
+                    if selectedTab == .wantToLearn {
+                        navigationPath.append("addDesiredSkills")
+                    } else {
+                        navigationPath.append("addOwnedSkills")
+                    }
+                }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 16))
+                        Text("Add")
+                            .font(.system(size: 15, weight: .medium))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.4, green: 0.55, blue: 0.85),
+                                Color(red: 0.6, green: 0.45, blue: 0.85),
+                                Color(red: 0.85, green: 0.5, blue: 0.7)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .opacity(0.8)
+                    .cornerRadius(20)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
             }
         }
         .frame(maxWidth: .infinity)
@@ -353,7 +336,7 @@ struct HomeView: View {
                 spacing: 12
             ) {
                 ForEach(filteredUsers) { user in
-                    FeaturedUserCard(user: user)
+                    AppUserCard(user: user, navigationPath: $navigationPath)
                 }
             }
             .padding(.horizontal, 20)
@@ -442,7 +425,7 @@ struct SkillTag: View {
     }
 }
 
-struct FeaturedUser: Identifiable {
+struct HomeUser: Identifiable {
     let id: String
     let name: String
     let bio: String
@@ -451,61 +434,84 @@ struct FeaturedUser: Identifiable {
     let skillIcons: [String]
 }
 
-struct FeaturedUserCard: View {
-    let user: FeaturedUser
+struct AppUserCard: View {
+    let user: AppUser
+    @Binding var navigationPath: NavigationPath
     
     var body: some View {
-        VStack(spacing: 12) {
-            Circle()
-                .fill(Color.gray.opacity(0.2))
-                .frame(width: 80, height: 80)
-                .overlay(
-                    Image(user.avatarName)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 80, height: 80)
-                        .clipShape(Circle())
-                )
-            
-            Text(user.name)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.primary)
-            
-            Text(user.bio)
-                .font(.system(size: 13))
-                .foregroundColor(.gray)
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Text("User skills:")
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray)
+        Button {
+            navigationPath.append(user)
+        } label: {
+            VStack(spacing: 12) {
+                AvatarView(avatarImage: .constant(nil), avatarUrl: .constant(user.avatarUrl), size: 80)
                 
-                HStack(spacing: 8) {
-                    ForEach(user.skillIcons.prefix(5), id: \.self) { icon in
-                        Text(icon)
-                            .font(.system(size: 20))
-                    }
-                }
-                
-                if user.skillIcons.count > 5 {
-                    HStack(spacing: 8) {
-                        ForEach(user.skillIcons.dropFirst(5).prefix(3), id: \.self) { icon in
-                            Text(icon)
-                                .font(.system(size: 20))
+                VStack(spacing: 5) {
+                    Text(user.name ?? user.username ?? "User")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                    
+                    Group {
+                        if let bio = user.bio, !bio.isEmpty {
+                            Text(bio)
+                        } else if let username = user.username {
+                            Text("@\(username)")
                         }
                     }
+                    .font(.system(size: 13))
+                    .foregroundColor(.gray)
+                    .lineLimit(2)
+                }
+                
+                if !user.ownedSkills.isEmpty {
+                    IconSkillRow(skills: user.ownedSkills, tint: .newBlue)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                if !user.desiredSkills.isEmpty {
+                    IconSkillRow(skills: user.desiredSkills, tint: .newPink)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(16)
+            .frame(maxWidth: .infinity)
+            .background(Color.gray.opacity(0.08))
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+            )
         }
-        .padding(16)
-        .frame(maxWidth: .infinity)
-        .background(Color.gray.opacity(0.08))
-        .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-        )
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+private struct IconSkillRow: View {
+    let skills: [UserSkill]
+    var tint: Color = .blue
+    private let maxVisible = 3
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(skills.prefix(maxVisible), id: \.id) { us in
+                Image(systemName: us.skill.iconName ?? "star.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(tint)
+                    .padding(8)
+                    .background(tint.opacity(0.12))
+                    .clipShape(Circle())
+            }
+            if skills.count > maxVisible {
+                let extra = skills.count - maxVisible
+                Text("+\(extra)")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(tint)
+                    .padding(8)
+                    .background(tint.opacity(0.12))
+                    .clipShape(Circle())
+            }
+        }
     }
 }
 

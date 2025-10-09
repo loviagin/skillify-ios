@@ -8,10 +8,16 @@
 import Foundation
 import UIKit
 
+// MARK: - API Response Models
+struct FollowingResponse: Codable {
+    let isFollowing: Bool
+}
+
 final class UserViewModel: ObservableObject {
     @Published var currentUser: AppUser?
     @Published var isLoading = false
     @Published var error: String?
+    @Published var allUsers: [AppUser] = []
     
     private let authManager: AuthManager
     
@@ -30,8 +36,159 @@ final class UserViewModel: ObservableObject {
             return r.available ?? false
         } catch { return false }
     }
+
+    // MARK: - Fetch All Users
+    @MainActor
+    func fetchAllUsers() async {
+        error = nil
+        do {
+            guard let url = URL(string: "\(URLs.serverUrl)/v1/users") else {
+                throw NSError(domain: "UserViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])
+            }
+
+            let (data, response) = try await authManager.performAuthorizedRequest(url)
+            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+                throw NSError(domain: "UserViewModel", code: (response as? HTTPURLResponse)?.statusCode ?? -1, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch users"])
+            }
+
+            struct SlimSkill: Decodable {
+                struct S: Decodable { let id: String; let name: String; let category: String; let icon_name: String? }
+                let skill: S
+                let level: String?
+            }
+
+            struct SlimUser: Decodable, Identifiable {
+                let id: String
+                let auth_user_id: String
+                let name: String?
+                let username: String?
+                let email_snapshot: String?
+                let avatar_url: String?
+                let bio: String?
+                let birth_date: String?
+                let roles: [String]?
+                let last_login_at: String?
+                let created_at: String?
+                let updated_at: String?
+                let owned_skills: [SlimSkill]?
+                let desired_skills: [SlimSkill]?
+                let subscription: AppUser.Subscription?
+            }
+
+            let raw = try JSONDecoder().decode([SlimUser].self, from: data)
+
+            let iso = ISO8601DateFormatter()
+            iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            let isoNoMs = ISO8601DateFormatter()
+            isoNoMs.formatOptions = [.withInternetDateTime]
+            let ymd = DateFormatter()
+            ymd.dateFormat = "yyyy-MM-dd"
+            ymd.timeZone = TimeZone(secondsFromGMT: 0)
+
+            func parseDate(_ s: String?) -> Date? {
+                guard let s else { return nil }
+                return iso.date(from: s) ?? isoNoMs.date(from: s) ?? ymd.date(from: s)
+            }
+
+            func mapLevel(_ s: String?) -> SkillLevel? {
+                guard let s else { return nil }
+                switch s.lowercased() {
+                case "bronze": return .bronze
+                case "silver": return .silver
+                case "gold": return .gold
+                default: return nil
+                }
+            }
+
+            func mapSkill(_ ss: SlimSkill) -> UserSkill {
+                let skill = Skill(id: ss.skill.id, name: ss.skill.name, category: ss.skill.category, iconName: ss.skill.icon_name)
+                return UserSkill(skill: skill, level: mapLevel(ss.level))
+            }
+
+            let mapped = raw.map { u in
+                AppUser(
+                    id: u.id,
+                    authUserId: u.auth_user_id,
+                    emailSnapshot: u.email_snapshot,
+                    name: u.name,
+                    username: u.username,
+                    bio: u.bio,
+                    birthDate: parseDate(u.birth_date),
+                    avatarUrl: u.avatar_url,
+                    roles: u.roles ?? [],
+                    ownedSkills: (u.owned_skills ?? []).map(mapSkill),
+                    desiredSkills: (u.desired_skills ?? []).map(mapSkill),
+                    lastLoginAt: parseDate(u.last_login_at),
+                    createdAt: parseDate(u.created_at) ?? Date(),
+                    updatedAt: parseDate(u.updated_at) ?? Date(),
+                    subscription: u.subscription
+                )
+            }
+            print("[UserViewModel] fetched users: \(mapped.count)")
+            self.allUsers = mapped
+        } catch {
+            print("[UserViewModel] Failed to fetch users:", error)
+            self.error = "Failed to load users: \(error.localizedDescription)"
+        }
+    }
     
     // MARK: - Fetch Profile
+    
+    /// Загружает профиль пользователя по ID
+    func getUserProfile(userId: String) async -> AppUser? {
+        do {
+            guard let url = URL(string: "\(URLs.serverUrl)/v1/users/\(userId)") else {
+                print("❌ Invalid URL for user profile: \(userId)")
+                return nil
+            }
+            
+            let (data, response) = try await authManager.performAuthorizedRequest(url)
+            
+            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+                print("❌ Failed to fetch user profile: \(userId), status: \((response as? HTTPURLResponse)?.statusCode ?? -1)")
+                return nil
+            }
+            
+            let decoder = JSONDecoder()
+            // Используем ту же стратегию декодирования дат, что и в fetchProfile
+            decoder.dateDecodingStrategy = .custom { decoder in
+                let container = try decoder.singleValueContainer()
+                let dateString = try container.decode(String.self)
+                
+                // Пробуем разные форматы дат
+                let iso8601Formatter = ISO8601DateFormatter()
+                iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                
+                if let date = iso8601Formatter.date(from: dateString) {
+                    return date
+                }
+                
+                let iso8601NoMsFormatter = ISO8601DateFormatter()
+                iso8601NoMsFormatter.formatOptions = [.withInternetDateTime]
+                
+                if let date = iso8601NoMsFormatter.date(from: dateString) {
+                    return date
+                }
+                
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd"
+                
+                if let date = dateFormatter.date(from: dateString) {
+                    return date
+                }
+                
+                throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date string \(dateString)")
+            }
+            
+            let user = try decoder.decode(AppUser.self, from: data)
+            print("✅ Successfully fetched user profile: \(user.id) - \(user.name)")
+            return user
+            
+        } catch {
+            print("❌ Error fetching user profile: \(error)")
+            return nil
+        }
+    }
     
     /// Загружает профиль текущего пользователя
     @MainActor
@@ -237,6 +394,88 @@ extension UserViewModel {
             scopes: ["openid", "profile", "email"]
         ))
         return UserViewModel(authManager: mockAuthManager)
+    }
+    
+    // MARK: - Subscription Methods
+    func followUser(userId: String) async -> Bool {
+        let urlString = "\(URLs.serverUrl)/v1/users/\(userId)/follow"
+        print("🌐 Follow URL: \(urlString)")
+        guard let url = URL(string: urlString) else { 
+            print("❌ Invalid URL: \(urlString)")
+            return false 
+        }
+        
+        do {
+            print("📡 Making POST request to follow user...")
+            let (_, response) = try await authManager.performAuthorizedRequest(url, method: "POST")
+            guard let httpResponse = response as? HTTPURLResponse else { 
+                print("❌ Invalid HTTP response")
+                return false 
+            }
+            print("📡 Follow response status: \(httpResponse.statusCode)")
+            return httpResponse.statusCode == 200 || httpResponse.statusCode == 201
+        } catch {
+            print("❌ Follow error: \(error)")
+            return false
+        }
+    }
+    
+    func unfollowUser(userId: String) async -> Bool {
+        guard let url = URL(string: "\(URLs.serverUrl)/v1/users/\(userId)/follow") else { return false }
+        
+        do {
+            let (_, response) = try await authManager.performAuthorizedRequest(url, method: "DELETE")
+            guard let httpResponse = response as? HTTPURLResponse else { return false }
+            return httpResponse.statusCode == 200
+        } catch {
+            print("Unfollow error: \(error)")
+            return false
+        }
+    }
+    
+    func checkIfFollowing(userId: String) async -> Bool {
+        guard let url = URL(string: "\(URLs.serverUrl)/v1/users/\(userId)/following") else { return false }
+        
+        do {
+            let (data, response) = try await authManager.performAuthorizedRequest(url)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return false }
+            
+            let result = try JSONDecoder().decode(FollowingResponse.self, from: data)
+            return result.isFollowing
+        } catch {
+            print("Check following error: \(error)")
+            return false
+        }
+    }
+    
+    func getUserSubscriptions() async -> [AppUser] {
+        guard let url = URL(string: "\(URLs.serverUrl)/v1/me/subscriptions") else { return [] }
+        
+        do {
+            let (data, response) = try await authManager.performAuthorizedRequest(url)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return [] }
+            
+            let users = try JSONDecoder().decode([AppUser].self, from: data)
+            return users
+        } catch {
+            print("Get subscriptions error: \(error)")
+            return []
+        }
+    }
+    
+    func getUserFollowers() async -> [AppUser] {
+        guard let url = URL(string: "\(URLs.serverUrl)/v1/me/followers") else { return [] }
+        
+        do {
+            let (data, response) = try await authManager.performAuthorizedRequest(url)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return [] }
+            
+            let users = try JSONDecoder().decode([AppUser].self, from: data)
+            return users
+        } catch {
+            print("Get followers error: \(error)")
+            return []
+        }
     }
 }
 

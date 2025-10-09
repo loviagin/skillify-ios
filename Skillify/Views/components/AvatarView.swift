@@ -24,11 +24,14 @@ struct AvatarView: View {
             if Avatars.avatars.contains(avatarUrl) {
                 Image(avatarUrl)
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .scaledToFill()
                     .frame(width: size, height: size)
-                    .padding([.top, .leading, .trailing])
-                    .background(.newBlue.opacity(0.5))
                     .clipShape(Circle())
+                    .background(
+                        Circle()
+                            .fill(Color.newBlue.opacity(0.5))
+                            .frame(width: size, height: size)
+                    )
             } else if let url = URL(string: avatarUrl) {
                 AsyncImage(url: url) { phase in
                     if let image = phase.image {
@@ -37,6 +40,11 @@ struct AvatarView: View {
                             .scaledToFill()
                             .frame(width: size, height: size)
                             .clipShape(Circle())
+                            .background(
+                                Circle()
+                                    .fill(Color.newBlue.opacity(0.5))
+                                    .frame(width: size, height: size)
+                            )
                     } else if phase.error != nil {
                         Circle()
                             .fill(Color.gray.opacity(0.2))

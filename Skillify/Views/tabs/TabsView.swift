@@ -19,7 +19,13 @@ struct TabsView: View {
                 }
                 .tag(AppTab.home)
             
-            ProfileView(userViewModel: authViewModel.userViewModel)
+            DiscoverView()
+                .tabItem {
+                    Label("Discover", systemImage: "safari")
+                }
+                .tag(AppTab.discover)
+            
+            AccountView(userViewModel: authViewModel.userViewModel)
                 .tabItem {
                     Label("Profile", systemImage: "person.circle")
                 }
